@@ -134,3 +134,11 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Other common exclusions
+.DS_Store
+build/
+
+# Dev document files
+tmp.md
+ToDo.md
