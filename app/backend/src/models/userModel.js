@@ -8,7 +8,8 @@ class User {
     this.updated_at = userData.updated_at;
   }
   
-  // Returns a user object without sensitive data like password
+  // Returns a user object without sensitive data like password. Other file want to use User
+  // model must use this method instead of directly accessing the userData object.
   static getSafeUser(userData) {
     if (!userData) return null;
     

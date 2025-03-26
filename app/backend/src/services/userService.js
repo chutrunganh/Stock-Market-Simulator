@@ -1,5 +1,11 @@
+/** 
+ * The userService.js file contains the service functions that handle the business logic, in this case 
+ * is SQL queries, for the user-related operations. it interract with the database through ORM userModel.js
+ * 
+*/
 import pool from '../config/dbConnect.js';
 import User from '../models/userModel.js';
+
 
 // This function is responsible for creating a new user in the database
 export const createUserService = async (userData) => {
@@ -23,6 +29,7 @@ export const createUserService = async (userData) => {
   }
 };
 
+
 // This function retrieves all users from the database
 export const getAllUsersService = async () => {
   try {
@@ -32,6 +39,7 @@ export const getAllUsersService = async () => {
     throw new Error(`Error getting users: ${error.message}`);
   }
 };
+
 
 
 // This function retrieves a user by their ID from the database

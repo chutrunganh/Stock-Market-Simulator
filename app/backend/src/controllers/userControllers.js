@@ -1,4 +1,9 @@
-// Import from services instead of models
+/**
+ * Controller fucntions are responsible for extracting data from the request, calling and passing data to the service functions, and 
+sending the response back to the client. They should not contain any business logic or database queries. The service 
+functions will be responsible for those tasks.
+ */
+
 import { createUserService, getAllUsersService, getUserByIdService, updateUserService, deleteUserService } from '../services/userService.js';
 
 // Standardized response format
@@ -15,7 +20,7 @@ export const createUser = async (req, res, next) => {
     const { username, email, password } = req.body;
     console.log(req.body);
     try {
-        const newUser = await createUserService({ username, email, password });
+        const newUser = await createUserService({ username, email, password }); // Call to service function in userService.js
         handleResponse(res, 201, 'User created successfully', newUser);
     }
     catch (error) {
@@ -36,7 +41,7 @@ export const getAllUsers = async (req, res, next) => {
 export const getUserById = async (req, res, next) => {
     const { id } = req.params;
     try {
-        const user = await getUserByIdService(id);
+        const user = await getUserByIdService(id);  // Call to service function in userService.js
         if (!user) {
             return handleResponse(res, 404, 'User not found');
         }
@@ -51,7 +56,7 @@ export const updateUser = async (req, res, next) => {
     const { id } = req.params;
     const { username, email, password } = req.body;
     try {
-        const updatedUser = await updateUserService(id, { username, email, password });
+        const updatedUser = await updateUserService(id, { username, email, password });  // Call to service function in userService.js
         if (!updatedUser) {
             return handleResponse(res, 404, 'User not found');
         }
@@ -65,7 +70,7 @@ export const updateUser = async (req, res, next) => {
 export const deleteUser = async (req, res, next) => {
     const { id } = req.params;
     try {
-        const deletedUser = await deleteUserService(id);
+        const deletedUser = await deleteUserService(id);  // Call to service function in userService.js
         if (!deletedUser) {
             return handleResponse(res, 404, 'User not found');
         }
