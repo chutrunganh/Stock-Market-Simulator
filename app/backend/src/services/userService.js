@@ -2,6 +2,7 @@
  * The userService.js file contains the service functions that handle the business logic, in this case 
  * is SQL queries, for the user-related operations. it interract with the database through ORM userModel.js
  * 
+ * When writing SQL queries, it's important to use $1, $2, etc. as placeholders for parameters to prevent SQL injection attacks.
 */
 import pool from '../config/dbConnect.js';
 import User from '../models/userModel.js';
