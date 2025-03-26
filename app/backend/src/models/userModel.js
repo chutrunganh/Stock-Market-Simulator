@@ -1,29 +1,26 @@
-const mongoose = require('mongoose');
+// A User model that represents the user entity
+class User {
+  constructor(userData) {
+    this.id = userData.id;
+    this.username = userData.username;
+    this.email = userData.email;
+    this.created_at = userData.created_at;
+    this.updated_at = userData.updated_at;
+  }
+  
+  // Returns a user object without sensitive data like password
+  static getSafeUser(userData) {
+    if (!userData) return null;
+    
+    return {
+      id: userData.id,
+      username: userData.username,
+      email: userData.email,
+      created_at: userData.created_at,
+      updated_at: userData.updated_at
+    };
+  }
+}
 
-//Create a user schema
-const userSchema = new mongoose.Schema({
-    username: {
-        type: String,
-        required: [true, 'Please provide a name'],
-        unique: [true, 'Name already exists'],
-    },
-    email: {
-        type: String,
-        required: [true, 'Please provide an email'],
-        unique: [true, 'Email already exists'],
-    },
-    password: {
-        type: String,
-        required: [true, 'Please provide a password'],
-    },
-    role: {
-        type: String,
-        required: true,
-        enum: ['user', 'manager', 'admin'],
-        default: 'user',
-    },
-});
+export default User;
 
-// Export the model so that we can use it in other files
-const User = mongoose.model('User', userSchema);
-module.exports = User;

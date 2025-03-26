@@ -1,40 +1,100 @@
-# 2A4C
-CNPM 20242
+# Run the project
 
-# Build with
+Make sure you have **Node.js**, **Yarn** and **Docker** installed on your machine.
 
-![Yarn](docs/images/yarn-original.svg)
+1. Create a `.env` file under the root directory, see the content inside the `.env.example` file. You can copy the content from `.env.example` to `.env` and change the values accordingly.
 
-![Node JS](docs/images/nodejs-original-wordmark.svg)
+2. Initialize the database by running docker-compose. This will create a PostgreSQL database and a pgAdmin instance:
+
+    ```bash
+    docker-compose up -d # -d is for detached mode, incase the database is not running, remove -d to see the logs
+    # docker-compose down # to stop the database
+    ```
+
+    All related configurations liek databse name, user, password, running port, etc. are definied by you in the `.env` file created in step 1. In case you do not change anything, you can now access the PgAdmin instance at `http://localhost:5050`.
+
+3. Navigate to the backend directory and run the following command:
+
+    ```bash
+    cd app/backend
+    yarn install # to install the dependencies
+    yarn start # to start the server
+    ```
+
+# Dependencies
+
+In this proejct, I use **Yarn** to manage dependencies. Some of the dependencies are:
+
+- **Express**: to build RestFul API
+- **dotenv**: to load environment variables
+- **pg**: to connect to PostgreSQL database and do query
+- **cors**: to enable CORS
+- **joi**: schema validation, any request come to our controller will be validated by joi first
+
+*CORS (Cross-Origin Resource Sharing) is a security feature implemented by web browsers to control how resources on a web page can be requested from another domain outside the domain from which the resource originated. The purpose of using CORS is to allow or restrict web applications running at one origin (domain) to access resources from a different origin. This is important for enabling secure cross-origin requests and data sharing between different domains.*
 
 
-# RUN
+# Folder structure
 
-Set up the database:
-
-Create `.env` file at the root of the project, you can read the instrcutions in the `.env.example` file to see the template, replace with the username and password you want to use or just use the default values.
-
-After that, run the following commands:
-
-```bash
-
-docker-compose up -d # start the database
-# docker-compose down # stop the database
-
-After that, go to loccalhost:8080 to access the pgadmin interface, login with the credentials you set in the .env file.
-
+```plaintext
+stock-market-simulator/
+|
+├── app/                             # All application code here
+│   ├── backend/ 
+│   │   │── src/                   
+│   │   │   ├── config/             # Stores configuration (e.g., database connection, environment variables)
+│   │   │   ├── controllers/        # Receives requests -> passes them to the appropriate service -> returns response to the client
+│   │   │   ├── middleware/         # Middleware functions (e.g., validation, logging, error handling)
+│   │   │   ├── models/             # Defines objects schemas (e.g., user, stock, transaction)
+│   │   │   ├── routes/             # Specifies API endpoints to call corresponding controller functions
+│   │   │   ├── services/           # Called by cointroller to handle business logic 
+│   │   │   └── index.js            # Entry point for the backend application
+│   │   │
+│   │   │── package.json        # Backend dependencies
+│   │   └── yarn.lock           # Yarn lock file
+|   | 
+│   └── frontend/               # Contains all ReactJS frontend code
+│       ├── public/             # Static assets like index.html
+│       ├── src/                # Source code
+│       │   ├── assets/         # Images, fonts, etc.
+│       │   ├── components/     # Reusable UI pieces (e.g., buttons, stock cards).
+│       │   ├── pages/          # Full pages (e.g., Stock List, User Dashboard)
+│       │   ├── services/       # Functions to fetch data from the backend
+│       │   ├── styles/         # CSS/SCSS files
+│       │   ├── utils/          # Utility functions
+│       │   ├── App.js          # Main app component
+│       │   └── index.js        # Entry point
+│       ├── tests/              # Frontend tests
+│       └── package.json        # Frontend dependencies
+| 
+├── docs/                      
+│   ├── design/                 # Usecase diagram, class diagram, database design, etc.
+│   ├── setupInstruction/       # Instruction to setup database, requests in Postman, etc.
+│   ├── api/                    # API specifications
+│   └── reports/                # Project reports
+|
+├── scripts/                    # Holds scripts for automation (e.g., deployment, testing)
+│   ├── deploy.sh               # Deployment script
+│   └── test.sh                 # Test script
+|
+├── .github/                    # GitHub configurations
+│   └── workflows/              # CI/CD workflows
+│       ├── ci.yml              # Continuous integration
+│       └── cd.yml              # Continuous deployment
+|
+├── .gitignore                  
+├── README.md                   
+└── LICENSE                
 ```
 
-Then, run the following commands:
+# Backend Workflow Overview  
 
-```bash
+>index.js → routes → (middlewares) → controllers → services → models → services → controllers → (middlewares) → response to client.
 
-cd app/backend # go to the backend directory
-yarn install # install dependencies
-yarn start # start the server
-```
+For more detail:
+
+`index.js` listens for incoming requests and directs them to the appropriate route  &rarr; The route handler is called, which is defined in the `routes` directory. The route handler specifies the endpoint and the HTTP method (GET, POST, PUT, DELETE) &rarr; The route then calls the corresponding controller function  &rarr; The request might go through some middleware functions (e.g., validation, logging) in the `middlewares` folder before reaching the controller  &rarr; The controller function takes in the request, then passes parameters to service functions to perform the actual business logic (see `controllers` folder)  &rarr; The service functions, see `services` folder, may interact with the database model (see `models` folder)  &rarr; The controller receives the data from the service functions and processes it as needed  &rarr; Finally, the response (usually in **JSON format**) is sent back to the client.  
 
 
-The process will be as follows:
 
-User access to routes, which then calls the controller functions (may go throuhgt middelware berfore actual go to thet controller). The controller function hande the request, call the service functions, and return the response to the user. The services perfrom the business logic and interact with the database through the models. The models define the database structure and interact with the database. The database returns the data to the models, which then return the data to the services, and then to the controller, and finally to the user.
+
