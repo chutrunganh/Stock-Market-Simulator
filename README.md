@@ -40,16 +40,16 @@ In this proejct, I use **Yarn** to manage dependencies. Some of the dependencies
 ```plaintext
 stock-market-simulator/
 |
-├── app/                             # All application code here
+├── app/                        # All application code here
 │   ├── backend/ 
 │   │   │── src/                   
-│   │   │   ├── config/             # Stores configuration (e.g., database connection, environment variables)
-│   │   │   ├── controllers/        # Receives requests -> passes them to the appropriate service -> returns response to the client
-│   │   │   ├── middleware/         # Middleware functions (e.g., validation, logging, error handling)
-│   │   │   ├── models/             # Defines objects schemas (e.g., user, stock, transaction)
-│   │   │   ├── routes/             # Specifies API endpoints to call corresponding controller functions
-│   │   │   ├── services/           # Called by cointroller to handle business logic 
-│   │   │   └── index.js            # Entry point for the backend application
+│   │   │   ├── config/         # Stores configuration (e.g., database connection, environment variables)
+│   │   │   ├── controllers/    # Receives requests -> passes them to the appropriate service -> returns response to the client
+│   │   │   ├── middleware/     # Middleware functions (e.g., validation, logging, error handling)
+│   │   │   ├── models/         # Defines objects schemas (e.g., user, stock, transaction)
+│   │   │   ├── routes/         # Specifies API endpoints to call corresponding controller functions
+│   │   │   ├── services/       # Called by cointroller to handle business logic 
+│   │   │   └── index.js        # Entry point for the backend application
 │   │   │
 │   │   │── package.json        # Backend dependencies
 │   │   └── yarn.lock           # Yarn lock file
@@ -83,6 +83,9 @@ stock-market-simulator/
 │       ├── ci.yml              # Continuous integration
 │       └── cd.yml              # Continuous deployment
 |
+├── .env                        # Environment variables file, this will not include in the version control, recreate it from .env.example
+├── .env.example                # Example of environment variables file
+├── docker-compose.yml         # Docker Compose file to setup PostgreSQL and pgAdmin
 ├── .gitignore                  
 ├── README.md                   
 └── LICENSE                
