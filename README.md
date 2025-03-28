@@ -11,7 +11,7 @@ Make sure you have **Node.js**, **Yarn** and **Docker** installed on your machin
     # docker-compose down # to stop the database
     ```
 
-    All related configurations liek databse name, user, password, running port, etc. are definied by you in the `.env` file created in step 1. In case you do not change anything, you can now access the PgAdmin instance at `http://localhost:5050`, then setup PgAdmin to manage the Postgres database with GUI, see [setupInstruction](docs/setupInstruction/README.md) for more detail.
+    All related configurations liek databse name, user, password, running port, etc. are definied by you in the `.env` file created in step 1. In case you do not change anything, you can now access the PgAdmin instance at `http://localhost:5050`, then setup PgAdmin to manage the Postgres database with GUI, see [setupInstruction](docs\setupInstructions\setupDatabase.md) for more detail.
 
 3. Navigate to the backend directory and run the following command:
 
@@ -20,7 +20,7 @@ Make sure you have **Node.js**, **Yarn** and **Docker** installed on your machin
     yarn install # to install the dependencies
     yarn start # to start the server
     ```
-4. Test the backend API by sending requests to the endpoints. You can use Postman or any other API testing tool. See [API specifications](docs/api/README.md) for more detail.
+4. Test the backend API by sending requests to the endpoints. You can use Postman or any other API testing tool. See [API specifications](docs\setupInstructions\setupPostmanRequests.md) for more detail.
 
 # Dependencies
 
