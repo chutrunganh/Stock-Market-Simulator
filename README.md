@@ -20,7 +20,7 @@ Make sure you have **Node.js**, **Yarn** and **Docker** installed on your machin
     yarn install # to install the dependencies
     yarn start # to start the server
     ```
-4. Test the backend API by sending requests to the endpoints. You can use Postman or any other API testing tool. See [API specifications](docs/api/README.md) for more detail.
+4. Test the backend API by sending requests to the endpoints. You can use Postman or any other API testing tool. See [API specifications](docs\setupInstructions\setupPostmanRequests.md) for more detail.
 
 # Dependencies
 
