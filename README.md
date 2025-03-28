@@ -100,5 +100,30 @@ For more detail:
 `index.js` listens for incoming requests and directs them to the appropriate route  &rarr; The route handler is called, which is defined in the `routes` directory. The route handler specifies the endpoint and the HTTP method (GET, POST, PUT, DELETE) &rarr; The route then calls the corresponding controller function  &rarr; The request might go through some middleware functions (e.g., validation, logging) in the `middlewares` folder before reaching the controller  &rarr; The controller function takes in the request, then passes parameters to service functions to perform the actual business logic (see `controllers` folder)  &rarr; The service functions, see `services` folder, may interact with the database model (see `models` folder)  &rarr; The controller receives the data from the service functions and processes it as needed  &rarr; Finally, the response (usually in **JSON format**) is sent back to the client.  
 
 
+# Branch strategy
 
+- `main` Branch
+    - Purpose: Holds production-ready, stable code.
+    - Usage: Only fully tested and approved changes are merged here, typically from release or hotfix branches.
 
+- `develop` Branch
+    - Purpose: Acts as the integration branch for ongoing development.
+    - Usage: Both frontend and backend teams merge their feature branches here to combine their work continuously, triggering CI/CD pipelines 
+
+- `feature`/ Branches
+    - Purpose: Short-lived branches for specific tasks or features.
+    - Naming: Use prefixes to indicate the team (frontend or backend) then the features:  `features/frontend-<feature-name>` or `features/backend-<feature-name>`. For example, if the frontend team is working on a login feature, the branch name could be `feature/frontend-login`. If the backend team is working on authentication, the branch name could be `feature/backend-auth`. 
+    
+    - Workflow: Created from `develop`, worked on by one developer (or a small team if needed), and merged back into develop via pull requests (PRs)
+
+- `release` Branches
+    - Purpose: Prepare for a new production release.
+    - Naming: Use a versioning system, e.g., `release/v1.0.0`.
+    - Workflow: Created from `develop` when the code is ready for release. This branch is used for final testing and bug fixes before merging into `main`.
+
+- `hotfix` Branches
+    - Purpose: Quickly address critical issues in production.
+    - Naming: Use a versioning system, e.g., `hotfix/v1.0.1`.
+    - Workflow: Created from `main` to fix urgent bugs. After the fix, it is merged back into both `main` and `develop`.
+
+&rarr; Each developer creates a `feature/` branch from `develop` for their assigned task. When the task is done, they create a pull request to merge their changes back into `develop`. Once the code is merged into `develop`, it can be tested and eventually `merged` into main when ready for production.
