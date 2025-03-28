@@ -7,9 +7,17 @@ const createUserTable = async () => {
       username VARCHAR(100) NOT NULL,
       email VARCHAR(100) UNIQUE NOT NULL,
       password VARCHAR(255) NOT NULL,
+      role VARCHAR(50) DEFAULT 'user' CHECK (role IN ('user', 'admin')), -- Add role column with ENUM-like constraint
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`;
+
+    /**
+     * Why I use CHECK constraint instead of ENUM?
+     * 1. Flexibility: CHECK constraints allow for more complex conditions and can be modified easily withoutneeding to 
+     * alter the database schema.
+     * 2. Simplier to implemet, maintain and also more portable across different databases systems.
+     */
 
   try {
     // In production, you shouldn't drop tables on each startup
@@ -37,10 +45,10 @@ const createUserTable = async () => {
 const seedTestData = async () => {
   try {
     const seedQuery = `
-      INSERT INTO users (username, email, password)
+      INSERT INTO users (username, email, password, role)
       VALUES 
-        ('TestUser', 'test@example.com', 'password123'),
-        ('AdminUser', 'admin@example.com', 'admin123')
+        ('TestUser', 'test@example.com', 'password123', 'user'),
+        ('AdminUser', 'admin@example.com', 'admin123', 'admin')
       ON CONFLICT (email) DO NOTHING;
     `;
     await pool.query(seedQuery);
