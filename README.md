@@ -1,3 +1,7 @@
+# For frontend Dev
+
+See the API specifications in the this [docs](app/backend/testAPI.http) folder to understand how to use the API. Install REST Client extension in your VSCode to run this file.
+
 # Run the project
 
 Make sure you have **Node.js**, **Yarn** and **Docker** installed on your machine.
@@ -31,6 +35,8 @@ In this proejct, I use **Yarn** to manage dependencies. Some of the dependencies
 - **pg**: to connect to PostgreSQL database and do query
 - **cors**: to enable CORS
 - **joi**: schema validation, any request come to our controller will be validated by joi first
+- **bcrypt**: to hash password
+- **jsonwebtoken**: to create and verify JWT tokens
 
 *CORS (Cross-Origin Resource Sharing) is a security feature implemented by web browsers to control how resources on a web page can be requested from another domain outside the domain from which the resource originated. The purpose of using CORS is to allow or restrict web applications running at one origin (domain) to access resources from a different origin. This is important for enabling secure cross-origin requests and data sharing between different domains.*
 
