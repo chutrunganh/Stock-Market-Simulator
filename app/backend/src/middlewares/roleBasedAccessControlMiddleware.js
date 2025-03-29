@@ -1,3 +1,6 @@
+// ALWAYS have next() in the last line of the middleware function to pass control to the next 
+// middleware or route handler (except for error handling middleware).
+
 const authorizeRole = (requiredRole) => {
     return (req, res, next) => {
       const userRole = req.user.role; // Assume `req.user` is populated after authentication

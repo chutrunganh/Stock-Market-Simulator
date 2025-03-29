@@ -1,4 +1,7 @@
 import pool from './dbConnect.js';
+import bcrypt from 'bcrypt';
+
+const SALT_ROUNDS = 10;
 
 const createUserTable = async () => {
   const queryText = ` 
@@ -41,18 +44,27 @@ const createUserTable = async () => {
   }
 };
 
-// Optional seeding function for development
+// Optional seeding function for development, we create two test accounts: one regular user and one admin user
+// to the database evry time the server starts in development mode.
 const seedTestData = async () => {
   try {
+    // Hash the passwords
+    const userPassword = await bcrypt.hash('password123', SALT_ROUNDS);
+    const adminPassword = await bcrypt.hash('admin123', SALT_ROUNDS);
+    
     const seedQuery = `
       INSERT INTO users (username, email, password, role)
       VALUES 
-        ('TestUser', 'test@example.com', 'password123', 'user'),
-        ('AdminUser', 'admin@example.com', 'admin123', 'admin')
+        ('TestUser', 'test@example.com', $1, 'user'),
+        ('AdminUser', 'admin@example.com', $2, 'admin')
       ON CONFLICT (email) DO NOTHING;
     `;
-    await pool.query(seedQuery);
+    
+    await pool.query(seedQuery, [userPassword, adminPassword]);
     console.log('Test data seeded successfully');
+    console.log('Test accounts created:');
+    console.log('- Regular user: email=test@example.com, password=password123');
+    console.log('- Admin user: email=admin@example.com, password=admin123');
   } catch (error) {
     console.error('Error seeding test data:', error.message);
   }
