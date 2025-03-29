@@ -4,6 +4,7 @@ class User {
     this.id = userData.id;
     this.username = userData.username;
     this.email = userData.email;
+    this.role = userData.role;
     this.created_at = userData.created_at;
     this.updated_at = userData.updated_at;
   }
@@ -17,6 +18,7 @@ class User {
       id: userData.id,
       username: userData.username,
       email: userData.email,
+      role: userData.role,
       created_at: userData.created_at,
       updated_at: userData.updated_at
     };
