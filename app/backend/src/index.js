@@ -7,7 +7,7 @@ import userRoutes from './routes/userRoutes.js';
 import errorHandling from './middlewares/errorHandler.js';
 import createDatabase from './config/createDatabase.js';
 import createUserTable from './config/createUserTable.js';
-
+import createTransactionTable from './config/createTransactionTable.js';
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -29,6 +29,7 @@ const initializeDatabase = async () => {
     
     // Then create tables
     await createUserTable();
+    await createTransactionTable();
     console.log('Database initialization completed');
   } catch (error) {
     console.error('Database initialization failed:', error);

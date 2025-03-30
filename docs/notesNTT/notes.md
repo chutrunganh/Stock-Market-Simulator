@@ -19,3 +19,6 @@ Backend src folders usage:
 - services: handles complex logic, interacts with databases or external services. For example in userServices.js, we have some method that create and insert user into database, get all users/specific user from database, update an existed user in the database by their ID, delete existed user from the database.
 
 Export is used so that the exported element can be used in the main application file such as index.js
+
+Backend tasks:
+* Transactions: retrieves 
