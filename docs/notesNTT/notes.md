@@ -20,5 +20,9 @@ Backend src folders usage:
 
 Export is used so that the exported element can be used in the main application file such as index.js
 
-Backend tasks:
-* Transactions: retrieves 
+
+Command to by pass when running yarn start
+
+```
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+```

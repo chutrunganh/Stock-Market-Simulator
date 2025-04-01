@@ -79,6 +79,7 @@ export const getTransactionByStockIdService = async (stock_id) => {
 //delete a transaction from the table
 
 //delete transaction by portfolio_id - specific user
+// this should only be performed after an user is deleted from the system
 export const deleteTransactionByPortfolioIdService = async (portfolio_id) => {
     try{
         const result = await pool.query(
@@ -98,6 +99,7 @@ export const deleteTransactionByPortfolioIdService = async (portfolio_id) => {
 
 
 //delete transaction by stock_id - delete all transactions of a specific stock (for admin only)
+//this should only be performed after a stock is deleted from the system
 export const deleteTransactionByStockIdService = async (stock_id) => {
     try{
         const result = await pool.query(

@@ -8,6 +8,9 @@ import errorHandling from './middlewares/errorHandler.js';
 import createDatabase from './config/createDatabase.js';
 import createUserTable from './config/createUserTable.js';
 import createTransactionTable from './config/createTransactionTable.js';
+import createStockTable from './config/createStockTable.js';
+import createStockPriceTable from './config/createStockPriceTable.js';
+import createPortfolioTable from './config/createPortfolioTable.js';
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -29,7 +32,12 @@ const initializeDatabase = async () => {
     
     // Then create tables
     await createUserTable();
+    await createPortfolioTable();
     await createTransactionTable();
+    await createStockTable();
+    await createStockPriceTable();
+    
+    
     console.log('Database initialization completed');
   } catch (error) {
     console.error('Database initialization failed:', error);
