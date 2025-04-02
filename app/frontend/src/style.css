@@ -1,0 +1,373 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #1a1a1a;
+    color: #ffd700;
+}
+
+.navbar {
+    background-color: #000000;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(255, 215, 0, 0.2);
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #ffd700;
+}
+
+.nav-buttons {
+    display: flex;
+    align-items: center;
+}
+
+.login-btn {
+    background-color: #ffd700;
+    color: #000000;
+    border: none;
+    padding: 0.5rem 1.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.login-btn:hover {
+    background-color: #ffed4a;
+    transform: translateY(-2px);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+/* Hiệu ứng khi hover vào nút */
+.login-btn:active {
+    transform: translateY(0);
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: #1a1a1a;
+    margin: 8% auto;
+    padding: 2.5rem;
+    border: 2px solid #ffd700;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 400px;
+    position: relative;
+    animation: modalFadeIn 0.3s;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.close {
+    position: absolute;
+    right: 1rem;
+    top: 0.5rem;
+    color: #ffd700;
+    font-size: 2rem;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #ffed4a;
+}
+
+.modal-content h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #ffd700;
+}
+
+.form-group {
+    margin-bottom: 2.5rem;
+    position: relative;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #ffd700;
+    font-size: 0.95rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.8rem;
+    padding-right: 2.5rem;
+    border: 1px solid #ffd700;
+    border-radius: 5px;
+    background-color: #2a2a2a;
+    color: #ffd700;
+    font-size: 0.95rem;
+    line-height: 1.2;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #ffed4a;
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+.form-actions {
+    margin-top: 3rem;
+}
+
+.submit-btn {
+    background-color: #ffd700;
+    color: #000000;
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    width: 100%;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.submit-btn:hover {
+    background-color: #ffed4a;
+    transform: translateY(-2px);
+}
+
+.extra-links {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+}
+
+.extra-links a {
+    font-size: 0.9rem;
+    color: #ffd700;
+    text-decoration: none;
+    flex: 1;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.extra-links a:hover {
+    color: #ffed4a;
+    text-decoration: underline;
+}
+
+.password-hint {
+    color: #ffd700;
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+    display: block;
+    line-height: 1.2;
+    transition: color 0.3s ease;
+}
+
+.form-group.error .password-hint {
+    color: #ff4444;
+}
+
+.error-message {
+    color: #ff4444;
+    font-size: 0.9rem;
+    display: none;
+    position: absolute;
+    bottom: -1.8rem;
+    left: 0;
+    width: 100%;
+    line-height: 1.2;
+}
+
+.error-message.show {
+    display: block;
+}
+
+.form-group.error {
+    margin-bottom: 3.5rem;
+}
+
+.form-group.error input {
+    border-color: #ff4444;
+}
+
+.password-field {
+    position: relative;
+    margin-bottom: 3rem;
+}
+
+.password-input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #ffd700;
+    cursor: pointer;
+    user-select: none;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+}
+
+.password-toggle:hover {
+    color: #ffed4a;
+}
+
+.password-toggle i {
+    font-size: 1.2rem;
+}
+
+.info-message {
+    color: #ffd700;
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+    display: block;
+    font-style: italic;
+    line-height: 1.2;
+    position: absolute;
+    width: 100%;
+}
+
+.success-message {
+    color: #4CAF50;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+    text-align: center;
+    display: none;
+}
+
+.success-message.show {
+    display: block;
+}
+
+/* Styles cho user dropdown */
+.user-info {
+    position: relative;
+}
+
+.user-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.user-button {
+    background: none;
+    border: 2px solid #ffd700;
+    color: #ffd700;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.user-button:hover {
+    background-color: rgba(255, 215, 0, 0.1);
+}
+
+.user-avatar {
+    width: 24px;
+    height: 24px;
+    background-color: #ffd700;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-avatar i {
+    color: #000000;
+    font-size: 14px;
+}
+
+.user-email {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 120%;
+    background-color: #1a1a1a;
+    border: 2px solid #ffd700;
+    border-radius: 5px;
+    min-width: 200px;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(255, 215, 0, 0.2);
+}
+
+.user-dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-item {
+    color: #ffd700;
+    padding: 0.8rem 1rem;
+    text-decoration: none;
+    display: block;
+    transition: all 0.3s ease;
+}
+
+.dropdown-item:hover {
+    background-color: rgba(255, 215, 0, 0.1);
+}
+
+/* Animation cho dropdown */
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdown-content {
+    animation: dropdownFadeIn 0.2s ease;
+}
