@@ -2,16 +2,21 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
+import passport from 'passport';
 dotenv.config({ path: '../../.env' }); // Adjust based on relative depth
 import pool from './config/dbConnect.js';
 import userRoutes from './routes/userRoutes.js';
 import errorHandling from './middlewares/errorHandlerMiddleware.js';
 // Updated import path for createUserTable
 import createUserTable from './config/createUserTable.js';
+// Import passport configuration
+import configurePassport from './config/passportConfig.js';
+// Import Google OAuth controllers
+import { googleAuth, googleAuthCallback } from './controllers/userControllers.js';
 
 // Create express app
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.BE_PORT || 3000;
 
 // Middlewares
 app.use(express.json());
@@ -27,6 +32,10 @@ app.use(cors({
 }));
 app.use(cookieParser()); // Add cookie-parser middleware
 
+// Initialize and configure Passport
+const passportInstance = configurePassport();
+app.use(passport.initialize());
+
 // TESTING: test PostgreSQL connection
 app.get('/testdb', async (req, res) => {
     try {
@@ -36,6 +45,10 @@ app.get('/testdb', async (req, res) => {
         res.status(500).send('Database connection error: ' + error.message);
     }
 });
+
+// Define Google OAuth routes at the root level to match the callback URL in Google Cloud Console
+app.get('/auth/google', googleAuth);
+app.get('/auth/google/callback', googleAuthCallback);
 
 // Routes
 app.use('/api', userRoutes);

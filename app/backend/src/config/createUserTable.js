@@ -9,10 +9,12 @@ const createUserTable = async () => {
       id SERIAL PRIMARY KEY,
       username VARCHAR(100) NOT NULL,
       email VARCHAR(100) UNIQUE NOT NULL,
-      password VARCHAR(255) NOT NULL,
+      password VARCHAR(255),
+      google_id VARCHAR(255) UNIQUE,
       role VARCHAR(50) DEFAULT 'user' CHECK (role IN ('user', 'admin')), -- Add role column with ENUM-like constraint
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      CHECK (password IS NOT NULL OR google_id IS NOT NULL) -- Ensure at least one authentication method
     )`;
 
     /**
@@ -45,7 +47,7 @@ const createUserTable = async () => {
 };
 
 // Optional seeding function for development, we create two test accounts: one regular user and one admin user
-// to the database evry time the server starts in development mode.
+// to the database every time the server starts in development mode.
 const seedTestData = async () => {
   try {
     // Hash the passwords

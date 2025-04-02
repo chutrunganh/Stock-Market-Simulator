@@ -6,6 +6,7 @@ functions will be responsible for those tasks.
 import dotenv from 'dotenv';
 dotenv.config({ path: '../../.env' }); // Adjust based on relative depth
 import { createUserService, getAllUsersService, getUserByIdService, updateUserService, deleteUserService, loginUserService } from '../services/userService.js';
+import passport from 'passport';
 
 // Standardized response format
 const handleResponse = (res, status, message, data = null) => {
@@ -104,3 +105,46 @@ export const loginUser = async (req, res, next) => {
         next(error); // Pass error to the error handler middleware
     }
 }
+
+
+// Initiate Google OAuth authentication, no need to call to any services since this is handled by Passport.js
+export const googleAuth = (req, res, next) => {
+    passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+  };
+  
+// Handle Google OAuth callback, no need to call to any services since this is handled by Passport.js
+export const googleAuthCallback = (req, res, next) => {
+    passport.authenticate('google', { session: false }, async (err, user, info) => {
+        if (err) {
+            return next(err);
+        }
+        
+        if (!user) {
+            return handleResponse(res, 401, 'Google authentication failed');
+        }
+        
+        try {
+            // Put the JWT token in a cookie
+            res.cookie('jwt', user.token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                maxAge: 24 * 60 * 60 * 1000, // 24 hours
+                sameSite: 'strict'
+            });
+            
+            // For easy testing, return the token in the response as well
+            if (process.env.NODE_ENV === 'development') {
+                return handleResponse(res, 200, 'Google authentication successful', {
+                    user: user.user,
+                    token: user.token, // Include token for testing
+                    message: 'Copy this token for testing protected routes'
+                });
+            }
+            
+            // In production, redirect to frontend
+            res.redirect(process.env.FE_URL || 'http://localhost:3000');
+        } catch (error) {
+            next(error);
+        }
+    })(req, res, next);
+};
