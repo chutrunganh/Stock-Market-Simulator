@@ -107,12 +107,12 @@ export const loginUser = async (req, res, next) => {
 }
 
 
-// Initiate Google OAuth authentication, no need to call to any services since this is handled by Passport.js
+// Initiate Google OAuth authentication, no need to call to any services since this is handled by Passport.js built in function
 export const googleAuth = (req, res, next) => {
     passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
   };
   
-// Handle Google OAuth callback, no need to call to any services since this is handled by Passport.js
+// Handle Google OAuth callback, no need to call to any services since this is handled by Passport.js built in function
 export const googleAuthCallback = (req, res, next) => {
     passport.authenticate('google', { session: false }, async (err, user, info) => {
         if (err) {
@@ -142,7 +142,7 @@ export const googleAuthCallback = (req, res, next) => {
             }
             
             // In production, redirect to frontend
-            res.redirect(process.env.FE_URL || 'http://localhost:3000');
+            res.redirect(process.env.FE_URL);
         } catch (error) {
             next(error);
         }
