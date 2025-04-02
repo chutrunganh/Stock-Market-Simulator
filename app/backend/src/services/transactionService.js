@@ -2,7 +2,8 @@
 
 import pool from '../config/dbConnect.js';
 import Transaction from '../models/transactionModel.js';
-
+import { getPortfolioByUserIdService } from './portfolioService.js';
+import { getStockBySymbolService } from './stockService.js';
 //CRUD Services
 
 //create
@@ -115,3 +116,17 @@ export const deleteTransactionByStockIdService = async (stock_id) => {
         throw error;
     }
 };
+
+
+export const buyStockService = async (user_id, stock_symbol, quantity) => {
+    //get portfolio information to get cash balance
+    const portfolio = await getPortfolioByUserIdService(user_id);
+    const cash_balance = portfolio.cash_balance;
+
+    //find stock_id by stock_symbol then get stock price
+    const stock = await getStockBySymbolService(stock_symbol);
+
+    // check if user can make the transaction
+    
+    return;
+}
