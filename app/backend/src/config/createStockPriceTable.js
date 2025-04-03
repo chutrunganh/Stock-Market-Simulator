@@ -41,7 +41,8 @@ const seedStockPriceTestData = async () => {
         INSERT INTO stockprices (stock_id, date, open_price, high_price, low_price, close_price, volume)
         VALUES
         (1, '2023-10-01', 150.00, 155.00, 148.00, 153.00, 1000000),
-        (2, '2023-10-01', 200.00, 205.00, 198.00, 202.00, 2000000)`;
+        (2, '2023-10-01', 200.00, 205.00, 198.00, 202.00, 2000000),
+        (1, '2023-10-02', 155.00, 160.00, 146.00, 155.00, 1000000)`;
         await pool.query(queryText);
         console.log('Test data added to stock prices table successfully');
     }

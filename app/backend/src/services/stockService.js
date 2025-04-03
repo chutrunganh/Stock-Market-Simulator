@@ -1,5 +1,5 @@
-import pool from "../config/dbConnect";
-import Stocks from "../models/stockModel";
+import pool from "../config/dbConnect.js";
+import Stocks from "../models/stockModel.js";
 
 //create 
 

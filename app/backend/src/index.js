@@ -11,6 +11,9 @@ import createTransactionTable from './config/createTransactionTable.js';
 import createStockTable from './config/createStockTable.js';
 import createStockPriceTable from './config/createStockPriceTable.js';
 import createPortfolioTable from './config/createPortfolioTable.js';
+import createHoldingTable from './config/createHoldingTable.js';
+import { getStockPricesByStockIdService } from './services/stockPriceService.js';
+import { getStockBySymbolService } from './services/stockService.js';
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -36,6 +39,7 @@ const initializeDatabase = async () => {
     await createTransactionTable();
     await createStockTable();
     await createStockPriceTable();
+    await createHoldingTable();
     
     
     console.log('Database initialization completed');
@@ -44,11 +48,21 @@ const initializeDatabase = async () => {
     process.exit(1);
   }
 };
-
+const testStockPriceService = async() =>{
+  const stock_symbol = "AAPL";
+  const stock = await getStockBySymbolService(stock_symbol);
+  const stock_id = stock.stock_id;
+  try {
+    const stockPrices = await getStockPricesByStockIdService(stock_id);
+    console.log('Stock Prices:', stockPrices);
+  } catch (error) {
+      console.error('Error fetching stock prices:', error.message);
+  }
+};
 // Start server after database initialization
 const startServer = async () => {
   await initializeDatabase();
-  
+  await testStockPriceService();
   app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
     console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
