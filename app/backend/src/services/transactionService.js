@@ -2,9 +2,6 @@
 
 import pool from '../config/dbConnect.js';
 import Transaction from '../models/transactionModel.js';
-import { getPortfolioByUserIdService,updatePortfolioService } from './portfolioService.js';
-import { getStockBySymbolService } from './stockService.js';
-import { getStockPriceByStockIdService } from './stockPriceService.js';
 //CRUD Services
 
 //create
