@@ -115,4 +115,4 @@ export const deleteTransactionByStockIdService = async (stock_id) => {
     }
 };
 
-
+//transaction holders
