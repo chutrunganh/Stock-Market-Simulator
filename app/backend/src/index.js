@@ -14,14 +14,13 @@ import configurePassport from './config/passportConfig.js';
 // Import Google OAuth controllers
 import { googleAuth, googleAuthCallback } from './controllers/userControllers.js';
 import createDatabase from './config/createDatabase.js';
-import { 
-  createPortfolioTable, 
-  createTransactionTable, 
-  createStockTable, 
-  createStockPriceTable, 
-  createHoldingTable 
-} from './config/createTables.js';
-import { getStockBySymbolService, getStockPricesByStockIdService } from './services/stockService.js';
+import  createPortfolioTable  from './config/createPortfolioTable.js';
+import createTransactionTable from './config/createTransactionTable.js';
+import createStockTable from './config/createStockTable.js';
+import createStockPriceTable from './config/createStockPriceTable.js';
+import createHoldingTable from './config/createHoldingTable.js';
+import {getStockBySymbolService} from './services/stockService.js';
+import {getStockPricesByStockIdService} from './services/stockPriceService.js';
 
 // Create express app
 const app = express();
