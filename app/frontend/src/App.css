@@ -1,0 +1,391 @@
+.App {
+  text-align: center;
+  background-color: #000000;
+  min-height: 100vh;
+}
+
+/* Navbar styles */
+.navbar {
+  background-color: #000000;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #FFD700;
+}
+
+.navbar-brand .logo {
+  color: #FFD700;
+  text-decoration: none;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.login-button {
+  background-color: #FFD700;
+  color: #000000;
+  padding: 0.5rem 1.5rem;
+  border-radius: 5px;
+  border: none;
+  text-decoration: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.login-button:hover {
+  background-color: #e6c200;
+  transform: translateY(-2px);
+}
+
+/* Modal styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  position: relative;
+  background-color: #111111;
+  padding: 2rem;
+  border-radius: 8px;
+  border: 1px solid #FFD700;
+  width: 90%;
+  max-width: 400px;
+  animation: slideIn 0.3s ease;
+  transform: translateY(0);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #FFD700;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 5px;
+  transition: transform 0.3s ease;
+}
+
+.modal-close:hover {
+  transform: rotate(90deg);
+}
+
+/* Form styles */
+.login-form {
+  width: 100%;
+}
+
+.login-form h2 {
+  color: #FFD700;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-size: 1.8rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  color: #FFD700;
+  margin-bottom: 0.5rem;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #FFD700;
+  border-radius: 4px;
+  background-color: #000000;
+  color: #FFD700;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #e6c200;
+  box-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+}
+
+.form-group input::placeholder {
+  color: #666;
+}
+
+.submit-button {
+  width: 100%;
+  padding: 0.8rem;
+  background-color: #FFD700;
+  color: #000000;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+}
+
+.submit-button:hover {
+  background-color: #e6c200;
+  transform: translateY(-2px);
+}
+
+.submit-button:active {
+  transform: translateY(0);
+}
+
+.form-footer {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.form-footer a {
+  color: #FFD700;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.form-footer a:hover {
+  color: #e6c200;
+  text-decoration: underline;
+}
+
+/* Form styles */
+.register-form {
+  width: 100%;
+}
+
+.register-form h2 {
+  color: #FFD700;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-size: 1.8rem;
+}
+
+.register-form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.register-form .form-group label {
+  display: block;
+  color: #FFD700;
+  margin-bottom: 0.5rem;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.register-form .form-group input {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #FFD700;
+  border-radius: 4px;
+  background-color: #000000;
+  color: #FFD700;
+  transition: all 0.3s ease;
+}
+
+.register-form .form-group input:focus {
+  outline: none;
+  border-color: #e6c200;
+  box-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+}
+
+.register-form .form-group input::placeholder {
+  color: #666;
+}
+
+.register-form .submit-button {
+  width: 100%;
+  padding: 0.8rem;
+  background-color: #FFD700;
+  color: #000000;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+}
+
+.register-form .submit-button:hover {
+  background-color: #e6c200;
+  transform: translateY(-2px);
+}
+
+.register-form .submit-button:active {
+  transform: translateY(0);
+}
+
+.error {
+  border-color: red;
+}
+
+.error-message {
+  color: red;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  display: block;
+  text-align: left;
+}
+
+.password-hint {
+  color: #FFD700;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  display: block;
+  text-align: left;
+}
+
+.modal-content h2 {
+  color: #FFD700;
+  margin-bottom: 1rem;
+}
+
+.modal-content p {
+  color: #FFFFFF;
+  margin-bottom: 1.5rem;
+}
+
+.logged-in {
+  display: flex;
+  align-items: center;
+}
+
+.user-icon {
+  margin-right: 10px;
+  font-size: 1.2rem;
+}
+
+.user-email {
+  margin-right: 10px;
+  color: #FFD700;
+  font-weight: bold;
+}
+
+.logout-button {
+  background-color: #FFD700;
+  color: #000000;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.logout-button:hover {
+  background-color: #e6c200;
+  transform: translateY(-2px);
+}
+
+.password-wrapper {
+  position: relative;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: #FFD700;
+}
+
+.forgot-password-form {
+  width: 100%;
+}
+
+.forgot-password-form h2 {
+  color: #FFD700;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-size: 1.8rem;
+}
+
+.forgot-password-form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.forgot-password-form .form-group label {
+  display: block;
+  color: #FFD700;
+  margin-bottom: 0.5rem;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.forgot-password-form .form-group input {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #FFD700;
+  border-radius: 4px;
+  background-color: #000000;
+  color: #FFD700;
+  transition: all 0.3s ease;
+}
+
+.forgot-password-form .form-group input:focus {
+  outline: none;
+  border-color: #e6c200;
+  box-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+}
+
+.forgot-password-form .submit-button {
+  width: 100%;
+  padding: 0.8rem;
+  background-color: #FFD700;
+  color: #000000;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+}
+
+.forgot-password-form .submit-button:hover {
+  background-color: #e6c200;
+  transform: translateY(-2px);
+}
+
+.forgot-password-form .submit-button:active {
+  transform: translateY(0);
+}
