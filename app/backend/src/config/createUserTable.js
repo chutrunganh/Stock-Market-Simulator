@@ -18,6 +18,10 @@ const createUserTable = async () => {
     )`;
 
     /**
+     * The google_id column is used for Google SSO authentication.
+     */
+
+    /**
      * Why I use CHECK constraint instead of ENUM?
      * 1. Flexibility: CHECK constraints allow for more complex conditions and can be modified easily withoutneeding to 
      * alter the database schema.

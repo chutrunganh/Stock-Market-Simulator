@@ -14,6 +14,16 @@ const createStockPriceTable = async () => {
         CONSTRAINT unique_stock_date UNIQUE(stock_id, date),
         FOREIGN KEY (stock_id) REFERENCES stocks(stock_id) ON DELETE CASCADE
     )`;
+
+    /**
+     * The open price in our simulate is the price of the first transaction of the day.
+     * The high price is the highest price of the day.
+     * The low price is the lowest price of the day.
+     * The close price is the price of the last transaction of the day.
+     * -> These prices together with the data are used to draw the candlestick chart.
+     * The volume is the number of shares traded during the day.
+     */
+
     //Delete on cascade means if the stock is deleted, the price history will be deleted as well.
     try{
         if (process.env.NODE_ENV === 'development'){

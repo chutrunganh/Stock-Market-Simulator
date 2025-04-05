@@ -12,7 +12,17 @@ const createStockTable = async () => {
         description TEXT NOT NULL
     )`;
 
+    /**
+     * The stock_id is the primary key for the stocks table.
+     * The symbol is a unique identifier for each stock, this is shown in the stock market, for example, AAPL for Apple, HPG for Hoa Phat.
+     * The company_name is the name of the company like Apple Inc, Hoa Phat Group.
+     * The industry is the industry of the company like Technology, Consumer Discretionary, etc.
+     * The market_cap is the total market value of the company's outstanding shares, which equals stock price multiplied by the number of shares outstanding.
+     * The description is a brief description of the company.
+     */
+
     try{
+        // In production, you shouldn't drop tables on each startup
         if (process.env.NODE_ENV === 'development'){
             console.log('Dev mode: Recreating stock table');
             //drop the table to recreate
@@ -36,6 +46,11 @@ const seedStockTestData = async () => {
         const queryText = `
         INSERT INTO stocks (symbol, company_name, industry, market_cap, description)
         VALUES
+        ('VCB', 'Commercial Bank For Foreign Trade Of Vietnam (Vietcombank)', 'Financials', 21570000000, 'Vietcombank is the largest bank in Vietnam, offering a wide range of financial services.'),
+        ('BID', 'Commercial Bank For Investment And Development Of Vietnam (BIDV)', 'Financials', 11820000000, 'BIDV provides banking and financial services across Vietnam.'),
+        ('VHM', 'Vinhomes', 'Real Estate', 7520000000, 'Vinhomes is a leading real estate developer in Vietnam, specializing in residential properties.'),
+        ('CTG', 'Vietnam Joint Stock Commercial Bank for Industry and Trade (VietinBank)', 'Financials', 7520000000, 'VietinBank offers comprehensive banking services and is one of Vietnam''s largest banks.'),
+        ('GAS', 'PetroVietnam Gas Joint Stock Corporation', 'Energy', 7410000000, 'PV Gas is a major player in Vietnam''s oil and gas industry, focusing on gas products.'),
         ('AAPL', 'Apple Inc.', 'Technology', 2500000000000, 'Apple Inc. is an American multinational technology company that specializes in consumer electronics, computer software, and online services.'),
         ('GOOGL', 'Google Inc.', 'Technology', 1800000000000, 'Just Google.'),
         ('MSFT', 'Microsoft Corporation', 'Technology', 2900000000000, 'Microsoft develops, licenses, and supports software, services, devices, and solutions worldwide.'),

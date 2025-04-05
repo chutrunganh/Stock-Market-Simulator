@@ -87,6 +87,14 @@ Xem chi tiết trong: [Giá trần, giá sàn, giá tham chiếu trong chứng k
 
 Các lệnh giới hạn sẽ ở trong hàng đợi cho tới khi có lệnh đối ứng thì khớp và loại khỏi hàng đợi hoặc nếu không có lệnh đối ứng cho tới cuối phiên giao dịch thì lệnh đó sẽ bị giải tỏa, tiền ứng mua được sàn trả lại cho nhà đầu tư.
 
+Ngoài ra còn một loại lệnh phổ biến khác mà chúng tôi sẽ xem xét triển khai trong dự án nếu thời gian cho phép, đó là **lệnh dừng lỗ (Stop Loss Order)**. Lệnh này cho phép nhà đầu tư đặt một mức giá cụ thể để tự động **bán** cổ phiếu khi giá giảm xuống dưới mức đó, nhằm hạn chế thua lỗ. Ngược lại với lệnh này là **lệnh dừng chốt lời (Take Profit Order)**, cho phép nhà đầu tư đặt một mức giá cụ thể để tự động **bán** cổ phiếu khi giá tăng lên trên mức đó, nhằm bảo vệ lợi nhuận.
+
+Cùng là đặt giá giống lệnh giới hạn nhưng chúng khác nhau ở điểm nào:
+
+- Giá trong lệnh giới hạn là để giới hạn khoảng giá mà bạn mong muốn **mua/bán** trong đó -> Lệnh này tập trung vào việc kiểm soát giá, đảm bảo bạn không mua/bán ở mức giá tệ hơn mong muốn. Bạn đặt lệnh mua cổ phiếu A với giá giới hạn 100.000 VNĐ. Nếu giá thị trường giảm xuống 100.000 VNĐ hoặc thấp hơn, lệnh sẽ được kích hoạt; nếu không, lệnh sẽ không thực hiện.
+
+- Giá trong lệnh dừng lỗ là để kích hoạt lệnh thị trường **bán** khi giá cổ phiếu đạt đến mức đó -> Lệnh này **không kiểm soát được giá** thực hiện chính xác vì nó chuyển thành lệnh thị trường khi kích hoạt, chủ yếu tập trung vào việc quản lý rủi ro khi thị trường có xu hướng giảm và bạn không chấp nhận lỗ thêm nữa. Ví dụ: Bạn đặt lệnh dừng bán cổ phiếu A ở mức 90.000 VNĐ khi giá hiện tại là 100.000 VNĐ. Nếu giá giảm xuống 90.000 VNĐ, lệnh sẽ kích hoạt và bán ngay ở giá thị trường lúc đó (có thể là 89.000 VNĐ hoặc thấp hơn).
+
 # 4. Matching Engine 
 
 Sau khi các lệnh của người dùng được gửi lên sàn, để khớp các lệnh (**Order**) của người dùng, sàn chứng khoán sử dụng một thành phần gọi là **Matching Engine**. Khi một người dùng đặt lệnh mua hoặc bán, thông tin lệnh sẽ được gửi đến Matching Engine. Thành phần này sẽ tìm kiếm các lệnh đối ứng trong hệ thống và thực hiện việc khớp lệnh dựa trên các tiêu chí định trước. Khi một lệnh mua và một lệnh bán được khớp bởi matching engine, giao dịch (**Transaction**) sẽ được thực hiện và thông tin về giao dịch đó sẽ được ghi lại trong cơ sở dữ liệu. Về các tiêu chí mà Matching Engine sử dụng để khớp lệnh gồm 2 cách tiếp cận chính là: **price-time priority system** and **pro-rata system**. Đọc kỹ hơn trong bài viết này: [Order matching system: Explained](https://tiomarkets.com/article/order-matching-system-guide). **Trong dự án này, chúng tôi sử dụng tiêu chí giá- thời gian.**
@@ -117,7 +125,7 @@ Theo cơ chế trên, giá chứng khoán được quyết định bởi cung - 
 
 - Bên bán áp đảo:
 
-  - Khi lượng lệnh bán nhiều hơn mua, người bán buộc phải cạnh tranh hạ giá để thu hút người mua.
+  - Khi lượng lệnh bán nhiều hơn mua, người bán buộc phải cạnh tranh hạ giá để thu hút người mua. (Vì nếu không hạ giá thì lệnh của người đó sẽ bị xếp sau trong hàng đợi bán và chỉ được xét đến khi các lệnh bên trên được khớp hết)
 
   - Kết quả: Giá có xu hướng giảm.
 
