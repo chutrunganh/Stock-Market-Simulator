@@ -1,7 +1,5 @@
 import {createTransactionService, getAllTransactionsService, getTransactionByStockIdService, 
-    getTransactionByPortfolioIdService,
-    deleteTransactionByPortfolioIdService, 
-    deleteTransactionByStockIdService} from '../services/transactionService.js';
+    getTransactionByPortfolioIdService} from '../services/transactionService.js';
 
 const handleResponse = (res, status, message, data = null) => {
     return res.status(status).json({
@@ -22,6 +20,7 @@ export const createTransaction = async (req, res, next) => {
         next(error);
     }
 }
+
 //read
 export const getAllTransactions = async (req, res, next) => {
     try{
@@ -62,30 +61,3 @@ export const getTransactionsByStockId = async (req,res, next) => {
 }
 //look up to transactionService.js to see why we don't implement update service
 
-//delete
-export const deleteTransactionsByPortfolioId = async (req,res,next) => {
-    const{portfolio_id} = req.params;
-    try{
-        const transaction = await deleteTransactionByPortfolioIdService(portfolio_id);
-        if (!transaction){
-            return handleResponse(res, 404, 'Transaction of portfolio id not found');
-        }
-        handleResponse(res,200, 'Transactions of portfolio id deleted:', transaction);
-    }
-    catch(error){
-        next(error);
-    }
-}
-export const deleteTransactionByStockId = async (req,res,next) => {
-    const{stock_id} = req.params;
-    try{
-        const transaction = await deleteTransactionByStockIdService(stock_id);
-        if (!transaction){
-            return handleResponse(res, 404, 'Stock id doesnt have any transaction');
-        }
-        handleResponse(res,200, 'Transactions of stock id deleted:', transaction);
-    }
-    catch(error){
-        next(error);
-    }
-}

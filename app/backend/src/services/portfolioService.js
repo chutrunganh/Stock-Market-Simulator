@@ -97,23 +97,23 @@ export const updatePortfolioService = async (portfolio_id, portfolioData) => {
 };
 
 
-//delete portfolio by user_id
-//when create portfolio table, we set the foreign key constraint 
-// to delete portfolio of an user when the user is deleted in user table
-//so maybe we don't need to delete transaction history of this portfolio
-//but we can keep this function for future use
-export const deletePortfolioByPortfolioIdService = async (portfolio_id) => {
-    try {
-        const result = await pool.query(
-            'DELETE FROM portfolios WHERE portfolio_id = $1 RETURNING *',
-            [portfolio_id]
-        );
-        if (!result.rows[0]){ //no portfolio found
-            throw new Error('This user does not have any portfolio');
-        }
-        return Portfolio.getPortfolio(result.rows[0]);
-    }
-    catch(error){
-        throw error;
-    }
-};
+// //delete portfolio by user_id
+// //when create portfolio table, we set the foreign key constraint 
+// // to delete portfolio of an user when the user is deleted in user table
+// //so maybe we don't need to delete transaction history of this portfolio
+// //but we can keep this function for future use
+// export const deletePortfolioByPortfolioIdService = async (portfolio_id) => {
+//     try {
+//         const result = await pool.query(
+//             'DELETE FROM portfolios WHERE portfolio_id = $1 RETURNING *',
+//             [portfolio_id]
+//         );
+//         if (!result.rows[0]){ //no portfolio found
+//             throw new Error('This user does not have any portfolio');
+//         }
+//         return Portfolio.getPortfolio(result.rows[0]);
+//     }
+//     catch(error){
+//         throw error;
+//     }
+// };

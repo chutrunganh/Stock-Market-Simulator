@@ -37,20 +37,20 @@ const createTransactionTable = async () => {
     }
 };
 
-//seed function for transaction table
-const seedTransactionTestData = async () => {
-    try{
-        const seedQuery = `
-        INSERT INTO transactions (portfolio_id, stock_id, transaction_type, quantity, price)
-        VALUES
-        (1, 1, 'BUY', 10, 150.00),
-        (1, 2, 'SELL', 100, 200.00)`;
-        await pool.query(seedQuery);
-        console.log('add test data to transaction table successfully');
-    }
-    catch(error){
-        console.error('Error adding test data:', error.message);
-    }
-};
+// //seed function for transaction table
+// const seedTransactionTestData = async () => {
+//     try{
+//         const seedQuery = `
+//         INSERT INTO transactions (portfolio_id, stock_id, transaction_type, quantity, price)
+//         VALUES
+//         (1, 1, 'BUY', 10, 150.00),
+//         (1, 2, 'SELL', 100, 200.00)`;
+//         await pool.query(seedQuery);
+//         console.log('add test data to transaction table successfully');
+//     }
+//     catch(error){
+//         console.error('Error adding test data:', error.message);
+//     }
+// };
 
 export default createTransactionTable;

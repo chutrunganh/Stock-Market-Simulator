@@ -6,6 +6,7 @@ import passport from 'passport';
 dotenv.config({ path: '../../.env' }); // Adjust based on relative depth
 import pool from './config/dbConnect.js';
 import userRoutes from './routes/userRoutes.js';
+import orderRoutes from './routes/orderRoutes.js';
 import errorHandling from './middlewares/errorHandlerMiddleware.js';
 // Updated import path for createUserTable
 import createUserTable from './config/createUserTable.js';
@@ -13,14 +14,13 @@ import createUserTable from './config/createUserTable.js';
 import configurePassport from './config/passportConfig.js';
 // Import Google OAuth controllers
 import { googleAuth, googleAuthCallback } from './controllers/userControllers.js';
-import createDatabase from './config/createDatabase.js';
 import  createPortfolioTable  from './config/createPortfolioTable.js';
 import createTransactionTable from './config/createTransactionTable.js';
 import createStockTable from './config/createStockTable.js';
 import createStockPriceTable from './config/createStockPriceTable.js';
 import createHoldingTable from './config/createHoldingTable.js';
-import {getStockBySymbolService} from './services/stockService.js';
-import {getStockPricesByStockIdService} from './services/stockPriceService.js';
+// import {getStockBySymbolService} from './services/stockService.js';
+// import {getStockPricesByStockIdService} from './services/stockPriceService.js';
 
 // Create express app
 const app = express();
@@ -60,20 +60,19 @@ app.get('/auth/google/callback', googleAuthCallback);
 
 // Routes
 app.use('/api', userRoutes);
+app.use('/api', orderRoutes);
 
 // Error handling middleware
 app.use(errorHandling);
 
-// Initialize database and tables
+// Initialize tables in the database
 const initializeDatabase = async () => {
   try {
-    // First create database if it doesn't exist
-    await createDatabase();
     
     // Then create tables
     await createUserTable();
     await createPortfolioTable();
-    await createTransactionTable();
+    //await createTransactionTable();
     await createStockTable();
     await createStockPriceTable();
     await createHoldingTable();
@@ -85,22 +84,10 @@ const initializeDatabase = async () => {
   }
 };
 
-const testStockPriceService = async() =>{
-  const stock_symbol = "AAPL";
-  const stock = await getStockBySymbolService(stock_symbol);
-  const stock_id = stock.stock_id;
-  try {
-    const stockPrices = await getStockPricesByStockIdService(stock_id);
-    console.log('Stock Prices:', stockPrices);
-  } catch (error) {
-      console.error('Error fetching stock prices:', error.message);
-  }
-};
-
 // Start server after database initialization
 const startServer = async () => {
     await initializeDatabase();
-    await testStockPriceService();
+
     
     app.listen(port, () => {
         console.log(`Server is running on port ${port}`);
