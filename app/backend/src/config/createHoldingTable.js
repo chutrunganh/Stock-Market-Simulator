@@ -1,4 +1,5 @@
 import pool from './dbConnect.js'
+import log from '../utils/loggerUtil.js';
 
 const createHoldingTable = async () => {
     const queryText = `
@@ -15,18 +16,16 @@ const createHoldingTable = async () => {
 
     try{
         if(process.env.NODE_ENV === 'development'){
-            console.log('Dev mode: Recreating holdings table');
             //drop the table to recreate
             await pool.query('DROP TABLE IF EXISTS "holdings" CASCADE');
         }
         await pool.query(queryText);
-        console.log('\nHoldings table created successfully');
         if(process.env.NODE_ENV === 'development'){
             await seedHoldingTestData();
         }
     }
     catch(error){
-        console.error('\nError occurs when creating holdings table:', error.message);
+        log.error('\nError occurs when creating holdings table:', error.message);
         throw new Error(error.message);
     }
 };
@@ -39,10 +38,10 @@ const seedHoldingTestData = async () => {
         (1,1,10,150.00),
         (1,2,50,200.00)`;
         await pool.query(queryText);
-        console.log('\nTest data added to holdings table successfully');
+        //console.log('\nTest data added to holdings table successfully');
     }
     catch(error){
-        console.error('\nError adding test data for holdings table:', error.message);
+        log.error('\nError adding test data for holdings table:', error.message);
     }
 }
 

@@ -1,5 +1,5 @@
 import pool from './dbConnect.js';
-
+import log from '../utils/loggerUtil.js';
 
 const createPortfolioTable = async () => {
     const queryText = `
@@ -14,13 +14,12 @@ const createPortfolioTable = async () => {
     )`;
     try{
         if (process.env.NODE_ENV === 'development'){
-            console.log('Dev mode: Recreating portfolios table');
             //drop the table to recreate
             await pool.query('DROP TABLE IF EXISTS "portfolios" CASCADE');
         }
         
         await pool.query(queryText);
-        console.log('\nPortfolios table created successfully');
+        //console.log('\nPortfolios table created successfully');
 
         if (process.env.NODE_ENV === 'development'){
             await seedPortfolioTestData();
@@ -28,7 +27,7 @@ const createPortfolioTable = async () => {
 
     }
     catch(error){
-        console.error('\nError occurs when creating portfolios table:', error.message);
+        log.error('\nError occurs when creating portfolios table:', error);
         throw new Error(error.message);
     }
 };
@@ -40,10 +39,10 @@ const seedPortfolioTestData = async () => {
         (1, 100000.00, 100000.00),
         (2, 200000.00, 200000.00)`;
         await pool.query(queryText);
-        console.log('Test data added to portfolios table successfully');
+        //console.log('Test data added to portfolios table successfully');
     }
     catch(error){
-        console.error('Error adding test data for portfolios table:', error.message);
+        log.error('Error adding test data for portfolios table:', error);
     }
 }
 

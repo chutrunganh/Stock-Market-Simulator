@@ -1,4 +1,5 @@
 import pool from './dbConnect.js';
+import log from '../utils/loggerUtil.js';
 
 const createTransactionTable = async () => {
     const queryText = `
@@ -18,7 +19,6 @@ const createTransactionTable = async () => {
     try{
         //development mode
         if (process.env.NODE_ENV === 'development'){
-            console.log('Dev mode: Recreating transaction table');
             //drop the table to recreate
             await pool.query('DROP TABLE IF EXISTS "transactions" CASCADE');
         }

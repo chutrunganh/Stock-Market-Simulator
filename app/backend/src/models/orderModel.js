@@ -3,10 +3,9 @@ class Order {
         this.id = orderData.id;
         this.portfolioId = orderData.portfolioId;
         this.stockId = orderData.stockId;
-        this.type = orderData.type; // 'buy' or 'sell'
+        this.type = orderData.type; // "Market Buy", "Market Sell", "Limit Buy", "Limit Sell"
         this.price = orderData.price;
         this.volume = orderData.volume; // quantity
-        this.timestamp = orderData.timestamp;
     }
 
     static getOrder(orderData) {
@@ -18,7 +17,7 @@ class Order {
             type: orderData.type,
             price: orderData.price,
             volume: orderData.volume,
-            timestamp: orderData.timestamp
+            timestamp: orderData.timestamp, 
         };
     }
 }

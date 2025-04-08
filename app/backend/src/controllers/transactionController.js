@@ -1,5 +1,5 @@
 import {createTransactionService, getAllTransactionsService, getTransactionByStockIdService, 
-    getTransactionByPortfolioIdService} from '../services/transactionService.js';
+    getTransactionByPortfolioIdService} from '../services/transactionCRUDService.js';
 
 const handleResponse = (res, status, message, data = null) => {
     return res.status(status).json({
@@ -59,5 +59,5 @@ export const getTransactionsByStockId = async (req,res, next) => {
         next(error);
     }
 }
-//look up to transactionService.js to see why we don't implement update service
+//look up to transactionCRUDService.js to see why we don't implement update service
 

@@ -1,8 +1,9 @@
 import { 
     createOrderService, 
     getOrderByIdService, 
-    getAllOrdersService 
+    cancelOrderService
 } from '../services/orderCRUDService.js';
+
 
 const handleResponse = (res, status, message, data = null) => {
     return res.status(status).json({
@@ -37,11 +38,15 @@ export const getOrderById = async (req, res, next) => {
     }
 };
 
-// Controller to get all orders
-export const getAllOrders = async (req, res, next) => {
+// Cancel an order by ID
+export const cancelOrder = async (req, res, next) => {
+    const { orderId } = req.params;
     try {
-        const orders = await getAllOrdersService();
-        handleResponse(res, 200, 'Orders retrieved successfully', orders);
+        const order = await cancelOrderService(orderId);
+        if (!order) {
+            return handleResponse(res, 404, 'Order not found');
+        }
+        handleResponse(res, 200, 'Order removed successfully', order);
     } catch (error) {
         next(error);
     }

@@ -119,8 +119,8 @@ Content-Type: application/json
   "userId": 1,
   "stockId": 101,
   "quantity": 20,
-  "price": 20,
-  "orderType": "buy"
+  "price": 20.8,
+  "orderType": "Limit Buy"
 }
 
 ### Test for creating a new sell order
@@ -130,11 +130,26 @@ Content-Type: application/json
 {
   "userId": 2,
   "stockId": 101,
-  "quantity": 30,
-  "price": 15,
-  "orderType": "sell"
+  "quantity": 15,
+  "price": 35,
+  "orderType": "Limit Sell"
 }
 
+### Test a market order
+POST http://localhost:3000/api/createOrder
+Content-Type: application/json
+
+{
+  "userId": 2,
+  "stockId": 101,
+  "quantity": 30,
+  "price": 0,
+  "orderType": "Market Buy"
+}
+
+
+### Test for canceling an order
+DELETE http://localhost:3000/api/cancelOrder/1744103796519
 
 
 
