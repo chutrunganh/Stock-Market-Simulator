@@ -40,7 +40,8 @@ export class OrderBook {
       const buyOrder = this.limitBuyOrderQueue[0];
       const sellOrder = this.limitSellOrderQueue[0];
 
-      if (buyOrder.price >= sellOrder.price) {
+      // Ensure the stock IDs match before attempting to match orders
+      if (buyOrder.stockId === sellOrder.stockId && buyOrder.price >= sellOrder.price) {
         const matchedQuantity = Math.min(buyOrder.volume, sellOrder.volume);
         const matchedPrice = sellOrder.price;
 
@@ -60,17 +61,71 @@ export class OrderBook {
     }
   }
 
-  // Display the current state of the order book (for debugging purposes)
+  // Display the order book in a properly aligned tabular format with full borders
   displayOrderBook() {
-    // Display only price and quantity for buy orders
+    // Group orders by stockId
+    const stockGroups = {};
+
+    // Process buy orders
     this.limitBuyOrderQueue.forEach(order => {
-      console.log(`Buy: Price: ${order.price}, Quantity: ${order.volume}`);
+      if (!stockGroups[order.stockId]) {
+        stockGroups[order.stockId] = {
+          bids: [],
+          asks: []
+        };
+      }
+      stockGroups[order.stockId].bids.push(order);
     });
-    
-    // Display only price and quantity for sell orders
-    console.log('-------------------------');
+
+    // Process sell orders
     this.limitSellOrderQueue.forEach(order => {
-      console.log(`Sell: Price: ${order.price}, Quantity: ${order.volume}`);
+      if (!stockGroups[order.stockId]) {
+        stockGroups[order.stockId] = {
+          bids: [],
+          asks: []
+        };
+      }
+      stockGroups[order.stockId].asks.push(order);
     });
+
+    // Display the order book for each stock
+    console.log('\n');
+    console.log('╔════════════╦═══════════════════════════════════════╦════════════════════╦═══════════════════════════════════════╗');
+    console.log('║ Stock ID   ║                   Bid                 ║       Matched      ║               Ask                     ║');
+    console.log('║            ╠═══════════╦═══════╦═══════════╦═══════╬═══════════╦════════╬═══════════╦═══════╬═══════════╦═══════╣');
+    console.log('║            ║   Prc 2   ║ Vol 2 ║   Prc 1   ║ Vol 1 ║    Prc    ║  Vol   ║   Prc 1   ║ Vol 1 ║   Prc 2   ║ Vol 2 ║');
+    console.log('╠════════════╬═══════════╬═══════╬═══════════╬═══════╬═══════════╬════════╬═══════════╬═══════╬═══════════╬═══════╣');
+
+    Object.keys(stockGroups).forEach(stockId => {
+      const group = stockGroups[stockId];
+
+      // Get top 2 bids and asks directly from the queue (already sorted)
+      const topBids = group.bids.slice(0, 2);
+      const topAsks = group.asks.slice(0, 2);
+
+      // Determine matched volume and price
+      let matchedVolume = null;
+      let matchedPrice = null;
+      if (topBids[0] && topAsks[0] && topBids[0].price >= topAsks[0].price) {
+        matchedVolume = Math.min(topBids[0].volume, topAsks[0].volume);
+        matchedPrice = topAsks[0].price;
+      }
+
+      console.log(
+        `║ ${stockId.padEnd(10)} ║ ${
+          topBids[1] ? topBids[1].price.toFixed(2).padStart(9) : '         '} ║ ${
+          topBids[1] ? topBids[1].volume.toString().padStart(5) : '     '} ║ ${
+          topBids[0] ? topBids[0].price.toFixed(2).padStart(9) : '         '} ║ ${
+          topBids[0] ? topBids[0].volume.toString().padStart(5) : '     '} ║ ${
+          matchedPrice ? matchedPrice.toFixed(2).padStart(9) : '         '} ║ ${
+          matchedVolume ? matchedVolume.toString().padStart(6) : '      '} ║ ${
+          topAsks[0] ? topAsks[0].price.toFixed(2).padStart(9) : '         '} ║ ${
+          topAsks[0] ? topAsks[0].volume.toString().padStart(5) : '     '} ║ ${
+          topAsks[1] ? topAsks[1].price.toFixed(2).padStart(9) : '         '} ║ ${
+          topAsks[1] ? topAsks[1].volume.toString().padStart(5) : '     '} ║`
+      );
+    });
+
+    console.log('╚════════════╩═══════════╩═══════╩═══════════╩═══════╩═══════════╩════════╩═══════════╩═══════╩═══════════╩═══════╝\n');
   }
 }
