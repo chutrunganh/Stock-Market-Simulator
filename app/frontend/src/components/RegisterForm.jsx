@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
-function RegisterForm({ onRegister }) {
+function RegisterForm() {
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -9,33 +10,73 @@ function RegisterForm({ onRegister }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (password.length < 8) {
       setPasswordError(true);
       return;
     }
+
     if (password !== confirmPassword) {
       setConfirmPasswordError(true);
       return;
     }
-    onRegister({ email, password });
+
+    const userData = {
+      username,
+      email,
+      password
+    };
+
+    try {
+      const response = await fetch('http://localhost:3000/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('User registered:', result);
+      } else {
+        console.error('Registration failed');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
 
   const handlePasswordChange = (e) => {
-    setPassword(e.target.value);
-    setPasswordError(e.target.value.length < 8);
-    setConfirmPasswordError(e.target.value !== confirmPassword);
+    const value = e.target.value;
+    setPassword(value);
+    setPasswordError(value.length < 8);
+    setConfirmPasswordError(value !== confirmPassword);
   };
 
   const handleConfirmPasswordChange = (e) => {
-    setConfirmPassword(e.target.value);
-    setConfirmPasswordError(password !== e.target.value);
+    const value = e.target.value;
+    setConfirmPassword(value);
+    setConfirmPasswordError(password !== value);
   };
 
   return (
     <form className="register-form" onSubmit={handleSubmit}>
       <h2>Register</h2>
+
+      <div className="form-group">
+        <label>Username:</label>
+        <input
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+          placeholder="Enter your username"
+        />
+      </div>
+
       <div className="form-group">
         <label>Email:</label>
         <input
@@ -46,6 +87,7 @@ function RegisterForm({ onRegister }) {
           placeholder="Enter your email"
         />
       </div>
+
       <div className="form-group">
         <label>Password:</label>
         <div className="password-wrapper">
@@ -65,9 +107,12 @@ function RegisterForm({ onRegister }) {
           </span>
         </div>
         {passwordError && (
-          <span className="error-message">Passwords must have at least 8 characters.</span>
+          <span className="error-message">
+            Password must have at least 8 characters.
+          </span>
         )}
       </div>
+
       <div className="form-group">
         <label>Confirm Password:</label>
         <div className="password-wrapper">
@@ -90,6 +135,7 @@ function RegisterForm({ onRegister }) {
           <span className="error-message">Passwords do not match.</span>
         )}
       </div>
+
       <button type="submit" className="submit-button">Register</button>
     </form>
   );
