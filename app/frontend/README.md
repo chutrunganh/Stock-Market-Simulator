@@ -1,17 +1,17 @@
 # Using React 18.3.0
 
 First, create project :
-    - In terminal: npm create vite@latest
-    - Choose the name for project and package (example: Stock-Market)
-    - Choose framework React, then choose JavaScript only 
+- In terminal: npm create vite@latest
+- Choose the name for project and package (example: Stock-Market)
+- Choose framework React, then choose JavaScript only 
 
 Secondly, change to the dir of the project:
-    - In terminal: cd Stock-Market
-    - Then: npm install 
+- In terminal: cd Stock-Market
+- Then: npm install 
 
 After the folder 'node_modules', delete React 19.0:
-    - npm uninstall react react-dom
-    - npm install react@18.3.0 react-dom@18.3.0 react-router-dom@6.22.0
+- npm uninstall react react-dom
+- npm install react@18.3.0 react-dom@18.3.0 react-router-dom@6.22.0
 
 Check the React version using 'npm list react', the true output is:
     react@18.3.0
@@ -20,14 +20,14 @@ Check the React version using 'npm list react', the true output is:
 
 Remember to change the "dependencies" in file 'package.json':
 from: 
-"dependencies": {
+- "dependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.5.0"
-}
+    }
 
 to: 
-"dependencies": {
+- "dependencies": {
     "react": "18.3.0",
     "react-dom": "18.3.0",
     "react-router-dom": "6.22.0"
