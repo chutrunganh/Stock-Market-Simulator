@@ -1,37 +1,47 @@
 # Using React 18.3.0
 
-First, create project :
+1. Create project :
 - In terminal: npm create vite@latest
 - Choose the name for project and package (example: Stock-Market)
 - Choose framework React, then choose JavaScript only 
 
-Secondly, change to the dir of the project:
-- In terminal: cd Stock-Market
-- Then: npm install 
+2. Change to the dir of the project:
+    ```bash
+    cd Stock-Market # name project
+    npm install
+    ```
 
-After the folder 'node_modules', delete React 19.0:
-- npm uninstall react react-dom
-- npm install react@18.3.0 react-dom@18.3.0 react-router-dom@6.22.0
+3. After the folder `node_modules` create, delete React 19.0:
+    ```bash
+    npm uninstall react react-dom
+    npm install react@18.3.0 react-dom@18.3.0 react-router-dom@6.22.0
+    ```
 
-Check the React version using 'npm list react', the true output is:
+4. Check the React version using 'npm list react', the true output is:
+    ```perl
     react@18.3.0
     react-dom@18.3.0
-    react-router-dom@6.22.0
+    react-router-dom@6.22.0 
+    ```
 
-Remember to change the "dependencies" in file 'package.json':
+5. Remember to change the "dependencies" in file 'package.json':
 from: 
-- "dependencies": {
+```bash
+"dependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.5.0"
-    }
+}
+```
 
 to: 
+```bash
 - "dependencies": {
     "react": "18.3.0",
     "react-dom": "18.3.0",
     "react-router-dom": "6.22.0"
 }
+```
 
 
 # React + Vite
