@@ -36,7 +36,7 @@ from:
 
 to: 
 ```bash
-- "dependencies": {
+"dependencies": {
     "react": "18.3.0",
     "react-dom": "18.3.0",
     "react-router-dom": "6.22.0"
