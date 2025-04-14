@@ -1,0 +1,70 @@
+.login-form {
+    background-color: #121314; /* Màu nền đen */
+    color: #f0b90b; /* Màu chữ vàng */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: none; /* Xóa bóng */
+    border: none; /* Xóa viền trắng */
+    opacity: 0; /* Bắt đầu với độ mờ 0 */
+    transform: translateY(-20px); /* Bắt đầu từ vị trí cao hơn */
+    animation: fadeIn 0.5s forwards; /* Thêm animation */
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1; /* Kết thúc với độ mờ 1 */
+        transform: translateY(0); /* Kết thúc ở vị trí ban đầu */
+    }
+}
+
+.login-form h2 {
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: none; /* Xóa viền trắng */
+    border-radius: 4px;
+    background-color: #202127; /* Màu nền input */
+    color: #f0b90b; /* Màu chữ input */
+}
+
+.submit-button {
+    background-color: #f0b90b; /* Nút màu vàng */
+    color: #121314; /* Chữ màu đen */
+    border: none;
+    padding: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    font-weight: bold;
+}
+
+.submit-button:hover {
+    background-color: #ffd700; /* Màu vàng sáng hơn khi hover */
+}
+
+.form-footer {
+    display: flex;
+    justify-content: space-between; /* Tách rời hai liên kết */
+    margin-top: 10px;
+}
+
+.form-footer a {
+    color: #f0b90b; /* Màu chữ vàng */
+    text-decoration: none;
+}
+
+.form-footer a:hover {
+    text-decoration: underline;
+}

@@ -1,15 +1,15 @@
 import {Link, NavLink} from 'react-router-dom';
-import React from 'react';
+import React, { useState } from 'react';
 import './Header.css';
 
-function Header(props){
+function Header({ onLoginClick, isLoggedIn, userEmail, onLogoutClick }) {
 
-    const [menuOpen, setMenuOpen] = React.useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
     return(
         
           <header className="header">
             
-            <h1><Link to="/" className="title"><img src="logo0.svg" height="50"></img>Stock Market Simulator</Link></h1>
+            <h1><Link to="/" className="title"><img src="logo0.svg" height="50" alt="Logo"></img>Stock Market Simulator</Link></h1>
             
             <div className="menu" onClick={() => setMenuOpen(!menuOpen)}>
               <span></span>
@@ -36,8 +36,20 @@ function Header(props){
             </nav>
 
             <nav className='nav-profile'>
-              <button className="login-btn">Login</button>
-              <button className="signup-btn">SignUp</button>
+              {isLoggedIn ? (
+                <div className="profile" onMouseEnter={() => setMenuOpen(true)} onMouseLeave={() => setMenuOpen(false)}>
+                  <div className="user-info">
+                    <span className="user-icon">👤</span>
+                    <span className="user-email">{userEmail}</span>
+                  </div>
+                  <div className={`dropdown-menu ${menuOpen ? 'show' : ''}`}>
+                    <button className="dropdown-item" onClick={() => console.log('Profile clicked')}>Profile</button>
+                    <button className="logout-button" onClick={onLogoutClick}>Logout</button>
+                  </div>
+                </div>
+              ) : (
+                <button className="login-btn" onClick={onLoginClick}>Login</button>
+              )}
             </nav>
             
             
