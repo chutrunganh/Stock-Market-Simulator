@@ -9,7 +9,7 @@ function Header({ onLoginClick, isLoggedIn, userEmail, onLogoutClick }) {
         
           <header className="header">
             
-            <h1><Link to="/" className="title"><img src="logo0.svg" height="50" alt="Logo"></img>Stock Market Simulator</Link></h1>
+            <h1><Link to="/" className="title"><img src="earning.png" height="50" alt="Logo"></img>Stock Market Simulator</Link></h1>
             
             <div className="menu" onClick={() => setMenuOpen(!menuOpen)}>
               <span></span>

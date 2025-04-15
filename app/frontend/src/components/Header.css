@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Parisienne&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Flex&display=swap');
 
 .header {
     display: flex;
@@ -111,7 +111,7 @@ button:focus,
     text-align: center;
     
     
-    font-family: 'Parisienne', cursive;
+    font-family: 'Roboto Flex', cursive;
     font-size: 1.3rem; /* Increased font size */
     position: relative; /* Ensure the text and image are positioned relative to the <li> */
     overflow: hidden; /* Hide the image when it's outside the <li> */
@@ -154,7 +154,7 @@ button:focus,
     padding: 1rem;
     margin: 0 0.75rem;
     border-radius: 0.5rem;
-    font-family: 'Parisienne', cursive;
+    font-family: 'Roboto Flex', cursive;
     font-size: 1.3rem; /* Match the font size for links */
     width: 120px;
     height: 72px; 
