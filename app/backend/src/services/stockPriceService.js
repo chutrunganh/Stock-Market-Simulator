@@ -37,9 +37,11 @@ export const getAllStockPricesService = async () => {
 
 export const getStockPricesByStockIdService = async (stock_id) => {
     try {
+        console.log('Stock ID received in service:', stock_id);
+        console.log('Stock ID in controller and service should be matched with each other');
         const result = await pool.query(
             'SELECT * FROM stockprices WHERE stock_id = $1 ORDER BY date ASC', //sort by date
-        [stock_id]);
+            [stock_id]);
         if (!result.rows[0]){ //no stock price found
             throw new Error('This stock does not have any price history');
         }

@@ -38,8 +38,11 @@ export const getAllStockPrice = async (req, res, next) => {
 
 export const getStockPriceById = async (req, res, next) => {
     try{
-        const {stock_id} = req.params;
-        const results = await getStockPricesByStockIdService(stock_id);
+        const id = parseInt(req.params.id, 10); // Convert to integer
+        //because the id fields in the req.params can be string
+        //so it must be converted into integer before passed to the stockPriceService
+        console.log('Stock ID received in controller:', id);
+        const results = await getStockPricesByStockIdService(id);
         if (!results){
             return handleResponse(res,404, 'This stock id is not true or does not exist');
         }

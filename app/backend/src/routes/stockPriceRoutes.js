@@ -1,6 +1,5 @@
 import express from 'express';
 import {createStockPrice,getAllStockPrice,getStockPriceById} from '../controllers/stockPriceController.js';
-import { validateUser, validateUserUpdate, validateLogin } from '../middlewares/inputValidationMiddleware.js';
 import authorizeRole from '../middlewares/roleBasedAccessControlMiddleware.js';
 import authMiddleware from '../middlewares/authenticationMiddleware.js';
 const router = express.Router();
