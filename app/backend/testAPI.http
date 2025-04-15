@@ -120,6 +120,9 @@ GET http://localhost:3000/api/admin/stockPrice
 Cookie: jwt={{admin_jwt}}
 
 ### Get stock prices by stock id for user
+### This example will get all the stock prices of the stock with id 1
 GET http://localhost:3000/api/stockPrice/1
 Cookie: jwt = {{user_jwt}}
-
+{
+  "stock_id": 1
+}
