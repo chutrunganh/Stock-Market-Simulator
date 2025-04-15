@@ -142,4 +142,4 @@ build/
 # Dev document files
 tmp.md
 docs/techStack/
-notesNTT
+.env
