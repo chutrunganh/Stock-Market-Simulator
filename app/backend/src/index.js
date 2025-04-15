@@ -74,8 +74,8 @@ const initializeDatabase = async () => {
     // Then create tables
     await createUserTable();
     await createPortfolioTable();
-    await createTransactionTable();
     await createStockTable();
+    await createTransactionTable();
     await createStockPriceTable();
     await createHoldingTable();
     
