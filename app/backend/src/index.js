@@ -21,6 +21,7 @@ import createStockPriceTable from './config/createStockPriceTable.js';
 import createHoldingTable from './config/createHoldingTable.js';
 import {getStockBySymbolService} from './services/stockService.js';
 import {getStockPricesByStockIdService} from './services/stockPriceService.js';
+import stockPriceRoutes from './routes/stockPriceRoutes.js';
 
 // Create express app
 const app = express();
@@ -60,7 +61,7 @@ app.get('/auth/google/callback', googleAuthCallback);
 
 // Routes
 app.use('/api', userRoutes);
-
+app.use('/api', stockPriceRoutes);
 // Error handling middleware
 app.use(errorHandling);
 

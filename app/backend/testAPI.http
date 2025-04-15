@@ -114,3 +114,12 @@ DELETE http://localhost:3000/api/admin/user/1
 Cookie: jwt={{admin_jwt}}
 
 
+
+### Get all stock prices for admin
+GET http://localhost:3000/api/admin/stockPrice
+Cookie: jwt={{admin_jwt}}
+
+### Get stock prices by stock id for user
+GET http://localhost:3000/api/stockPrice/1
+Cookie: jwt = {{user_jwt}}
+
