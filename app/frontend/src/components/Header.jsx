@@ -11,12 +11,6 @@ function Header({ onLoginClick, isLoggedIn, userEmail, onLogoutClick }) {
             
             <h1><Link to="/" className="title"><img src="earning.png" height="50" alt="Logo"></img>Stock Market Simulator</Link></h1>
             
-            <div className="menu" onClick={() => setMenuOpen(!menuOpen)}>
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-            
             <nav className="nav-header">
               <ul>
                 <li tabIndex="0" onClick={() => console.log('Home clicked')}>

@@ -4,8 +4,18 @@
     color: #f0b90b; /* Màu chữ vàng */
     padding: 20px;
     border-radius: 8px;
-    box-shadow: none; /* Xóa bóng */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Thêm bóng */
     border: none; /* Xóa viền trắng */
+    opacity: 0; /* Bắt đầu với độ mờ 0 */
+    transform: translateY(-20px); /* Bắt đầu từ vị trí cao hơn */
+    animation: fadeIn 0.5s forwards; /* Thêm animation */
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1; /* Kết thúc với độ mờ 1 */
+        transform: translateY(0); /* Kết thúc ở vị trí ban đầu */
+    }
 }
 
 .register-form h2 {
@@ -52,4 +62,29 @@
     cursor: pointer;
     width: 100%;
     margin-top: 10px;
+}
+
+.error-message {
+    color: red;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.password-input {
+    position: relative;
+}
+
+.password-input input {
+    width: 100%;
+    padding-right: 40px; /* Chừa khoảng trống cho biểu tượng mắt */
+}
+
+.toggle-password {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #f0b90b; /* Màu vàng */
+    font-size: 18px;
 }

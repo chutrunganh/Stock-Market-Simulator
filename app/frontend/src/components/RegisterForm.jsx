@@ -1,103 +1,64 @@
 import React, { useState } from 'react';
+import './RegisterForm.css';
 
-function RegisterForm() {
+function RegisterForm({ onRegister, onClose }) {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordError, setPasswordError] = useState(false);
-  const [confirmPasswordError, setConfirmPasswordError] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState({});
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
+    const newErrors = {};
 
-    if (password.length < 8) {
-      setPasswordError(true);
+    if (!username) newErrors.username = 'Username is required.';
+    if (!email) newErrors.email = 'Email is required.';
+    if (password.length < 8) newErrors.password = 'Password must be at least 8 characters.';
+    if (password !== confirmPassword) newErrors.confirmPassword = 'Passwords do not match.';
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
-    if (password !== confirmPassword) {
-      setConfirmPasswordError(true);
-      return;
-    }
-
-    const userData = {
-      username,
-      email,
-      password
-    };
-
-    try {
-      const response = await fetch('http://localhost:3000/api/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('User registered:', result);
-      } else {
-        console.error('Registration failed');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
-
-  const handlePasswordChange = (e) => {
-    const value = e.target.value;
-    setPassword(value);
-    setPasswordError(value.length < 8);
-    setConfirmPasswordError(value !== confirmPassword);
-  };
-
-  const handleConfirmPasswordChange = (e) => {
-    const value = e.target.value;
-    setConfirmPassword(value);
-    setConfirmPasswordError(password !== value);
+    onRegister({ username, email, password });
+    onClose();
   };
 
   return (
     <form className="register-form" onSubmit={handleSubmit}>
       <h2>Register</h2>
-
       <div className="form-group">
         <label>Username:</label>
         <input
           type="text"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          required
           placeholder="Enter your username"
         />
+        {errors.username && <p className="error-message">{errors.username}</p>}
       </div>
-
       <div className="form-group">
         <label>Email:</label>
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          required
           placeholder="Enter your email"
         />
+        {errors.email && <p className="error-message">{errors.email}</p>}
       </div>
-
       <div className="form-group">
         <label>Password:</label>
-        <div className="password-wrapper">
+        <div className="password-input">
           <input
             type={showPassword ? 'text' : 'password'}
             value={password}
-            onChange={handlePasswordChange}
-            required
+            onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter your password"
-            className={passwordError ? 'error' : ''}
           />
           <span
             className="toggle-password"
@@ -106,23 +67,16 @@ function RegisterForm() {
             {showPassword ? '👁️' : '👁️‍🗨️'}
           </span>
         </div>
-        {passwordError && (
-          <span className="error-message">
-            Password must have at least 8 characters.
-          </span>
-        )}
+        {errors.password && <p className="error-message">{errors.password}</p>}
       </div>
-
       <div className="form-group">
         <label>Confirm Password:</label>
-        <div className="password-wrapper">
+        <div className="password-input">
           <input
             type={showConfirmPassword ? 'text' : 'password'}
             value={confirmPassword}
-            onChange={handleConfirmPasswordChange}
-            required
+            onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="Confirm your password"
-            className={confirmPasswordError ? 'error' : ''}
           />
           <span
             className="toggle-password"
@@ -131,11 +85,8 @@ function RegisterForm() {
             {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
           </span>
         </div>
-        {confirmPasswordError && (
-          <span className="error-message">Passwords do not match.</span>
-        )}
+        {errors.confirmPassword && <p className="error-message">{errors.confirmPassword}</p>}
       </div>
-
       <button type="submit" className="submit-button">Register</button>
     </form>
   );

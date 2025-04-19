@@ -10,10 +10,12 @@ import Footer from './components/Footer'
 import LoginForm from './components/LoginForm'
 import Modal from './components/Modal'
 import RegisterForm from './components/RegisterForm'
+import ForgotPasswordForm from './components/ForgotPasswordForm'
 
 function App() {
     const [showLoginModal, setShowLoginModal] = useState(false)
     const [showRegisterModal, setShowRegisterModal] = useState(false)
+    const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [userEmail, setUserEmail] = useState('')
 
@@ -34,6 +36,12 @@ function App() {
         setUserEmail('')
     }
 
+    const handleForgotPassword = async (email) => {
+        console.log('Reset password for:', email)
+        // Gửi yêu cầu đến API backend
+        // Ví dụ: await fetch('/api/forgot-password', { method: 'POST', body: JSON.stringify({ email }) });
+    }
+
     return (
         <div className="App">
             <Header 
@@ -43,10 +51,26 @@ function App() {
                 onLogoutClick={handleLogout}
             />
             <Modal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)}>
-                <LoginForm onLogin={handleLogin} />
+                <LoginForm 
+                    onLogin={handleLogin} 
+                    onRegisterClick={() => {
+                        setShowLoginModal(false);
+                        setShowRegisterModal(true);
+                    }}
+                    onForgotPasswordClick={() => {
+                        setShowLoginModal(false);
+                        setShowForgotPasswordModal(true);
+                    }}
+                />
             </Modal>
             <Modal isOpen={showRegisterModal} onClose={() => setShowRegisterModal(false)}>
                 <RegisterForm onRegister={handleRegister} onClose={() => setShowRegisterModal(false)} />
+            </Modal>
+            <Modal isOpen={showForgotPasswordModal} onClose={() => setShowForgotPasswordModal(false)}>
+                <ForgotPasswordForm
+                    onReset={handleForgotPassword}
+                    onClose={() => setShowForgotPasswordModal(false)}
+                />
             </Modal>
             <Routes>
                 <Route path="/" element={<Home />} />
