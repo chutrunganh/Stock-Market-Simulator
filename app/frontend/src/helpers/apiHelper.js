@@ -1,6 +1,6 @@
-import API_BASE_URL from '../config/apiConfig';
+import { API_BASE_URL } from '../config/apiConfig';
 
-export const apiRequest = async (endpoint, method = 'GET', body = null) => {
+export const apiRequest = async (endpoint, method = 'POST', body = null) => {
   const headers = { 'Content-Type': 'application/json' };
 
   try {
