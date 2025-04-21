@@ -6,7 +6,7 @@ const router = express.Router();
 // Route to create a new order
 router.post('/createOrder', createOrder);
 
-// Route to cacel a specific order by ID
+// Route to cancel a specific order by ID
 router.delete('/cancelOrder/:orderId', cancelOrder);
 
 export default router;
