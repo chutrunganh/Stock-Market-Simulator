@@ -119,7 +119,7 @@ Content-Type: application/json
   "userId": 1,
   "stockId": 101,
   "quantity": 20,
-  "price": 20.8,
+  "price": 50,
   "orderType": "Limit Buy"
 }
 
@@ -130,8 +130,8 @@ Content-Type: application/json
 {
   "userId": 2,
   "stockId": 101,
-  "quantity": 15,
-  "price": 35,
+  "quantity": 20,
+  "price": 5,
   "orderType": "Limit Sell"
 }
 
