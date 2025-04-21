@@ -24,7 +24,7 @@ const pool = new Pool({
 log.info(`Database is running on port: ${process.env.DB_PORT}`);
 log.info(`PgAdmin is running on port: ${process.env.PGADMIN_PORT}`);
 if (process.env.NODE_ENV === 'development') {
-  log.warn('Recreateing all tables in development mode. This will drop all existing data!');
+  log.warn('Recreating all tables in development mode. This will drop all existing data!');
 }
 
 export default pool;
