@@ -8,6 +8,7 @@ import { registerUser, getAllUsers, getUserById, updateUser, deleteUser, loginUs
 import { validateUser, validateUserUpdate, validateLogin } from '../middlewares/inputValidationMiddleware.js';
 import authorizeRole from '../middlewares/roleBasedAccessControlMiddleware.js';
 import authMiddleware from '../middlewares/authenticationMiddleware.js';
+import passport from 'passport';
 
 const router = express.Router();
 
@@ -17,6 +18,24 @@ const router = express.Router();
 router.get("/", (req, res) => {}); // Placeholder for homepage route
 router.post("/register", validateUser, registerUser); // Register a new user
 router.post("/login", validateLogin, loginUser);  // User login
+
+// Google OAuth route
+router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+// Google OAuth callback route
+router.get(
+  '/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/' }),
+  (req, res) => {
+    // Set JWT token in cookie
+    res.cookie('jwt', req.user.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    });
+    res.redirect('http://localhost:5173'); // Redirect to frontend after successful login
+  }
+);
 
 // 2.Protected routes (authentication required)
 router.get("/profile", authMiddleware, (req, res) => {}); // Placeholder for user profile route

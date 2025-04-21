@@ -8,6 +8,7 @@ import userRoutes from './routes/userRoutes.js';
 import errorHandling from './middlewares/errorHandlerMiddleware.js';
 // Updated import path for createUserTable
 import createUserTable from './config/createUserTable.js';
+import './config/passportConfig.js';
 
 // Create express app
 const app = express();

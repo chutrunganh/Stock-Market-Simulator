@@ -10,11 +10,29 @@ function LoginForm({ onLogin, onRegisterClick, onForgotPasswordClick }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const data = await apiRequest('/login', 'POST', { email, password });
-      onLogin(data); // Gửi dữ liệu người dùng đã đăng nhập lên App
+      const response = await fetch('http://localhost:3000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        onLogin(data);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || 'Login failed');
+      }
     } catch (err) {
-      setError(err.message);
+      setError('An error occurred. Please try again.');
     }
+  };
+
+  const handleGoogleLogin = () => {
+    // Redirect to backend Google OAuth endpoint
+    window.location.href = 'http://localhost:3000/api/auth/google';
   };
 
   return (
@@ -42,6 +60,13 @@ function LoginForm({ onLogin, onRegisterClick, onForgotPasswordClick }) {
         />
       </div>
       <button type="submit" className="submit-button">Login</button>
+      <button
+        type="button"
+        className="google-login-button"
+        onClick={handleGoogleLogin}
+      >
+        Login with Google
+      </button>
       <div className="form-footer">
         <a href="#" onClick={onRegisterClick}>Create New Account</a>
         <a href="#" onClick={onForgotPasswordClick}>Forgot Password?</a>

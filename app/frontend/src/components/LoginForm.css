@@ -54,6 +54,22 @@
     background-color: #ffd700; /* Màu vàng sáng hơn khi hover */
 }
 
+.google-login-button {
+    background-color: #4285F4; /* Màu xanh của Google */
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.google-login-button:hover {
+    background-color: #357ae8; /* Màu xanh đậm hơn khi hover */
+}
+
 .form-footer {
     display: flex;
     justify-content: space-between; /* Tách rời hai liên kết */

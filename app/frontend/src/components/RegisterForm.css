@@ -64,10 +64,16 @@
     margin-top: 10px;
 }
 
+.success-message {
+    color: green;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
 .error-message {
     color: red;
     font-size: 14px;
-    margin-top: 5px;
+    margin-top: 10px;
 }
 
 .password-input {
