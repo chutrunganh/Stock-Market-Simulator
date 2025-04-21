@@ -84,8 +84,6 @@ Cookie: jwt={{admin_jwt}}
 GET http://localhost:3000/api/admin/users
 Authorization: Bearer {{admin_jwt}}
 
-
-
 ### Get user by ID
 GET http://localhost:3000/api/admin/user/1
 Cookie: jwt={{admin_jwt}}
@@ -112,5 +110,47 @@ Cookie: jwt={{admin_jwt}}
 ### Delete user by ID
 DELETE http://localhost:3000/api/admin/user/1
 Cookie: jwt={{admin_jwt}}
+
+### Test for creating a new buy order
+POST http://localhost:3000/api/createOrder
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "stockId": 101,
+  "quantity": 20,
+  "price": 50,
+  "orderType": "Limit Buy"
+}
+
+### Test for creating a new sell order
+POST http://localhost:3000/api/createOrder
+Content-Type: application/json
+
+{
+  "userId": 2,
+  "stockId": 101,
+  "quantity": 20,
+  "price": 5,
+  "orderType": "Limit Sell"
+}
+
+### Test a market order
+POST http://localhost:3000/api/createOrder
+Content-Type: application/json
+
+{
+  "userId": 2,
+  "stockId": 101,
+  "quantity": 30,
+  "price": 0,
+  "orderType": "Market Buy"
+}
+
+
+### Test for canceling an order
+DELETE http://localhost:3000/api/cancelOrder/1744103796519
+
+
 
 

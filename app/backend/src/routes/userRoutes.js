@@ -5,7 +5,7 @@
 
 import express from 'express';
 import { registerUser, getAllUsers, getUserById, updateUser, deleteUser, loginUser, googleAuth, googleAuthCallback } from '../controllers/userControllers.js';
-import { validateUser, validateUserUpdate, validateLogin } from '../middlewares/inputValidationMiddleware.js';
+import { validateUser, validateUserUpdate, validateLogin } from '../middlewares/userValidationMiddleware.js';
 import authorizeRole from '../middlewares/roleBasedAccessControlMiddleware.js';
 import authMiddleware from '../middlewares/authenticationMiddleware.js';
 

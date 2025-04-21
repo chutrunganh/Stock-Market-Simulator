@@ -6,8 +6,8 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import dotenv from 'dotenv';
 dotenv.config({ path: '../../.env' }); // Adjust based on relative depth
-import { findOrCreateGoogleUserService } from '../services/userService.js';
-import { getUserByIdService } from '../services/userService.js';
+import { findOrCreateGoogleUserService } from '../services/userCRUDService.js';
+import { getUserByIdService } from '../services/userCRUDService.js';
 
 
 // Configure Google OAuth 2.0 strategy

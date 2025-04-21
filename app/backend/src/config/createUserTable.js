@@ -1,5 +1,6 @@
 import pool from './dbConnect.js';
 import bcrypt from 'bcrypt';
+import log from '../utils/loggerUtil.js';
 
 const SALT_ROUNDS = 10;
 
@@ -32,12 +33,11 @@ const createUserTable = async () => {
     // In production, you shouldn't drop tables on each startup
     // This is just for development convenience
     if (process.env.NODE_ENV === 'development') {
-      console.log('Development mode: Recreating user table');
       await pool.query('DROP TABLE IF EXISTS "users" CASCADE');
     }
     
     await pool.query(queryText);
-    console.log('User table verified/created successfully');
+    //log.info('User table verified/created successfully');
     
     // Seed some test data if in development mode
     if (process.env.NODE_ENV === 'development') {
@@ -45,7 +45,7 @@ const createUserTable = async () => {
     }
   } 
   catch (error) {
-    console.error('Error creating user table:', error.message);
+    log.error('Error creating user table:', error);
     throw new Error(error.message);
   }
 };
@@ -67,12 +67,12 @@ const seedTestData = async () => {
     `;
     
     await pool.query(seedQuery, [userPassword, adminPassword]);
-    console.log('Test data seeded successfully');
-    console.log('Test accounts created:');
-    console.log('- Regular user: email=test@example.com, password=password123');
-    console.log('- Admin user: email=admin@example.com, password=admin123');
+    // console.log('Test data seeded successfully');
+    // console.log('Test accounts created:');
+    // console.log('- Regular user: email=test@example.com, password=password123');
+    // console.log('- Admin user: email=admin@example.com, password=admin123');
   } catch (error) {
-    console.error('Error seeding test data:', error.message);
+    log.error('Error seeding test data:', error);
   }
 };
 

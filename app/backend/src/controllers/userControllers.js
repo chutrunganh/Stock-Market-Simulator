@@ -5,7 +5,7 @@ functions will be responsible for those tasks.
  */
 import dotenv from 'dotenv';
 dotenv.config({ path: '../../.env' }); // Adjust based on relative depth
-import { createUserService, getAllUsersService, getUserByIdService, updateUserService, deleteUserService, loginUserService } from '../services/userService.js';
+import { createUserService, getAllUsersService, getUserByIdService, updateUserService, deleteUserService, loginUserService } from '../services/userCRUDService.js';
 import passport from 'passport';
 
 // Standardized response format
@@ -22,7 +22,7 @@ export const registerUser = async (req, res, next) => {
     const { username, email, password } = req.body;
     console.log(req.body);
     try {
-        const newUser = await createUserService({ username, email, password }); // Call to service function in userService.js
+        const newUser = await createUserService({ username, email, password }); // Call to service function in userCRUDService.js
         handleResponse(res, 201, 'User created successfully', newUser);
     }
     catch (error) {
@@ -43,7 +43,7 @@ export const getAllUsers = async (req, res, next) => {
 export const getUserById = async (req, res, next) => {
     const { id } = req.params;
     try {
-        const user = await getUserByIdService(id);  // Call to service function in userService.js
+        const user = await getUserByIdService(id);  // Call to service function in userCRUDService.js
         if (!user) {
             return handleResponse(res, 404, 'User not found');
         }
@@ -58,7 +58,7 @@ export const updateUser = async (req, res, next) => {
     const { id } = req.params;
     const { username, email, password } = req.body;
     try {
-        const updatedUser = await updateUserService(id, { username, email, password });  // Call to service function in userService.js
+        const updatedUser = await updateUserService(id, { username, email, password });  // Call to service function in userCRUDService.js
         if (!updatedUser) {
             return handleResponse(res, 404, 'User not found');
         }
@@ -72,7 +72,7 @@ export const updateUser = async (req, res, next) => {
 export const deleteUser = async (req, res, next) => {
     const { id } = req.params;
     try {
-        const deletedUser = await deleteUserService(id);  // Call to service function in userService.js
+        const deletedUser = await deleteUserService(id);  // Call to service function in userCRUDService.js
         if (!deletedUser) {
             return handleResponse(res, 404, 'User not found');
         }
@@ -86,7 +86,7 @@ export const deleteUser = async (req, res, next) => {
 export const loginUser = async (req, res, next) => {
     const { email, password } = req.body;
     try {
-        const result = await loginUserService(email, password); // Call to service function in userService.js
+        const result = await loginUserService(email, password); // Call to service function in userCRUDService.js
         
         // Put the JWT token in a cookie to return to the client
         // The cookie will be sent back to the client in the response headers

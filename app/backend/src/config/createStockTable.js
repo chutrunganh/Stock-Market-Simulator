@@ -1,5 +1,5 @@
 import pool from './dbConnect.js';
-
+import log from '../utils/loggerUtil.js';
 
 const createStockTable = async () => {
     const queryText = `
@@ -24,19 +24,17 @@ const createStockTable = async () => {
     try{
         // In production, you shouldn't drop tables on each startup
         if (process.env.NODE_ENV === 'development'){
-            console.log('Dev mode: Recreating stock table');
             //drop the table to recreate
             await pool.query('DROP TABLE IF EXISTS "stocks" CASCADE');
         }
         await pool.query(queryText);
-        console.log('\nStocks table created successfully');
-
+        
         if (process.env.NODE_ENV === 'development'){
             await seedStockTestData();
         }
     }
     catch(error){
-        console.error('Error occurs when creating stock table:', error.message);
+        log.error('Error occurs when creating stock table:', error);
         throw new Error(error.message);
     }
 };
@@ -62,10 +60,9 @@ const seedStockTestData = async () => {
         ('JPM', 'JPMorgan Chase & Co.', 'Financials', 450000000000, 'JPMorgan Chase is a leading global financial services firm and one of the largest banking institutions in the U.S.'),
         ('V', 'Visa Inc.', 'Financials', 500000000000, 'Visa is a world leader in digital payments, facilitating transactions between consumers, merchants, financial institutions, and governments.')`;
         await pool.query(queryText);
-        console.log('Test data added to stocks table successfully');
     }
     catch(error){
-        console.error('Error adding test data for stocks table:', error.message);
+        log.error('Error adding test data for stocks table:', error);
     }
 }
 

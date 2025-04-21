@@ -1,5 +1,5 @@
 import pool from './dbConnect.js';
-
+import log from '../utils/loggerUtil.js';
 const createStockPriceTable = async () => {
     const queryText = `
     CREATE TABLE IF NOT EXISTS "stockprices"(
@@ -27,12 +27,11 @@ const createStockPriceTable = async () => {
     //Delete on cascade means if the stock is deleted, the price history will be deleted as well.
     try{
         if (process.env.NODE_ENV === 'development'){
-            console.log('Dev mode: Recreating stock prices table');
             //drop the table to recreate
             await pool.query('DROP TABLE IF EXISTS "stockprices" CASCADE');
         }
         await pool.query(queryText);
-        console.log('\nStock prices table created successfully');
+        //console.log('\nStock prices table created successfully');
 
         if (process.env.NODE_ENV === 'development'){
             await seedStockPriceTestData();
@@ -54,10 +53,10 @@ const seedStockPriceTestData = async () => {
         (2, '2023-10-01', 200.00, 205.00, 198.00, 202.00, 2000000),
         (1, '2023-10-02', 155.00, 160.00, 146.00, 155.00, 1000000)`;
         await pool.query(queryText);
-        console.log('Test data added to stock prices table successfully');
+        //console.log('Test data added to stock prices table successfully');
     }
     catch(error){
-        console.error('Error adding test data for stock prices table:', error.message);
+       log.error('Error adding test data for stock prices table:', error);
     }
 };
 
