@@ -141,3 +141,5 @@ build/
 
 # Dev document files
 tmp.md
+*.json
+.vite
