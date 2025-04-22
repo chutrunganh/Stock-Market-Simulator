@@ -140,6 +140,7 @@ dist
 build/
 
 # Dev document files
-tmp.md
 docs/techStack/
+*.json
 .vite
+

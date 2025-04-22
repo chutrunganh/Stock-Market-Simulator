@@ -9,6 +9,7 @@ import { validateUser, validateUserUpdate, validateLogin } from '../middlewares/
 import authorizeRole from '../middlewares/roleBasedAccessControlMiddleware.js';
 import authMiddleware from '../middlewares/authenticationMiddleware.js';
 
+
 const router = express.Router();
 
 // Routes realted to user operations arranged in privileged order
