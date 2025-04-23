@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import Tables from './HomeCom/Tables';
-import CardGraph from './HomeCom/CardGraph';
+import Tables from './HomeComponents/Tables';
+import CardGraph from './HomeComponents/CardGraph';
 import './Home.css';
 
 

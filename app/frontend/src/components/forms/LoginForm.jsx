@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { apiRequest } from '../helpers/apiHelper';
 import './LoginForm.css';
 
 function LoginForm({ onLogin, onRegisterClick, onForgotPasswordClick }) {

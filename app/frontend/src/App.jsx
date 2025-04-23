@@ -1,16 +1,20 @@
+/**
+ * App.jsx: Defines the main application component for the frontend, setup router and wraps the app with necessary providers.
+ */
 import { useState } from 'react'
-import Header from './components/Header'
-import './App.css'
+import './styles/App.css'
+import Header from './components/header/Header'
 import { Route, Routes } from 'react-router-dom'
-import Home from './components/pages/Home'
-import Trade from './components/pages/Trade'
-import Portfolio from './components/pages/Portfolio'
-import Tutorial from './components/pages/Tutorial'
-import Footer from './components/Footer'
-import LoginForm from './components/LoginForm'
+import Home from './pages/Home/Home'
+import Trade from './pages/Trade'
+import Portfolio from './pages/Portfolio'
+import Tutorial from './pages/Tutorial'
+import Footer from './components/footer/Footer'
+import LoginForm from './components/forms/LoginForm'
 import Modal from './components/Modal'
-import RegisterForm from './components/RegisterForm'
-import ForgotPasswordForm from './components/ForgotPasswordForm'
+import RegisterForm from './components/forms/RegisterForm'
+import ForgotPasswordForm from './components/forms/ForgotPasswordForm'
+import { registerUser, loginUser } from './api/user';
 
 function App() {
     const [showLoginModal, setShowLoginModal] = useState(false)
@@ -19,16 +23,29 @@ function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [userEmail, setUserEmail] = useState('')
 
-    const handleLogin = (userData) => {
-        console.log('User logged in:', userData)
-        setIsLoggedIn(true)
-        setUserEmail(userData.username)
-        setShowLoginModal(false)
-    }
+    const handleLogin = async (userData) => {
+        try {
+            const response = await loginUser(userData);
+            console.log('User logged in:', response);
+            setIsLoggedIn(true);
+            setUserEmail(response.username);
+            setShowLoginModal(false);
+        } catch (error) {
+            console.error('Login failed:', error);
+            alert('Login failed. Please check your credentials.');
+        }
+    };
 
-    const handleRegister = (userData) => {
-        console.log('User registered:', userData)
-        setShowRegisterModal(false)
+    const handleRegister = async (userData) => {
+        try {
+            const response = await registerUser(userData);
+            console.log('User registered:', response);
+            setShowRegisterModal(false);
+            alert('Registration successful! You can now log in.');
+        } catch (error) {
+            console.error('Registration failed:', error);
+            alert('Registration failed. Please try again.');
+        }
     }
 
     const handleLogout = () => {
