@@ -116,11 +116,13 @@ export const googleAuth = (req, res, next) => {
 export const googleAuthCallback = (req, res, next) => {
     passport.authenticate('google', { session: false }, async (err, user, info) => {
         if (err) {
-            return next(err);
+            const errorUrl = `${process.env.FE_URL}?error=${encodeURIComponent(err.message)}`;
+            return res.redirect(errorUrl);
         }
         
         if (!user) {
-            return handleResponse(res, 401, 'Google authentication failed');
+            const errorUrl = `${process.env.FE_URL}?error=Authentication failed`;
+            return res.redirect(errorUrl);
         }
         
         try {
@@ -132,19 +134,12 @@ export const googleAuthCallback = (req, res, next) => {
                 sameSite: 'strict'
             });
             
-            // For easy testing, return the token in the response as well
-            if (process.env.NODE_ENV === 'development') {
-                return handleResponse(res, 200, 'Google authentication successful', {
-                    user: user.user,
-                    token: user.token, // Include token for testing
-                    message: 'Copy this token for testing protected routes'
-                });
-            }
-            
-            // In production, redirect to frontend
-            res.redirect(process.env.FE_URL);
+            // Redirect back to frontend with success
+            const successUrl = `${process.env.FE_URL}?login=success&token=${user.token}`;
+            res.redirect(successUrl);
         } catch (error) {
-            next(error);
+            const errorUrl = `${process.env.FE_URL}?error=${encodeURIComponent(error.message)}`;
+            res.redirect(errorUrl);
         }
     })(req, res, next);
 };

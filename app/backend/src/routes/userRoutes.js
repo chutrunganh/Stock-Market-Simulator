@@ -33,13 +33,16 @@ router.get("/auth/google/callback", googleAuthCallback);  // Google SSO authenti
 
 // 2.Protected routes (authentication required)
 router.get("/profile", authMiddleware, (req, res) => {
-  // Return the authenticated user's information
+  // Return the authenticated user's information with all needed fields
   res.status(200).json({
     status: 200,
     message: 'Authentication successful',
     data: {
-      user: req.user,
-      authMethod: req.user.google_id ? 'Google SSO' : 'Email/Password'
+      user: {
+        ...req.user,
+        google_id: req.user.google_id || null,
+        created_at: req.user.created_at || new Date().toISOString()
+      }
     }
   });
 }); // User profile route to test authentication

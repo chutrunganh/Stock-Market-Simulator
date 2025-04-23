@@ -12,18 +12,32 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   // Check for stored auth token on mount
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem('authToken');
       if (token) {
         try {
-          // Implement token verification with your backend
-          const userData = await verifyToken(token);
-          setUser(userData);
+          // Verify token by fetching user profile
+          const response = await fetch('http://localhost:3000/api/profile', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+            credentials: 'include'
+          });
+          const data = await response.json();
+          
+          if (data.status === 200 && data.data && data.data.user) {
+            setUser(data.data.user);
+          } else {
+            // If verification fails, clear the auth state
+            localStorage.removeItem('authToken');
+            setUser(null);
+          }
         } catch (err) {
+          console.error('Token verification failed:', err);
           localStorage.removeItem('authToken');
+          setUser(null);
         }
       }
       setLoading(false);
@@ -36,18 +50,44 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('authToken');
     setUser(null);
   };  // Login function
-  const login = async (credentials) => {
+const login = async (credentials) => {
     setLoading(true);
-    setError(null);    try {
-      const response = await loginUser(credentials);
-      console.log('Full login response:', response);  // Debug log
-      const { user, token } = response.data;
-      if (!user || !token) {
-        throw new Error('Invalid login response from server.');
+    setError(null);
+    try {
+      let userData;
+      let authToken;
+      
+      // If credentials contains both user and token (from Google login)
+      if (credentials.user && credentials.token) {
+        userData = credentials.user;
+        authToken = credentials.token;
+      } else {
+        // Regular email/password login
+        const response = await loginUser(credentials);
+        if (!response.data.user || !response.data.token) {
+          throw new Error('Invalid login response from server.');
+        }
+        userData = response.data.user;
+        authToken = response.data.token;
       }
-      setUser(user);
-      localStorage.setItem('authToken', token);
-      return { user, token };
+      
+      // Store auth data and update state
+      localStorage.setItem('authToken', authToken);
+      setUser(userData);
+      
+      // Verify the stored token immediately
+      const verifyResponse = await fetch('http://localhost:3000/api/profile', {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        },
+        credentials: 'include'
+      });
+      const verifyData = await verifyResponse.json();
+        if (verifyData.status !== 200 || !verifyData.data?.user) {
+        throw new Error('Failed to verify login state');
+      }
+      
+      return userData;
     } catch (err) {
       setError(err.message || 'Login failed.');
       throw err;
@@ -70,22 +110,35 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleGoogleCallback = async () => {
+  };  const handleGoogleCallback = async () => {
     try {
-      // The backend will set the JWT cookie automatically
-      // and the user data will be in the response
-      const response = await fetch('http://localhost:3000/auth/google/callback', {
-        credentials: 'include' // Important for cookies
-      });
-      const data = await response.json();
-      
-      if (data.data.user) {
-        setUser(data.data.user);
-        localStorage.setItem('authToken', data.data.token);
-        return data.data;
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('login') && urlParams.get('login') === 'success') {
+        const token = urlParams.get('token');
+        if (!token) {
+          throw new Error('No token received from Google login');
+        }
+
+        // Store token first
+        localStorage.setItem('authToken', token);
+
+        // Get user profile with the token
+        const profileResponse = await fetch('http://localhost:3000/api/profile', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          credentials: 'include'
+        });
+        
+        const profileData = await profileResponse.json();
+        if (profileData.status === 200 && profileData.data?.user) {
+          setUser(profileData.data.user);
+          return { user: profileData.data.user, token };
+        } else {
+          throw new Error('Failed to get user profile');
+        }
       }
+      return null;
     } catch (error) {
       setError(error.message);
       throw error;

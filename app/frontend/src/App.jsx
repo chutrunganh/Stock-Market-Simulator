@@ -74,11 +74,15 @@ function App() {
         setShowLoginModal(false);
         setShowRegisterModal(false);
         setShowForgotPasswordModal(false);
-    };
-
-    // Define the onLogin function
+    };    // Define the onLogin function
     const handleLogin = (userData) => {
-        login(userData); // Use the login function from AuthContext
+        if (userData.user && userData.token) {
+            // If we receive the {user, token} format (from Google login)
+            login(userData); // AuthContext's login will handle setting the user
+        } else {
+            // If we receive just the user data
+            login({ user: userData }); // Wrap it in the expected format
+        }
         setShowLoginModal(false); // Close the login modal
     };
 

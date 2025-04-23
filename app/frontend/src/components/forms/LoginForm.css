@@ -86,3 +86,18 @@
   margin-right: 8px;
   display: inline-block;
 }
+
+.form-footer {
+    display: flex;
+    justify-content: space-between; /* Tách rời hai liên kết */
+    margin-top: 10px;
+}
+
+.form-footer a {
+    color: #f0b90b; /* Màu chữ vàng */
+    text-decoration: none;
+}
+
+.form-footer a:hover {
+    text-decoration: underline;
+}
