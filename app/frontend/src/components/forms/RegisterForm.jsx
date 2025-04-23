@@ -18,6 +18,7 @@ function RegisterForm({ onClose }) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const validateForm = () => {
     let isValid = true;
@@ -49,13 +50,15 @@ function RegisterForm({ onClose }) {
 
     setIsSubmitting(true);
     try {      await register({ username, email, password });
-      setSuccessMessage('Registration successful! Redirecting to login...');
-      // Wait for 1.5 seconds to show the success message, then close register modal and open login
+      setSuccessMessage('Registration successful!');
+      setIsRedirecting(true); // Set redirecting state to true
+      
+      // Wait for 2 seconds to show the success message, then close register modal and open login
       setTimeout(() => {
         onClose();
         // After the register modal is closed, open the login modal
         document.dispatchEvent(new CustomEvent('openLoginModal'));
-      }, 1500);
+      }, 2000);
     } catch (error) {
       setSuccessMessage('');
       setPasswordError(error.message || 'Registration failed. Please try again.');
@@ -68,7 +71,17 @@ function RegisterForm({ onClose }) {
     <form className="register-form" onSubmit={handleSubmit}>
       <h2>Create Account</h2>
       
-      {successMessage && <div className="success-message">{successMessage}</div>}
+      {successMessage && (
+        <div className="success-message">
+          {successMessage}
+          {isRedirecting && (
+            <div className="redirect-container">
+              <div className="spinner"></div>
+              <p>Redirecting to login...</p>
+            </div>
+          )}
+        </div>
+      )}
       <div className="form-group">
         <label htmlFor="username">Username:</label>
         <input
@@ -150,14 +163,14 @@ function RegisterForm({ onClose }) {
           type="button" 
           className="cancel-btn" 
           onClick={onClose}
-          disabled={isSubmitting}
+          disabled={isSubmitting || isRedirecting}
         >
           Cancel
         </button>
         <button 
           type="submit" 
           className="submit-btn"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isRedirecting}
         >
           {isSubmitting ? 'Registering...' : 'Register'}
         </button>

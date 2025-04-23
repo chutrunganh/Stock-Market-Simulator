@@ -10,11 +10,9 @@
     gap: 1rem;
 }
 .header h1 {
-    margin: 0;
-    font-size: 2rem;
-    color: #f0b90b;
-    font-family: Arial;
-    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 20px; /* Add space between the logo and the text */
 }
 
 .title {
@@ -24,7 +22,7 @@
 }
   
 h1 {
-    font-size: 3.2em;
+    font-size: 2.2em;
     line-height: 1.1;
     color: #f0b90b;
 }

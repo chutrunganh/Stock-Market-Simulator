@@ -8,53 +8,46 @@ function LoginForm({ onLogin, onRegisterClick, onForgotPasswordClick }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);  useEffect(() => {
-    // Handle the Google OAuth callback
-    const handleGoogleCallback = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      
-      if (urlParams.has('login') && urlParams.get('login') === 'success') {
-        const token = urlParams.get('token');
-        setIsLoading(true);
-        try {
-          // Store the token right away
-          localStorage.setItem('authToken', token);
-          
-          // Get user data from the backend using the token
-          const response = await fetch('http://localhost:3000/api/profile', {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            },
-            credentials: 'include'
-          });
-          const data = await response.json();
-            if (data.status === 200 && data.data && data.data.user) {
-            // Remove the query parameters from the URL
-            window.history.replaceState({}, document.title, window.location.pathname);
-            
-            // Handle login success with the complete user data
-            const loginData = {
-              user: data.data.user,
-              token: token
-            };
-            
-            // Set user in auth context through the onLogin callback
-            onLogin(loginData);
-            
-            // Redirect to home page after successful login
-            window.location.href = '/';} else {
-            setError('Failed to get user profile');
-          }
-        } catch (err) {
-          setError('Google login failed. Please try again.');
-          console.error('Google login error:', err);
-        } finally {
-          setIsLoading(false);
-        }
-      }
-    };
+  const handleGoogleCallback = async () => {
+    const urlParams = new URLSearchParams(window.location.search);
 
-    handleGoogleCallback();
-  }, [onLogin]);
+    if (urlParams.has('login') && urlParams.get('login') === 'success') {
+      const token = urlParams.get('token');
+      setIsLoading(true);
+      try {
+        localStorage.setItem('authToken', token);
+
+        const response = await fetch('http://localhost:3000/api/profile', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          credentials: 'include'
+        });
+        const data = await response.json();
+        if (data.status === 200 && data.data && data.data.user) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+
+          const loginData = {
+            user: data.data.user,
+            token: token
+          };
+
+          // Trigger the onLogin callback to update the UI
+          onLogin(loginData);
+        } else {
+          setError('Failed to get user profile');
+        }
+      } catch (err) {
+        setError('Google login failed. Please try again.');
+        console.error('Google login error:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  handleGoogleCallback();
+}, [onLogin]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
