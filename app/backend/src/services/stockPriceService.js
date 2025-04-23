@@ -41,13 +41,22 @@ export const getStockPricesByStockIdService = async (stock_id) => {
         console.log('Stock ID in controller and service should be matched with each other');
         const result = await pool.query(
             'SELECT * FROM stockprices WHERE stock_id = $1 ORDER BY date ASC', //sort by date
-            [stock_id]);
-        if (!result.rows[0]){ //no stock price found
+            [stock_id]
+        );
+        if (!result.rows[0]) { //no stock price found
             throw new Error('This stock does not have any price history');
         }
-        return result.rows.map(row => StockPrices.getStockPrices(row)); //get all the rows needed
-    }
-    catch(error){
+
+        //match the result with the required format from frontend
+        return result.rows.map(row => ({
+            date: new Date(row.date), 
+            open: row.open_price, 
+            high: row.high_price,
+            low: row.low_price,
+            close: row.close_price,
+            volume: row.volume
+        }));
+    } catch (error) {
         throw error;
     }
 };
