@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { requestPasswordReset } from '../../api/user';
+import { useAuth } from '../../context/AuthContext';
 import './ForgotPasswordForm.css';
 
 /**
@@ -7,6 +7,7 @@ import './ForgotPasswordForm.css';
  * Handles password reset requests
  */
 function ForgotPasswordForm({ onClose }) {
+  const { requestPasswordReset } = useAuth();
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -19,21 +20,13 @@ function ForgotPasswordForm({ onClose }) {
     setIsSubmitting(true);
 
     try {
-      // Call the API service to request password reset
       await requestPasswordReset(email);
-      
-      // Show success message (even if email doesn't exist for security)
       setMessage('If an account with that email exists, we have sent password reset instructions.');
-      
-      // Clear form
       setEmail('');
-      
-      // Close the form after a delay
       setTimeout(() => {
         onClose();
       }, 3000);
     } catch (err) {
-      // Show generic error to prevent email enumeration
       setError('Failed to process your request. Please try again.');
     } finally {
       setIsSubmitting(false);

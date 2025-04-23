@@ -18,8 +18,6 @@ function RegisterForm({ onClose }) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  
-  const { register, error: authError } = useAuth();
 
   const validateForm = () => {
     let isValid = true;
@@ -43,25 +41,24 @@ function RegisterForm({ onClose }) {
     return isValid;
   };
 
+  const { register } = useAuth();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-    
+    if (!validateForm()) return;
+
     setIsSubmitting(true);
-    try {
-      await register({ username, email, password });
-      setSuccessMessage('Registration successful! You can now log in.');
-      
-      // Reset form after successful registration
+    try {      await register({ username, email, password });
+      setSuccessMessage('Registration successful! Redirecting to login...');
+      // Wait for 1.5 seconds to show the success message, then close register modal and open login
       setTimeout(() => {
         onClose();
-      }, 2000);
+        // After the register modal is closed, open the login modal
+        document.dispatchEvent(new CustomEvent('openLoginModal'));
+      }, 1500);
     } catch (error) {
-      console.error('Registration error:', error);
-      // Auth context already handles the error state
+      setSuccessMessage('');
+      setPasswordError(error.message || 'Registration failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -72,8 +69,6 @@ function RegisterForm({ onClose }) {
       <h2>Create Account</h2>
       
       {successMessage && <div className="success-message">{successMessage}</div>}
-      {authError && <div className="error-message">{authError}</div>}
-      
       <div className="form-group">
         <label htmlFor="username">Username:</label>
         <input

@@ -33,38 +33,53 @@ function App() {
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [showRegisterModal, setShowRegisterModal] = useState(false);
     const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
-    
+
     // Get auth context
-    const { user, isAuthenticated, logout } = useAuth();
-    const location = useLocation();
-    
-    // Check for auth message from redirects
+    const { user, isAuthenticated, logout, login } = useAuth();
+    const location = useLocation();    // Check for auth message from redirects
     useEffect(() => {
         if (location.state?.authMessage) {
             // Could show a notification here
             console.log(location.state.authMessage);
         }
+
+        // Add event listener for opening login modal after registration
+        const openLoginHandler = () => {
+            setShowLoginModal(true);
+        };
+        document.addEventListener('openLoginModal', openLoginHandler);
+
+        // Cleanup
+        return () => {
+            document.removeEventListener('openLoginModal', openLoginHandler);
+        };
     }, [location]);
-    
+
     // Modal handlers
     const handleOpenLoginModal = () => {
         setShowLoginModal(true);
     };
-    
+
     const handleOpenRegisterModal = () => {
         setShowLoginModal(false);
         setShowRegisterModal(true);
     };
-    
+
     const handleOpenForgotPasswordModal = () => {
         setShowLoginModal(false);
         setShowForgotPasswordModal(true);
     };
-    
+
     const handleCloseAllModals = () => {
         setShowLoginModal(false);
         setShowRegisterModal(false);
         setShowForgotPasswordModal(false);
+    };
+
+    // Define the onLogin function
+    const handleLogin = (userData) => {
+        login(userData); // Use the login function from AuthContext
+        setShowLoginModal(false); // Close the login modal
     };
 
     return (
@@ -79,7 +94,7 @@ function App() {
             {/* Authentication Modals */}
             <Modal isOpen={showLoginModal} onClose={handleCloseAllModals}>
                 <LoginForm 
-                    onClose={handleCloseAllModals}
+                    onLogin={handleLogin} // Pass the onLogin function here
                     onRegisterClick={handleOpenRegisterModal}
                     onForgotPasswordClick={handleOpenForgotPasswordModal}
                 />

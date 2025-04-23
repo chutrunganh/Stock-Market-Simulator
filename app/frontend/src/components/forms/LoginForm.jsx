@@ -1,96 +1,109 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import './LoginForm.css';
 
-/**
- * LoginForm component
- * Handles user login with email/password or Google SSO
- */
-function LoginForm({ onClose, onRegisterClick, onForgotPasswordClick }) {
+function LoginForm({ onLogin, onRegisterClick, onForgotPasswordClick }) {
+  const { login, handleGoogleCallback } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login, error: authError } = useAuth();
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    // Handle the Google OAuth callback
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('code')) {
+      setIsLoading(true);
+      handleGoogleCallback()
+        .then((userData) => {
+          if (userData && userData.user) {
+            onLogin(userData);
+          } else {
+            setError('Invalid response from Google login');
+          }
+        })
+        .catch((err) => {
+          setError('Google login failed. Please try again.');
+          console.error('Google login error:', err);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    }
+  }, [handleGoogleCallback, onLogin]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    setError('');
+    setIsLoading(true);
+
+    if (!email || !password) {
+      setError('Please enter both email and password');
+      setIsLoading(false);
+      return;
+    }
 
     try {
-      await login({ email, password });
-      onClose(); // Close modal on successful login
-    } catch (error) {
-      console.error('Login error:', error);
-      // Auth context already handles the error state
+      const userData = await login({ email, password });
+      onLogin(userData);
+    } catch (err) {
+      setError(err.message || 'Login failed. Please check your credentials.');
+      console.error('Login error:', err);
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
   const handleGoogleLogin = () => {
-    // Redirect to backend Google OAuth endpoint
+    // Redirect to Google OAuth login endpoint
+    setIsLoading(true);
     window.location.href = 'http://localhost:3000/auth/google';
   };
 
   return (
     <form className="login-form" onSubmit={handleSubmit}>
       <h2>Login</h2>
-      
-      {authError && <div className="error-message">{authError}</div>}
-      
+      {error && <p className="error-message">{error}</p>}
       <div className="form-group">
-        <label htmlFor="email">Email:</label>
+        <label>Email:</label>
         <input
           type="email"
-          id="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="Enter your email"
-          disabled={isSubmitting}
+          disabled={isLoading}
         />
       </div>
-      
       <div className="form-group">
-        <label htmlFor="password">Password:</label>
+        <label>Password:</label>
         <input
           type="password"
-          id="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
           placeholder="Enter your password"
-          disabled={isSubmitting}
+          disabled={isLoading}
         />
       </div>
-      
-      <div className="form-actions">
-        <button 
-          type="submit" 
-          className="submit-button"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? 'Logging in...' : 'Login'}
-        </button>
-      </div>
-      
+      <button type="submit" className="submit-button" disabled={isLoading}>
+        {isLoading ? 'Logging in...' : 'Login'}
+      </button>
       <button
         type="button"
         className="google-login-button"
         onClick={handleGoogleLogin}
-        disabled={isSubmitting}
+        disabled={isLoading}
       >
-        <span className="google-icon">G</span>
-        Login with Google
+        {isLoading ? 'Connecting...' : 'Login with Google'}
       </button>
-      
       <div className="form-footer">
-        <button type="button" className="link-button" onClick={onRegisterClick}>
+        <a href="#" onClick={(e) => { e.preventDefault(); onRegisterClick(); }}>
           Create New Account
-        </button>
-        <button type="button" className="link-button" onClick={onForgotPasswordClick}>
+        </a>
+        <a href="#" onClick={(e) => { e.preventDefault(); onForgotPasswordClick(); }}>
           Forgot Password?
-        </button>
+        </a>
       </div>
     </form>
   );

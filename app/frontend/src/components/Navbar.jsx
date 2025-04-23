@@ -1,18 +1,21 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
-function Navbar({ onLoginClick, isLoggedIn, userEmail, onLogoutClick }) {
+function Navbar({ onLoginClick }) {
+  const { user, logout } = useAuth();
+
   return (
     <nav className="navbar">
       <div className="navbar-brand">
         <Link to="/" className="logo">Stock Market Simulator</Link>
       </div>
       <div className="navbar-auth">
-        {isLoggedIn ? (
+        {user ? (
           <div className="logged-in">
-            <span className="user-icon">👤</span>
-            <span className="user-email">{userEmail}</span>
-            <button className="logout-button" onClick={onLogoutClick}>Logout</button>
+            <span className="user-icon"></span>
+            <span className="user-email">{user.email}</span>
+            <button className="logout-button" onClick={logout}>Logout</button>
           </div>
         ) : (
           <button className="login-button" onClick={onLoginClick}>

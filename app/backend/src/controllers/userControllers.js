@@ -98,7 +98,7 @@ export const loginUser = async (req, res, next) => {
         });
         
     
-        handleResponse(res, 200, 'Login successful', { user: result.user });
+        handleResponse(res, 200, 'Login successful', { user: result.user, token: result.token });
     
     }
     catch (error) {

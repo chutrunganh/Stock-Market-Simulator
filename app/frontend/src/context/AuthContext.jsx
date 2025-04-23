@@ -2,13 +2,7 @@
  * AuthContext provides authentication state and methods throughout the app
  */
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { 
-  loginUser, 
-  registerUser, 
-  logoutUser, 
-  getCurrentUser, 
-  isAuthenticated as checkAuth 
-} from '../api/user';
+import { loginUser, registerUser } from '../api/user';
 
 // Create the Auth Context
 const AuthContext = createContext();
@@ -19,36 +13,43 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Check authentication status on initial load
+  // Check for stored auth token on mount
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        if (checkAuth()) {
-          const currentUser = getCurrentUser();
-          setUser(currentUser);
+    const checkAuth = async () => {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        try {
+          // Implement token verification with your backend
+          const userData = await verifyToken(token);
+          setUser(userData);
+        } catch (err) {
+          localStorage.removeItem('authToken');
         }
-      } catch (err) {
-        console.error('Auth error:', err);
-        setError('Authentication error');
-      } finally {
-        setLoading(false);
       }
+      setLoading(false);
     };
-
-    checkAuthStatus();
+    
+    checkAuth();
   }, []);
 
-  // Login function
+  const logout = () => {
+    localStorage.removeItem('authToken');
+    setUser(null);
+  };  // Login function
   const login = async (credentials) => {
     setLoading(true);
-    setError(null);
-    
-    try {
+    setError(null);    try {
       const response = await loginUser(credentials);
-      setUser(response.user);
-      return response;
+      console.log('Full login response:', response);  // Debug log
+      const { user, token } = response.data;
+      if (!user || !token) {
+        throw new Error('Invalid login response from server.');
+      }
+      setUser(user);
+      localStorage.setItem('authToken', token);
+      return { user, token };
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Login failed.');
       throw err;
     } finally {
       setLoading(false);
@@ -71,16 +72,23 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Logout function
-  const logout = async () => {
-    setLoading(true);
+  const handleGoogleCallback = async () => {
     try {
-      await logoutUser();
-      setUser(null);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      // The backend will set the JWT cookie automatically
+      // and the user data will be in the response
+      const response = await fetch('http://localhost:3000/auth/google/callback', {
+        credentials: 'include' // Important for cookies
+      });
+      const data = await response.json();
+      
+      if (data.data.user) {
+        setUser(data.data.user);
+        localStorage.setItem('authToken', data.data.token);
+        return data.data;
+      }
+    } catch (error) {
+      setError(error.message);
+      throw error;
     }
   };
 
@@ -92,7 +100,8 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: !!user,
     login,
     register,
-    logout
+    logout,
+    handleGoogleCallback
   };
 
   return (

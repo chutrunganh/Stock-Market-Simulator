@@ -1,5 +1,6 @@
 import {Link, NavLink} from 'react-router-dom';
 import React, { useState } from 'react';
+import userIcon from '../../assets/images/userIcon.png';
 import './Header.css';
 
 function Header({ onLoginClick, isLoggedIn, userEmail, onLogoutClick }) {
@@ -33,7 +34,14 @@ function Header({ onLoginClick, isLoggedIn, userEmail, onLogoutClick }) {
               {isLoggedIn ? (
                 <div className="profile" onMouseEnter={() => setMenuOpen(true)} onMouseLeave={() => setMenuOpen(false)}>
                   <div className="user-info">
-                    <span className="user-icon">👤</span>
+                    <span className="user-icon">
+                      <img 
+                      src={userIcon}
+                      alt="User"
+                      className="user-icon"
+                      style={{ width: '24px', height: '24px', verticalAlign: 'middle' }}
+                      />
+                    </span>
                     <span className="user-email">{userEmail}</span>
                   </div>
                   <div className={`dropdown-menu ${menuOpen ? 'show' : ''}`}>

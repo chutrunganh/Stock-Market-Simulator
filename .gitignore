@@ -41,7 +41,6 @@ out
 .serverless/
 .fusebox/
 .dynamodb/
-docs/techStack/
 
 # Dependency directories
 node_modules/
@@ -97,7 +96,7 @@ web_modules/
 *.sw?
 
 # Dev documentation and JSON files
-/docs/techStack/
+
 
 # dotenv files (uncomment if needed)
 # .env
