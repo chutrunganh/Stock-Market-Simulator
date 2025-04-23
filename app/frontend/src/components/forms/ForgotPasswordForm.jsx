@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
+import { requestPasswordReset } from '../../api/user';
 import './ForgotPasswordForm.css';
 
-function ForgotPasswordForm({ onReset, onClose }) {
+/**
+ * ForgotPasswordForm component
+ * Handles password reset requests
+ */
+function ForgotPasswordForm({ onClose }) {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -14,15 +19,22 @@ function ForgotPasswordForm({ onReset, onClose }) {
     setIsSubmitting(true);
 
     try {
-      // Here you would call your backend API to send password reset email
-      // The actual implementation will depend on your backend
-      // await apiRequest('/users/forgot-password', 'POST', { email });
+      // Call the API service to request password reset
+      await requestPasswordReset(email);
       
-      // For now, we'll just simulate a successful response
+      // Show success message (even if email doesn't exist for security)
       setMessage('If an account with that email exists, we have sent password reset instructions.');
-      // onReset(email);
+      
+      // Clear form
+      setEmail('');
+      
+      // Close the form after a delay
+      setTimeout(() => {
+        onClose();
+      }, 3000);
     } catch (err) {
-      setError(err.message || 'Failed to process your request. Please try again.');
+      // Show generic error to prevent email enumeration
+      setError('Failed to process your request. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -30,7 +42,8 @@ function ForgotPasswordForm({ onReset, onClose }) {
 
   return (
     <div className="forgot-password-form">
-      <h2>Forgot Password</h2>
+      <h2>Reset Password</h2>
+      
       {message && <div className="success-message">{message}</div>}
       {error && <div className="error-message">{error}</div>}
       
@@ -44,13 +57,24 @@ function ForgotPasswordForm({ onReset, onClose }) {
             onChange={(e) => setEmail(e.target.value)}
             required
             placeholder="Enter your email address"
+            disabled={isSubmitting}
           />
         </div>
+        
         <div className="form-actions">
-          <button type="button" className="cancel-btn" onClick={onClose}>
+          <button 
+            type="button" 
+            className="cancel-btn" 
+            onClick={onClose}
+            disabled={isSubmitting}
+          >
             Cancel
           </button>
-          <button type="submit" className="submit-btn" disabled={isSubmitting}>
+          <button 
+            type="submit" 
+            className="submit-btn" 
+            disabled={isSubmitting}
+          >
             {isSubmitting ? 'Sending...' : 'Send Reset Link'}
           </button>
         </div>

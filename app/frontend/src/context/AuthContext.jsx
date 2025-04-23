@@ -1,35 +1,35 @@
+/**
+ * AuthContext provides authentication state and methods throughout the app
+ */
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import userService from '../services/userService';
+import { 
+  loginUser, 
+  registerUser, 
+  logoutUser, 
+  getCurrentUser, 
+  isAuthenticated as checkAuth 
+} from '../api/user';
 
-// Create context
-const AuthContext = createContext(null);
+// Create the Auth Context
+const AuthContext = createContext();
 
+// Auth Provider Component
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Check for existing auth token on initial load
+  // Check authentication status on initial load
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        if (userService.isAuthenticated()) {
-          // Get current user from localStorage
-          const currentUser = userService.getCurrentUser();
+        if (checkAuth()) {
+          const currentUser = getCurrentUser();
           setUser(currentUser);
-          
-          // Optionally verify token validity with backend
-          try {
-            const profile = await userService.getProfile();
-            setUser(profile);
-          } catch (error) {
-            // If token is invalid, logout user
-            userService.logout();
-            setUser(null);
-          }
         }
       } catch (err) {
-        setError(err.message);
+        console.error('Auth error:', err);
+        setError('Authentication error');
       } finally {
         setLoading(false);
       }
@@ -39,16 +39,16 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Login function
-  const login = async (email, password) => {
+  const login = async (credentials) => {
     setLoading(true);
     setError(null);
     
     try {
-      const response = await userService.login(email, password);
+      const response = await loginUser(credentials);
       setUser(response.user);
       return response;
     } catch (err) {
-      setError(err.message || 'Login failed');
+      setError(err.message);
       throw err;
     } finally {
       setLoading(false);
@@ -61,10 +61,10 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     
     try {
-      const response = await userService.register(userData);
+      const response = await registerUser(userData);
       return response;
     } catch (err) {
-      setError(err.message || 'Registration failed');
+      setError(err.message);
       throw err;
     } finally {
       setLoading(false);
@@ -72,44 +72,37 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Logout function
-  const logout = () => {
-    userService.logout();
-    setUser(null);
-  };
-
-  // Update user profile
-  const updateProfile = async (userData) => {
+  const logout = async () => {
     setLoading(true);
-    setError(null);
-    
     try {
-      const updatedUser = await userService.updateProfile(userData);
-      setUser(updatedUser);
-      return updatedUser;
+      await logoutUser();
+      setUser(null);
     } catch (err) {
-      setError(err.message || 'Profile update failed');
-      throw err;
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Expose the auth context
-  const value = {
+  // Context value
+  const contextValue = {
     user,
     loading,
     error,
+    isAuthenticated: !!user,
     login,
     register,
-    logout,
-    updateProfile,
-    isAuthenticated: !!user,
+    logout
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={contextValue}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-// Custom hook for using the auth context
+// Custom hook to use the auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

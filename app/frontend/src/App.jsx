@@ -1,106 +1,119 @@
 /**
- * App.jsx: Defines the main application component for the frontend, setup router and wraps the app with necessary providers.
+ * App.jsx: Defines the main application component for the frontend.
+ * Sets up routing, authentication context, and main layout structure.
  */
-import { useState } from 'react'
-import './styles/App.css'
-import Header from './components/header/Header'
-import { Route, Routes } from 'react-router-dom'
-import Home from './pages/Home/Home'
-import Trade from './pages/Trade'
-import Portfolio from './pages/Portfolio'
-import Tutorial from './pages/Tutorial'
-import Footer from './components/footer/Footer'
-import LoginForm from './components/forms/LoginForm'
-import Modal from './components/Modal'
-import RegisterForm from './components/forms/RegisterForm'
-import ForgotPasswordForm from './components/forms/ForgotPasswordForm'
-import { registerUser, loginUser } from './api/user';
+import { useState, useEffect } from 'react';
+import { Route, Routes, useLocation } from 'react-router-dom';
+
+// Components
+import Header from './components/header/Header';
+import Modal from './components/Modal';
+import Footer from './components/footer/Footer';
+import ProtectedRoute from './components/ProtectedRoute';
+
+// Pages
+import Home from './pages/Home/Home';
+import Trade from './pages/Trade';
+import Portfolio from './pages/Portfolio';
+import Tutorial from './pages/Tutorial';
+
+// Forms
+import LoginForm from './components/forms/LoginForm';
+import RegisterForm from './components/forms/RegisterForm';
+import ForgotPasswordForm from './components/forms/ForgotPasswordForm';
+
+// Auth Context
+import { useAuth } from './context/AuthContext';
+
+// Styles
+import './styles/App.css';
 
 function App() {
-    const [showLoginModal, setShowLoginModal] = useState(false)
-    const [showRegisterModal, setShowRegisterModal] = useState(false)
-    const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
-    const [isLoggedIn, setIsLoggedIn] = useState(false)
-    const [userEmail, setUserEmail] = useState('')
-
-    const handleLogin = async (userData) => {
-        try {
-            const response = await loginUser(userData);
-            console.log('User logged in:', response);
-            setIsLoggedIn(true);
-            setUserEmail(response.username);
-            setShowLoginModal(false);
-        } catch (error) {
-            console.error('Login failed:', error);
-            alert('Login failed. Please check your credentials.');
+    // State for modals
+    const [showLoginModal, setShowLoginModal] = useState(false);
+    const [showRegisterModal, setShowRegisterModal] = useState(false);
+    const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
+    
+    // Get auth context
+    const { user, isAuthenticated, logout } = useAuth();
+    const location = useLocation();
+    
+    // Check for auth message from redirects
+    useEffect(() => {
+        if (location.state?.authMessage) {
+            // Could show a notification here
+            console.log(location.state.authMessage);
         }
+    }, [location]);
+    
+    // Modal handlers
+    const handleOpenLoginModal = () => {
+        setShowLoginModal(true);
     };
-
-    const handleRegister = async (userData) => {
-        try {
-            const response = await registerUser(userData);
-            console.log('User registered:', response);
-            setShowRegisterModal(false);
-            alert('Registration successful! You can now log in.');
-        } catch (error) {
-            console.error('Registration failed:', error);
-            alert('Registration failed. Please try again.');
-        }
-    }
-
-    const handleLogout = () => {
-        setIsLoggedIn(false)
-        setUserEmail('')
-    }
-
-    const handleForgotPassword = async (email) => {
-        console.log('Reset password for:', email)
-        // Gửi yêu cầu đến API backend
-        // Ví dụ: await fetch('/api/forgot-password', { method: 'POST', body: JSON.stringify({ email }) });
-    }
+    
+    const handleOpenRegisterModal = () => {
+        setShowLoginModal(false);
+        setShowRegisterModal(true);
+    };
+    
+    const handleOpenForgotPasswordModal = () => {
+        setShowLoginModal(false);
+        setShowForgotPasswordModal(true);
+    };
+    
+    const handleCloseAllModals = () => {
+        setShowLoginModal(false);
+        setShowRegisterModal(false);
+        setShowForgotPasswordModal(false);
+    };
 
     return (
         <div className="App">
             <Header 
-                onLoginClick={() => setShowLoginModal(true)} 
-                isLoggedIn={isLoggedIn}
-                userEmail={userEmail}
-                onLogoutClick={handleLogout}
+                onLoginClick={handleOpenLoginModal} 
+                isLoggedIn={isAuthenticated}
+                userEmail={user?.username || user?.email}
+                onLogoutClick={logout}
             />
-            <Modal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)}>
+            
+            {/* Authentication Modals */}
+            <Modal isOpen={showLoginModal} onClose={handleCloseAllModals}>
                 <LoginForm 
-                    onLogin={handleLogin} 
-                    onRegisterClick={() => {
-                        setShowLoginModal(false);
-                        setShowRegisterModal(true);
-                    }}
-                    onForgotPasswordClick={() => {
-                        setShowLoginModal(false);
-                        setShowForgotPasswordModal(true);
-                    }}
+                    onClose={handleCloseAllModals}
+                    onRegisterClick={handleOpenRegisterModal}
+                    onForgotPasswordClick={handleOpenForgotPasswordModal}
                 />
             </Modal>
-            <Modal isOpen={showRegisterModal} onClose={() => setShowRegisterModal(false)}>
-                <RegisterForm onRegister={handleRegister} onClose={() => setShowRegisterModal(false)} />
+            
+            <Modal isOpen={showRegisterModal} onClose={handleCloseAllModals}>
+                <RegisterForm onClose={handleCloseAllModals} />
             </Modal>
-            <Modal isOpen={showForgotPasswordModal} onClose={() => setShowForgotPasswordModal(false)}>
-                <ForgotPasswordForm
-                    onReset={handleForgotPassword}
-                    onClose={() => setShowForgotPasswordModal(false)}
-                />
+            
+            <Modal isOpen={showForgotPasswordModal} onClose={handleCloseAllModals}>
+                <ForgotPasswordForm onClose={handleCloseAllModals} />
             </Modal>
-            <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/home" element={<Home />} />
-                <Route path="/trade" element={<Trade />} />
-                <Route path="/portfolio" element={<Portfolio />} />
-                <Route path="/tutorial" element={<Tutorial />} />
-            </Routes>
+            
+            {/* Routes */}
+            <main className="main-content">
+                <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/home" element={<Home />} />
+                    <Route path="/trade" element={<Trade />} />
+                    <Route 
+                        path="/portfolio" 
+                        element={
+                            <ProtectedRoute>
+                                <Portfolio />
+                            </ProtectedRoute>
+                        } 
+                    />
+                    <Route path="/tutorial" element={<Tutorial />} />
+                </Routes>
+            </main>
             
             <Footer />  
-            
         </div>
-    )
+    );
 }
 
-export default App
+export default App;

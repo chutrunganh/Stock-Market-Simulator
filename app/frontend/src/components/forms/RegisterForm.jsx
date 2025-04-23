@@ -1,153 +1,172 @@
 import React, { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import './RegisterForm.css';
 
-function RegisterForm() {
+/**
+ * RegisterForm component
+ * Handles new user registration
+ */
+function RegisterForm({ onClose }) {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordError, setPasswordError] = useState(false);
-  const [confirmPasswordError, setConfirmPasswordError] = useState(false);
+  
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+  
+  const { register, error: authError } = useAuth();
+
+  const validateForm = () => {
+    let isValid = true;
+    
+    // Password validation
+    if (password.length < 8) {
+      setPasswordError('Password must be at least 8 characters');
+      isValid = false;
+    } else {
+      setPasswordError('');
+    }
+    
+    // Confirm password validation
+    if (password !== confirmPassword) {
+      setConfirmPasswordError('Passwords do not match');
+      isValid = false;
+    } else {
+      setConfirmPasswordError('');
+    }
+    
+    return isValid;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (password.length < 8) {
-      setPasswordError(true);
+    
+    if (!validateForm()) {
       return;
     }
-
-    if (password !== confirmPassword) {
-      setConfirmPasswordError(true);
-      return;
-    }
-
-    const userData = {
-      username,
-      email,
-      password
-    };
-
+    
+    setIsSubmitting(true);
     try {
-      const response = await fetch('http://localhost:3000/api/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        setSuccessMessage('Account registered successfully! You can now log in.');
-        setErrorMessage('');
-        console.log('User registered:', result);
-      } else {
-        const errorData = await response.json();
-        setErrorMessage(errorData.message || 'Registration failed.');
-        setSuccessMessage('');
-      }
+      await register({ username, email, password });
+      setSuccessMessage('Registration successful! You can now log in.');
+      
+      // Reset form after successful registration
+      setTimeout(() => {
+        onClose();
+      }, 2000);
     } catch (error) {
-      setErrorMessage('An error occurred. Please try again.');
-      setSuccessMessage('');
+      console.error('Registration error:', error);
+      // Auth context already handles the error state
+    } finally {
+      setIsSubmitting(false);
     }
-  };
-
-  const handlePasswordChange = (e) => {
-    const value = e.target.value;
-    setPassword(value);
-    setPasswordError(value.length < 8);
-    setConfirmPasswordError(value !== confirmPassword);
-  };
-
-  const handleConfirmPasswordChange = (e) => {
-    const value = e.target.value;
-    setConfirmPassword(value);
-    setConfirmPasswordError(password !== value);
   };
 
   return (
     <form className="register-form" onSubmit={handleSubmit}>
-      <h2>Register</h2>
-
-      {successMessage && <p className="success-message">{successMessage}</p>}
-      {errorMessage && <p className="error-message">{errorMessage}</p>}
-
+      <h2>Create Account</h2>
+      
+      {successMessage && <div className="success-message">{successMessage}</div>}
+      {authError && <div className="error-message">{authError}</div>}
+      
       <div className="form-group">
-        <label>Username:</label>
+        <label htmlFor="username">Username:</label>
         <input
           type="text"
+          id="username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
-          placeholder="Enter your username"
+          placeholder="Choose a username"
+          disabled={isSubmitting}
         />
       </div>
-
+      
       <div className="form-group">
-        <label>Email:</label>
+        <label htmlFor="email">Email:</label>
         <input
           type="email"
+          id="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="Enter your email"
+          disabled={isSubmitting}
         />
       </div>
-
+      
       <div className="form-group">
-        <label>Password:</label>
+        <label htmlFor="password">Password:</label>
         <div className="password-wrapper">
           <input
             type={showPassword ? 'text' : 'password'}
+            id="password"
             value={password}
-            onChange={handlePasswordChange}
+            onChange={(e) => setPassword(e.target.value)}
             required
-            placeholder="Enter your password"
+            placeholder="Create a password"
+            disabled={isSubmitting}
             className={passwordError ? 'error' : ''}
           />
-          <span
+          <button 
+            type="button"
             className="toggle-password"
             onClick={() => setShowPassword(!showPassword)}
+            disabled={isSubmitting}
           >
             {showPassword ? '👁️' : '👁️‍🗨️'}
-          </span>
+          </button>
         </div>
-        {passwordError && (
-          <span className="error-message">
-            Password must have at least 8 characters.
-          </span>
-        )}
+        {passwordError && <p className="error-message">{passwordError}</p>}
       </div>
-
+      
       <div className="form-group">
-        <label>Confirm Password:</label>
+        <label htmlFor="confirmPassword">Confirm Password:</label>
         <div className="password-wrapper">
           <input
             type={showConfirmPassword ? 'text' : 'password'}
+            id="confirmPassword"
             value={confirmPassword}
-            onChange={handleConfirmPasswordChange}
+            onChange={(e) => setConfirmPassword(e.target.value)}
             required
             placeholder="Confirm your password"
+            disabled={isSubmitting}
             className={confirmPasswordError ? 'error' : ''}
           />
-          <span
+          <button 
+            type="button"
             className="toggle-password"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            disabled={isSubmitting}
           >
             {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
-          </span>
+          </button>
         </div>
-        {confirmPasswordError && (
-          <span className="error-message">Passwords do not match.</span>
-        )}
+        {confirmPasswordError && <p className="error-message">{confirmPasswordError}</p>}
       </div>
-
-      <button type="submit" className="submit-button">Register</button>
+      
+      <div className="form-actions">
+        <button 
+          type="button" 
+          className="cancel-btn" 
+          onClick={onClose}
+          disabled={isSubmitting}
+        >
+          Cancel
+        </button>
+        <button 
+          type="submit" 
+          className="submit-btn"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Registering...' : 'Register'}
+        </button>
+      </div>
     </form>
   );
 }
