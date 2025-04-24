@@ -2,7 +2,7 @@ import {Link, NavLink} from 'react-router-dom';
 import React, { useState } from 'react';
 import './Header.css';
 
-function Header({ onLoginClick, isLoggedIn, userEmail, onLogoutClick }) {
+function Header({ onLoginClick, isLoggedIn, username, onLogoutClick }) {
 
     const [menuOpen, setMenuOpen] = useState(false);
     return(
@@ -31,18 +31,13 @@ function Header({ onLoginClick, isLoggedIn, userEmail, onLogoutClick }) {
 
             <nav className='nav-profile'>
               {isLoggedIn ? (
-                <div className="profile" onMouseEnter={() => setMenuOpen(true)} onMouseLeave={() => setMenuOpen(false)}>
-                  <div className="user-info">
-                    <span className="user-icon">👤</span>
-                    <span className="user-email">{userEmail}</span>
-                  </div>
-                  <div className={`dropdown-menu ${menuOpen ? 'show' : ''}`}>
-                    <button className="dropdown-item" onClick={() => console.log('Profile clicked')}>Profile</button>
-                    <button className="logout-button" onClick={onLogoutClick}>Logout</button>
-                  </div>
-                </div>
+                <button className="logout-button" onClick={onLogoutClick}>
+                    Logout
+                </button>
               ) : (
-                <button className="login-btn" onClick={onLoginClick}>Login</button>
+                <button className="login-btn" onClick={onLoginClick}>
+                    Login
+                </button>
               )}
             </nav>
             

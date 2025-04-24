@@ -6,27 +6,32 @@ function LoginForm({ onLogin, onRegisterClick, onForgotPasswordClick }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false); // Thêm state cho hiện/ẩn mật khẩu
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:3000/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+        const response = await fetch('http://localhost:3000/api/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password }),
+        });
 
-      if (response.ok) {
-        const data = await response.json();
-        onLogin(data);
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || 'Login failed');
-      }
+        if (response.ok) {
+            const data = await response.json();
+            // data should include both email and username
+            onLogin({
+                email: data.email,
+                username: data.username
+            });
+        } else {
+            const errorData = await response.json();
+            setError(errorData.message || 'Login failed');
+        }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+        setError('An error occurred. Please try again.');
     }
   };
 
@@ -51,13 +56,21 @@ function LoginForm({ onLogin, onRegisterClick, onForgotPasswordClick }) {
       </div>
       <div className="form-group">
         <label>Password:</label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          placeholder="Enter your password"
-        />
+        <div className="password-wrapper">
+          <input
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            placeholder="Enter your password"
+          />
+          <span
+            className="toggle-password"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? '👁️' : '👁️‍🗨️'}
+          </span>
+        </div>
       </div>
       <button type="submit" className="submit-button">Login</button>
       <button

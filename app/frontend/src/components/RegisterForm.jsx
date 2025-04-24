@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './RegisterForm.css';
 
-function RegisterForm() {
+function RegisterForm({ onBackToLogin }) {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -10,19 +10,28 @@ function RegisterForm() {
   const [confirmPasswordError, setConfirmPasswordError] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
+  const [isRegistered, setIsRegistered] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Reset error messages
+    setPasswordError(false);
+    setConfirmPasswordError(false);
+    setErrorMessage('');
+
+    // Validate password length
     if (password.length < 8) {
       setPasswordError(true);
+      setErrorMessage('Password must have at least 8 characters.');
       return;
     }
 
+    // Validate password match
     if (password !== confirmPassword) {
       setConfirmPasswordError(true);
+      setErrorMessage('Passwords do not match.');
       return;
     }
 
@@ -42,40 +51,40 @@ function RegisterForm() {
       });
 
       if (response.ok) {
-        const result = await response.json();
-        setSuccessMessage('Account registered successfully! You can now log in.');
-        setErrorMessage('');
-        console.log('User registered:', result);
+        setIsRegistered(true);
       } else {
         const errorData = await response.json();
         setErrorMessage(errorData.message || 'Registration failed.');
-        setSuccessMessage('');
       }
     } catch (error) {
       setErrorMessage('An error occurred. Please try again.');
-      setSuccessMessage('');
     }
   };
 
-  const handlePasswordChange = (e) => {
-    const value = e.target.value;
-    setPassword(value);
-    setPasswordError(value.length < 8);
-    setConfirmPasswordError(value !== confirmPassword);
-  };
-
-  const handleConfirmPasswordChange = (e) => {
-    const value = e.target.value;
-    setConfirmPassword(value);
-    setConfirmPasswordError(password !== value);
-  };
+  if (isRegistered) {
+    return (
+      <div className="success-overlay">
+        <div className="success-container">
+          <div className="success-icon">✓</div>
+          <h2 className="success-title">Registration Successful!</h2>
+          <button className="back-to-login-btn" onClick={onBackToLogin}>
+            Back to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form className="register-form" onSubmit={handleSubmit}>
       <h2>Register</h2>
 
-      {successMessage && <p className="success-message">{successMessage}</p>}
-      {errorMessage && <p className="error-message">{errorMessage}</p>}
+      {/* Hiển thị thông báo lỗi ở một vị trí duy nhất */}
+      {errorMessage && (
+        <div className="error-container">
+          <p className="error-message">{errorMessage}</p>
+        </div>
+      )}
 
       <div className="form-group">
         <label>Username:</label>
@@ -105,7 +114,7 @@ function RegisterForm() {
           <input
             type={showPassword ? 'text' : 'password'}
             value={password}
-            onChange={handlePasswordChange}
+            onChange={(e) => setPassword(e.target.value)}
             required
             placeholder="Enter your password"
             className={passwordError ? 'error' : ''}
@@ -130,7 +139,7 @@ function RegisterForm() {
           <input
             type={showConfirmPassword ? 'text' : 'password'}
             value={confirmPassword}
-            onChange={handleConfirmPasswordChange}
+            onChange={(e) => setConfirmPassword(e.target.value)}
             required
             placeholder="Confirm your password"
             className={confirmPasswordError ? 'error' : ''}

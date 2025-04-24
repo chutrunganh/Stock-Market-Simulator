@@ -101,3 +101,40 @@
 .form-footer a:hover {
     text-decoration: underline;
 }
+
+/* Thêm style cho password wrapper */
+.password-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+/* Style cho toggle-password */
+.toggle-password {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #f0b90b;
+    font-size: 16px;
+    background: none;
+    border: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    z-index: 2;
+}
+
+/* Điều chỉnh padding cho input password */
+.password-wrapper input {
+    width: 100%;
+    padding-right: 40px;
+}
+
+/* Thêm hiệu ứng hover cho icon */
+.toggle-password:hover {
+    opacity: 0.8;
+}
