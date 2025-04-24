@@ -18,12 +18,19 @@ function App() {
     const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [userEmail, setUserEmail] = useState('')
+    const [username, setUsername] = useState('')
+    const [showLoginSuccess, setShowLoginSuccess] = useState(false) // Thêm state cho thông báo
 
     const handleLogin = (userData) => {
         console.log('User logged in:', userData)
         setIsLoggedIn(true)
-        setUserEmail(userData.username)
+        setUserEmail(userData.email)
+        setUsername(userData.username)
         setShowLoginModal(false)
+        setShowLoginSuccess(true) // Hiện thông báo
+        setTimeout(() => {
+            setShowLoginSuccess(false) // Ẩn thông báo sau 3 giây
+        }, 3000)
     }
 
     const handleRegister = (userData) => {
@@ -44,10 +51,16 @@ function App() {
 
     return (
         <div className="App">
+            {showLoginSuccess && (
+                <div className="login-success-message">
+                    Logging in...
+                </div>
+            )}
             <Header 
                 onLoginClick={() => setShowLoginModal(true)} 
                 isLoggedIn={isLoggedIn}
                 userEmail={userEmail}
+                username={username} // Truyền username xuống Header
                 onLogoutClick={handleLogout}
             />
             <Modal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)}>
@@ -64,7 +77,14 @@ function App() {
                 />
             </Modal>
             <Modal isOpen={showRegisterModal} onClose={() => setShowRegisterModal(false)}>
-                <RegisterForm onRegister={handleRegister} onClose={() => setShowRegisterModal(false)} />
+                <RegisterForm 
+                    onRegister={handleRegister} 
+                    onClose={() => setShowRegisterModal(false)} 
+                    onBackToLogin={() => {
+                        setShowRegisterModal(false);
+                        setShowLoginModal(true);
+                    }} 
+                />
             </Modal>
             <Modal isOpen={showForgotPasswordModal} onClose={() => setShowForgotPasswordModal(false)}>
                 <ForgotPasswordForm
