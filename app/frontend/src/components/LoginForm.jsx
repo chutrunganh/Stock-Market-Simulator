@@ -65,6 +65,7 @@ function LoginForm({ onLogin, onRegisterClick, onForgotPasswordClick }) {
         className="google-login-button"
         onClick={handleGoogleLogin}
       >
+        <span className="google-icon"></span>
         Login with Google
       </button>
       <div className="form-footer">
