@@ -144,3 +144,4 @@ tmp.md
 docs/techStack/
 .env
 .vite
+*.json
