@@ -96,7 +96,7 @@ web_modules/
 *.sw?
 
 # Dev documentation and JSON files
-
+*.json
 
 # dotenv files (uncomment if needed)
 # .env
@@ -104,3 +104,4 @@ web_modules/
 # .env.test.local
 # .env.production.local
 # .env.local
+
