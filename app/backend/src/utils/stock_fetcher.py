@@ -248,7 +248,7 @@ def main():
     parser = argparse.ArgumentParser(description='Fetch stock data and save to database')
     parser.add_argument('symbol', type=str, help='Stock ticker symbol (e.g., AAPL)')
     parser.add_argument('--start', type=str, help='Start date (YYYY-MM-DD)', 
-                        default=(datetime.now() - timedelta(days=5)).strftime('%Y-%m-%d'))
+                        default=(datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d'))
     parser.add_argument('--end', type=str, help='End date (YYYY-MM-DD)', 
                         default=datetime.now().strftime('%Y-%m-%d'))
     parser.add_argument('--update-info', action='store_true', 
