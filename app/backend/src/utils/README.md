@@ -25,3 +25,20 @@ python stock_fetcher.py GOOGL --start 2023-01-01 --end 2023-12-31
 #If the stock is already exist in the database:
 python stock_fetcher.py AAPL --update-info
 ```
+
+
+## stockManager.js
+This file is use to automatically fetch all the stock and its stock prices, given the `stock symbol` and related information like `start_date`, `end_date`.
+
+### How to run: 
+```bash
+cd app/backend
+node src/utils/stockManager.js 
+```
+Notices that this file will access to the database. 
+
+It will require you to enter the stock symbol, such as AAPL. If the stock is already exist in the database, it will ask for permisson to update the stock's information and also fetch its prices.
+
+The value range will be for 30 days by default, you can modified it yourself by enter the specific start date and end date.
+
+If the stock does not exist in the database, it will add the stock and the prices.
