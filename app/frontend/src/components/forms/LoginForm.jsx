@@ -4,11 +4,10 @@ import { getUserProfile } from '../../api/user';
 import './LoginForm.css';
 
 function LoginForm({ onLogin, onRegisterClick, onForgotPasswordClick }) {
-  const { login } = useAuth();
-  const [email, setEmail] = useState('');
+  const { login } = useAuth();  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);  useEffect(() => {
+  const [isLoading, setIsLoading] = useState(false);useEffect(() => {
   const handleGoogleCallback = async () => {
     const urlParams = new URLSearchParams(window.location.search);
 
@@ -46,16 +45,14 @@ function LoginForm({ onLogin, onRegisterClick, onForgotPasswordClick }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setIsLoading(true);
-
-    if (!email || !password) {
-      setError('Please enter both email and password');
+    setIsLoading(true);    if (!identifier || !password) {
+      setError('Please enter both username/email and password');
       setIsLoading(false);
       return;
     }
 
     try {
-      const userData = await login({ email, password });
+      const userData = await login({ identifier, password });
       onLogin(userData);
     } catch (err) {
       setError(err.message || 'Login failed. Please check your credentials.');
@@ -73,15 +70,14 @@ function LoginForm({ onLogin, onRegisterClick, onForgotPasswordClick }) {
   return (
     <form className="login-form" onSubmit={handleSubmit}>
       <h2>Login</h2>
-      {error && <p className="error-message">{error}</p>}
-      <div className="form-group">
-        <label>Email:</label>
+      {error && <p className="error-message">{error}</p>}      <div className="form-group">
+        <label>Email or Username:</label>
         <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          type="text"
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value)}
           required
-          placeholder="Enter your email"
+          placeholder="Enter your email or username"
           disabled={isLoading}
         />
       </div>

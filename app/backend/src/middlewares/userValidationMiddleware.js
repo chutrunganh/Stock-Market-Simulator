@@ -15,9 +15,9 @@ const validateUser = (req, res, next) => {
   next();
 };
 
-// Middleware to validate login input - only requires email and password
+// Middleware to validate login input - accepts identifier (email or username) and password
 const loginSchema = Joi.object({
-  email: Joi.string().email().required(),
+  identifier: Joi.string().required(),
   password: Joi.string().required()
 });
 

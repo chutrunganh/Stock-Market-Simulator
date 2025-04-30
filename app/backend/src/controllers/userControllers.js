@@ -85,9 +85,9 @@ export const deleteUser = async (req, res, next) => {
 }
 
 export const loginUser = async (req, res, next) => {
-    const { email, password } = req.body;
+    const { identifier, password } = req.body;
     try {
-        const result = await loginUserService(email, password); // Call to service function in userCRUDService.js
+        const result = await loginUserService(identifier, password); // Call to service function in userAuthService.js
         
         // Put the JWT token in a cookie to return to the client
         // The cookie will be sent back to the client in the response headers

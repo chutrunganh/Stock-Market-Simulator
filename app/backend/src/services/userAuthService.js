@@ -7,27 +7,19 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '../../.env' }); // Adjust based on relative depth
 
 /**
- * This function handles user login. It checks if the provided email and password match a user in the database. After user logs in successfully, it returns the user object 
- * and Json Web Token (JWT) for authentication.
+ * This function handles user login. It checks if the provided identifier (email or username) and password match a user in the database. 
+ * After user logs in successfully, it returns the user object and Json Web Token (JWT) for authentication.
  * 
- * @param {*} email - the email of the user to be logged in
+ * @param {*} identifier - the email or username of the user to be logged in
  * @param {*} password - the password of the user typed in the login form
  * @returns 
- *
- * In case we check the email first, if the email does not exits, throw an error, if the email exists, then hash the password and compare it with the hashed password in the database.
- * This is not a good practice because it can lead to timing attacks. An attacker can determine if an email exists in the database by measuring the time it takes to respond to 
- * the login request, like in case the web immediately respone, attacker can know that the email does not exist in the database, and if the web takes a long time to 
- * respond (since it  need to slow hash the provided password and compare it with the hashed password in the database), attacker can know that the email exists in the database.
- * 
- * To prevent this, always perfrom password hashing, even if the email does not exist in the database. This way, the time it takes to respond to the login request will be 
- * the same regardless of whether the email exists or not.
  */
-export const loginUserService = async (email, password) => {
+export const loginUserService = async (identifier, password) => {
   try {
-    // Fetch the user by email
+    // Fetch the user by email or username
     const result = await pool.query(
-      'SELECT id, username, email, password, role FROM users WHERE email = $1',
-      [email]
+      'SELECT id, username, email, password, role FROM users WHERE email = $1 OR username = $1',
+      [identifier]
     );
 
     let user = result.rows[0];
@@ -38,18 +30,16 @@ export const loginUserService = async (email, password) => {
     // Determine the hashed password to use for comparison
     const hashedPassword = user ? user.password : fakeHashedPassword; // Use the actual hashed password if user exists, otherwise use a dummy hash
 
-    // ALWAYS perform input password hash and comparison, even if the email does not exist. The idea is we ALWAYS hash the password user input, incase the email 
-    // exists, we compare with true hashed password, otherwise we compare with a fake hash to maintain timing attack resistance
-    const isPasswordValid = await bcrypt.compare(password, hashedPassword ); 
+    // ALWAYS perform input password hash and comparison
+    const isPasswordValid = await bcrypt.compare(password, hashedPassword); 
 
     // If user does not exist or password is incorrect, return the same error message
     if (!user || !isPasswordValid) {
-      throw new Error('Invalid email or password');
+      throw new Error('Invalid credentials');
     }
 
     // If user authenticated successfully, generate JWT token
-    // See more about JWT: https://youtu.be/fyTxwIa-1U0?si=9TshHtO-Hl3oiS4L, https://youtu.be/LxeYH4D1YAs?si=1lOsrVljX55OVXfH
-    const userForToken = { // Define the user object to be included in the token
+    const userForToken = {
       id: user.id,
       username: user.username,
       email: user.email,
@@ -59,8 +49,8 @@ export const loginUserService = async (email, password) => {
     // Create JWT token with user info and secret key from environment variables
     const token = jwt.sign(
       userForToken,
-      process.env.JWT_SECRET, // Fallback for development
-      { expiresIn: process.env.JWT_EXPIRES_IN || '24h' } // Fallback for development
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
 
     // Return user info and token

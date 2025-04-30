@@ -14,9 +14,12 @@ export const registerUser = async (userData) => {
 };
 
 // Function to log in a user
-export const loginUser = async (userData) => {
+export const loginUser = async ({ identifier, password }) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/login`, userData, {
+    const response = await axios.post(`${API_BASE_URL}/login`, {
+      identifier,  // This can be either email or username
+      password
+    }, {
       withCredentials: true, // To include cookies in the request
     });
     console.log('Login response:', response.data); // Debug log to verify response structure

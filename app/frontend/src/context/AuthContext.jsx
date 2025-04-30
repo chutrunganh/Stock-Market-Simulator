@@ -62,8 +62,11 @@ const login = async (credentials) => {
         userData = credentials.user;
         authToken = credentials.token;
       } else {
-        // Regular email/password login
-        const response = await loginUser(credentials);
+        // Regular identifier/password login
+        const response = await loginUser({
+          identifier: credentials.identifier,
+          password: credentials.password
+        });
         if (!response.data.user || !response.data.token) {
           throw new Error('Invalid login response from server.');
         }
