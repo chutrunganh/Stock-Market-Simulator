@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { getUserProfile } from '../../api/user';
 import './LoginForm.css';
 
 function LoginForm({ onLogin, onRegisterClick, onForgotPasswordClick }) {
@@ -16,14 +17,8 @@ function LoginForm({ onLogin, onRegisterClick, onForgotPasswordClick }) {
       setIsLoading(true);
       try {
         localStorage.setItem('authToken', token);
-
-        const response = await fetch('http://localhost:3000/api/profile', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          },
-          credentials: 'include'
-        });
-        const data = await response.json();
+        const data = await getUserProfile();
+        
         if (data.status === 200 && data.data && data.data.user) {
           window.history.replaceState({}, document.title, window.location.pathname);
 
@@ -32,7 +27,6 @@ function LoginForm({ onLogin, onRegisterClick, onForgotPasswordClick }) {
             token: token
           };
 
-          // Trigger the onLogin callback to update the UI
           onLogin(loginData);
         } else {
           setError('Failed to get user profile');

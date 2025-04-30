@@ -95,8 +95,8 @@ web_modules/
 *.sln
 *.sw?
 
-# Dev documentation and JSON files
-*.json
+# Dev documentation
+docs/techStack
 
 # dotenv files (uncomment if needed)
 # .env

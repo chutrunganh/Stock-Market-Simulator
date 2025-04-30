@@ -37,3 +37,19 @@ export const requestPasswordReset = async (email) => {
     throw error;
   }
 };
+
+// Function to get user profile
+export const getUserProfile = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/profile`, {
+      withCredentials: true,
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    throw error;
+  }
+};

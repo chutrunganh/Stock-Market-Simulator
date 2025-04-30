@@ -5,7 +5,8 @@ functions will be responsible for those tasks.
  */
 import dotenv from 'dotenv';
 dotenv.config({ path: '../../.env' }); // Adjust based on relative depth
-import { createUserService, getAllUsersService, getUserByIdService, updateUserService, deleteUserService, loginUserService } from '../services/userCRUDService.js';
+import { createUserService, getAllUsersService, getUserByIdService, updateUserService, deleteUserService} from '../services/userCRUDService.js';
+import { loginUserService } from '../services/userAuthService.js';
 import passport from 'passport';
 
 // Standardized response format
