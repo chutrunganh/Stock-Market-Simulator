@@ -1,57 +1,90 @@
+// ====== External Dependencies ======
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
-dotenv.config({ path: '../../.env' }); // Adjust based on relative depth
-import pool from './config/dbConnect.js';
-import userRoutes from './routes/userRoutes.js';
-import errorHandling from './middlewares/errorHandlerMiddleware.js';
-// Updated import path for createUserTable
+import passport from 'passport';
+
+// ====== Internal Dependencies ======
+
+// --- Config Files ---
+dotenv.config({ path: '../../.env' }); // Load environment variables
+import configurePassport from './config/passportConfig.js';
+
+// --- Logging ---
+import log from './utils/loggerUtil.js';
+
+// --- Database Connection and Table Creation ---
+import pool from './config/dbConnect.js'; // PostgreSQL connection pool
 import createUserTable from './config/createUserTable.js';
+import createPortfolioTable from './config/createPortfolioTable.js';
+import createTransactionTable from './config/createTransactionTable.js';
+import createStockTable from './config/createStockTable.js';
+import createStockPriceTable from './config/createStockPriceTable.js';
+import createHoldingTable from './config/createHoldingTable.js';
 
-// Create express app
+// --- Routes ---
+import userRoutes from './routes/userRoutes.js';
+import orderRoutes from './routes/orderRoutes.js';
+
+// --- Middlewares ---
+import errorHandling from './middlewares/errorHandlerMiddleware.js';
+
+// --- Controllers ---
+import { googleAuth, googleAuthCallback } from './controllers/userControllers.js';
+
+// ===== Initialize Express App ======
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.BE_PORT || 3000;
 
-// Middlewares
-app.use(express.json());
+// --- Middleware Configuration ---
+app.use(express.json()); // Parse JSON request bodies
 
-// Configure CORS
+// --- CORS Configuration --
 // REMEBER TO CHANGE THE CROS ORIGIN BACK TO YOUR FRONTEND URL WHEN DEPLOYING, 
 // Idealy, defined the origin in the .env file and use it here.
-// See more about cros in this link: https://youtu.be/FggsjTsJ7Hk?si=Cwp0EzYCwREDtG7R , 
-// https://youtu.be/E6jgEtj-UjI?si=lmJzdVFbUFbnRXsZ, https://200lab.io/blog/cors-la-gi
 app.use(cors({
-  origin: '*', // Allow all origins while testing
+  origin: 'http://localhost:5173', // Allow all origins while testing
   credentials: true // Important for cookies to work with CORS
 }));
+
 app.use(cookieParser()); // Add cookie-parser middleware
 
-// TESTING: test PostgreSQL connection
-app.get('/testdb', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT current_database()');
-        res.send('The current database is: ' + result.rows[0].current_database);
-    } catch (error) {
-        res.status(500).send('Database connection error: ' + error.message);
-    }
-});
+// --- Google OAuth Configuration ---
+const passportInstance = configurePassport();
+app.use(passport.initialize());
 
-// Routes
+// --- Google OAuth Routes ---
+// Define Google OAuth routes at the root level to match the callback URL in Google Cloud Console
+// Two routes will not have prefix /api as other routes since it is not our own API, but Google API
+// when user click on "Login with Google" button in frontend, they will be forward to  uor backend endpoint /auth/google
+app.get('/auth/google', googleAuth);
+app.get('/auth/google/callback', googleAuthCallback);
+
+// --- API Routes ---
 app.use('/api', userRoutes);
+app.use('/api', orderRoutes);
 
-// Error handling middleware
+// --- Error Handling Middleware ---
+// This should be the last middleware in the stack
+// It will catch any errors that occur in the routes or other middlewares
 app.use(errorHandling);
 
-// Initialize database tables
-const initializeDatabase = async () => {
-    try {
-        await createUserTable();
-        console.log('Database initialization completed');
-    } catch (error) {
-        console.error('Database initialization failed:', error);
-        process.exit(1); // Exit with error
-    }
+// --- Initialize All Database Tables ---
+const initializeDatabase = async () => {  try {
+    // Create tables
+    await createUserTable();
+    await createPortfolioTable();
+    //await createTransactionTable();
+    await createStockTable();
+    await createStockPriceTable();
+    await createHoldingTable();
+    
+    log.info('All tables initialized successfully!');
+  } catch (error) {
+    log.error('Tables in database initialization failed', { error });
+    process.exit(1); // Exit with error
+  }
 };
 
 // Start server after database initialization
@@ -59,8 +92,8 @@ const startServer = async () => {
     await initializeDatabase();
     
     app.listen(port, () => {
-        console.log(`Server is running on port ${port}`);
-        console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+        log.info(`Server is running on port ${port}`);
+        log.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
     });
 };
 

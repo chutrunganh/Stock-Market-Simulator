@@ -5,7 +5,9 @@ functions will be responsible for those tasks.
  */
 import dotenv from 'dotenv';
 dotenv.config({ path: '../../.env' }); // Adjust based on relative depth
-import { createUserService, getAllUsersService, getUserByIdService, updateUserService, deleteUserService, loginUserService } from '../services/userService.js';
+import { createUserService, getAllUsersService, getUserByIdService, updateUserService, deleteUserService} from '../services/userCRUDService.js';
+import { loginUserService } from '../services/userAuthService.js';
+import passport from 'passport';
 
 // Standardized response format
 const handleResponse = (res, status, message, data = null) => {
@@ -21,7 +23,7 @@ export const registerUser = async (req, res, next) => {
     const { username, email, password } = req.body;
     console.log(req.body);
     try {
-        const newUser = await createUserService({ username, email, password }); // Call to service function in userService.js
+        const newUser = await createUserService({ username, email, password }); // Call to service function in userCRUDService.js
         handleResponse(res, 201, 'User created successfully', newUser);
     }
     catch (error) {
@@ -42,7 +44,7 @@ export const getAllUsers = async (req, res, next) => {
 export const getUserById = async (req, res, next) => {
     const { id } = req.params;
     try {
-        const user = await getUserByIdService(id);  // Call to service function in userService.js
+        const user = await getUserByIdService(id);  // Call to service function in userCRUDService.js
         if (!user) {
             return handleResponse(res, 404, 'User not found');
         }
@@ -57,7 +59,7 @@ export const updateUser = async (req, res, next) => {
     const { id } = req.params;
     const { username, email, password } = req.body;
     try {
-        const updatedUser = await updateUserService(id, { username, email, password });  // Call to service function in userService.js
+        const updatedUser = await updateUserService(id, { username, email, password });  // Call to service function in userCRUDService.js
         if (!updatedUser) {
             return handleResponse(res, 404, 'User not found');
         }
@@ -71,7 +73,7 @@ export const updateUser = async (req, res, next) => {
 export const deleteUser = async (req, res, next) => {
     const { id } = req.params;
     try {
-        const deletedUser = await deleteUserService(id);  // Call to service function in userService.js
+        const deletedUser = await deleteUserService(id);  // Call to service function in userCRUDService.js
         if (!deletedUser) {
             return handleResponse(res, 404, 'User not found');
         }
@@ -83,9 +85,9 @@ export const deleteUser = async (req, res, next) => {
 }
 
 export const loginUser = async (req, res, next) => {
-    const { email, password } = req.body;
+    const { identifier, password } = req.body;
     try {
-        const result = await loginUserService(email, password); // Call to service function in userService.js
+        const result = await loginUserService(identifier, password); // Call to service function in userAuthService.js
         
         // Put the JWT token in a cookie to return to the client
         // The cookie will be sent back to the client in the response headers
@@ -97,10 +99,48 @@ export const loginUser = async (req, res, next) => {
         });
         
     
-        handleResponse(res, 200, 'Login successful', { user: result.user });
+        handleResponse(res, 200, 'Login successful', { user: result.user, token: result.token });
     
     }
     catch (error) {
         next(error); // Pass error to the error handler middleware
     }
 }
+
+
+// Initiate Google OAuth authentication, no need to call to any services since this is handled by Passport.js built in function
+export const googleAuth = (req, res, next) => {
+    passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+  };
+  
+// Handle Google OAuth callback, no need to call to any services since this is handled by Passport.js built in function
+export const googleAuthCallback = (req, res, next) => {
+    passport.authenticate('google', { session: false }, async (err, user, info) => {
+        if (err) {
+            const errorUrl = `${process.env.FE_URL}?error=${encodeURIComponent(err.message)}`;
+            return res.redirect(errorUrl);
+        }
+        
+        if (!user) {
+            const errorUrl = `${process.env.FE_URL}?error=Authentication failed`;
+            return res.redirect(errorUrl);
+        }
+        
+        try {
+            // Put the JWT token in a cookie
+            res.cookie('jwt', user.token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                maxAge: 24 * 60 * 60 * 1000, // 24 hours
+                sameSite: 'strict'
+            });
+            
+            // Redirect back to frontend with success
+            const successUrl = `${process.env.FE_URL}?login=success&token=${user.token}`;
+            res.redirect(successUrl);
+        } catch (error) {
+            const errorUrl = `${process.env.FE_URL}?error=${encodeURIComponent(error.message)}`;
+            res.redirect(errorUrl);
+        }
+    })(req, res, next);
+};
