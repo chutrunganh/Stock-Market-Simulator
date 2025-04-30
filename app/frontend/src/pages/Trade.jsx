@@ -1,5 +1,7 @@
-import React from 'react';
 import './Trade.css';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { createOrder, getMostTradedStocks, getStockBySymbol } from '../api/trade';
 
 const MiniLineChart = ({ data, width = 150, height = 50, strokeColor = '#007bff' }) => {
     if (!data || data.length < 2) {
@@ -69,14 +71,24 @@ const StockCard = ({ stock }) => {
 };
 
 const MostTradedStocks = () => {
-    const stocks = [
-        { ticker: 'AAPL', name: 'APPLE INC', price: 196.98, changePercent: 1.39, changeValue: 2.71, chartData: [180, 185, 183, 190, 195, 192, 198, 196, 193, 195] },
-        { ticker: 'NVDA', name: 'NVIDIA CORPORATION', price: 101.49, changePercent: -2.87, changeValue: -3.00, chartData: [110, 108, 112, 105, 103, 100, 102, 101, 104, 99] },
-        { ticker: 'TSLA', name: 'TESLA, INC.', price: 241.37, changePercent: -0.07, changeValue: -0.18, chartData: [230, 235, 228, 240, 245, 238, 242, 241, 248, 240] },
-        { ticker: 'COST', name: 'COSTCO WHOLESALE', price: 994.50, changePercent: 2.76, changeValue: 26.75, chartData: [950, 960, 955, 970, 985, 975, 995, 994, 980, 990] },
-        { ticker: 'NFLX', name: 'NETFLIX, INC.', price: 973.03, changePercent: 1.19, changeValue: 11.40, chartData: [920, 930, 925, 940, 955, 945, 965, 973, 960, 970] },
-        { ticker: 'MSFT', name: 'MICROSOFT CORP', price: 415.50, changePercent: 0.85, changeValue: 3.50, chartData: [400, 405, 402, 410, 412, 408, 415, 413, 416, 415] },
-    ];
+    const [stocks, setStocks] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const fetchStocks = async () => {
+            try {
+                const stocksData = await getMostTradedStocks();
+                setStocks(stocksData);
+                setLoading(false);
+            } catch (err) {
+                setError('Failed to load stocks data');
+                setLoading(false);
+            }
+        };
+
+        fetchStocks();
+    }, []);
 
     return (
         <div className="most-traded-section">
@@ -90,10 +102,63 @@ const MostTradedStocks = () => {
     );
 };
 
-const InfoIcon = () => <span className="info-icon">ⓘ</span>;
-const ShowMax = () => <button type="button" className="show-max-button">Show Max</button>;
+const InfoIcon = ({ title }) => (
+    <span
+        title={title}
+        style={{ margin: '0 4px', cursor: 'pointer' }}
+    >
+        ⓘ
+    </span>
+);
 
 function Trade(props) {
+    const [symbol, setSymbol] = useState('');
+    const [action, setAction] = useState('buy');
+    const [quantity, setQuantity] = useState(0);
+    const [orderType, setOrderType] = useState('market');
+    const [limitPrice, setLimitPrice] = useState(0);
+    const [loading, setLoading] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
+    const { user } = useAuth();    const handleSubmit = async () => {
+        setLoading(true);
+        try {
+            // First get the stock details to get the stock ID
+            const stockDetails = await getStockBySymbol(symbol.toUpperCase());
+            if (!stockDetails || !stockDetails.id) {
+                throw new Error(`Could not find stock with symbol ${symbol}`);
+            }
+            
+            const orderData = {
+                userId: user.id,
+                stockId: stockDetails.id, // Use the stock ID from the fetched details
+                quantity: parseInt(quantity),
+                price: orderType === 'limit' ? parseFloat(limitPrice) : null,
+                orderType: `${orderType.charAt(0).toUpperCase() + orderType.slice(1)} ${action.charAt(0).toUpperCase() + action.slice(1)}` // "Market Buy", "Limit Sell", etc.
+            };
+
+            const result = await createOrder(orderData);
+        
+            
+            // Set success message
+            setSuccessMessage(`Order placed successfully! Stock: ${symbol}, Quantity: ${quantity}, Price: ${orderType === 'limit' ? `$${limitPrice}` : 'Market Price'}`);
+            setTimeout(() => setSuccessMessage(''), 5000); // Clear message after 5 seconds
+            
+            // Reset form
+            setQuantity(0);
+            setLimitPrice(0);
+        } catch (error) {
+            alert('Failed to place order: ' + error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleClear = () => {
+        setSymbol('');
+        setQuantity(0);
+        setLimitPrice(0);
+    };
+
     return (
         <div className="trade-page-container">
             <h1 className="trade-title">Trade</h1>
@@ -125,17 +190,23 @@ function Trade(props) {
                         <input
                             type="text"
                             id="symbol-lookup"
-                            className="form-input"
-                            placeholder="Look up Symbol/Company Name"
+                            className="form-input"                            placeholder="Look up Symbol Name"
+                            value={symbol}
+                            onChange={(e) => setSymbol(e.target.value.toUpperCase())}
                         />
                     </div>
                 </div>
                 <div className="form-row">
                     <div className="form-column">
                         <label htmlFor="action-select" className="form-label">
-                            Action <InfoIcon />
+                            Action 
                         </label>
-                        <select id="action-select" className="form-select">
+                        <select 
+                            id="action-select" 
+                            className="form-select"
+                            value={action}
+                            onChange={(e) => setAction(e.target.value)}
+                        >
                             <option value="buy">Buy</option>
                             <option value="sell">Sell</option>
                         </select>
@@ -147,36 +218,67 @@ function Trade(props) {
                                 type="number"
                                 id="quantity-input"
                                 className="form-input"
-                                defaultValue="0"
+                                value={quantity}
+                                onChange={(e) => setQuantity(e.target.value)}
                                 min="0"
                            />
-                           <ShowMax />
                         </div>
                     </div>
                 </div>
                 <div className="form-row">
                     <div className="form-column">
                         <label htmlFor="order-type-select" className="form-label">
-                            Order Type <InfoIcon />
+                            Order Type <InfoIcon title="Market Order: Executes immediately at the current market price. Limit Order: Executes only at a specified price or better you choose" />
                         </label>
-                        <select id="order-type-select" className="form-select">
+                        <select 
+                            id="order-type-select" 
+                            className="form-select"
+                            value={orderType}
+                            onChange={(e) => setOrderType(e.target.value)}
+                        >
                             <option value="market">Market</option>
                             <option value="limit">Limit</option>
                         </select>
                     </div>
-                    <div className="form-column">
-                        <label htmlFor="duration-select" className="form-label">
-                            Duration <InfoIcon />
-                        </label>
-                        <select id="duration-select" className="form-select">
-                            <option value="day">Day Only</option>
-                        </select>
-                    </div>
+                    {orderType === 'limit' && (
+                        <div className="form-column">
+                            <label htmlFor="limit-price-input" className="form-label">Limit Price</label>
+                            <div className="input-with-side-action">
+                                <input
+                                    type="number"
+                                    id="limit-price-input"
+                                    className="form-input"
+                                    value={limitPrice}
+                                    onChange={(e) => setLimitPrice(e.target.value)}
+                                    min="0"
+                                    step="0.01"
+                                />
+                            </div>
+                        </div>
+                    )}
                 </div>
                 <div className="form-actions">
-                    <button type="button" className="btn btn-clear">CLEAR</button>
-                    <button type="button" className="btn btn-preview">PREVIEW ORDER </button>
+                    <button 
+                        type="button" 
+                        className="btn btn-clear" 
+                        onClick={handleClear}
+                        disabled={loading}
+                    >
+                        CLEAR
+                    </button>                    <button 
+                        type="button" 
+                        className="btn btn-preview" 
+                        onClick={handleSubmit}
+                        disabled={loading || !symbol || quantity <= 0 || (orderType === 'limit' && limitPrice <= 0)}
+                    >
+                        {loading ? 'PLACING ORDER...' : 'PLACE ORDER'}
+                    </button>
                 </div>
+                {successMessage && (
+                    <div className="success-message">
+                        {successMessage}
+                    </div>
+                )}
             </div>
         </div>
     );

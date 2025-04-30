@@ -26,6 +26,7 @@ import createHoldingTable from './config/createHoldingTable.js';
 // --- Routes ---
 import userRoutes from './routes/userRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
+import stockRoutes from './routes/stockRoutes.js';
 
 // --- Middlewares ---
 import errorHandling from './middlewares/errorHandlerMiddleware.js';
@@ -64,6 +65,7 @@ app.get('/auth/google/callback', googleAuthCallback);
 // --- API Routes ---
 app.use('/api', userRoutes);
 app.use('/api', orderRoutes);
+app.use('/api/stocks', stockRoutes);
 
 // --- Error Handling Middleware ---
 // This should be the last middleware in the stack
