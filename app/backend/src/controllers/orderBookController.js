@@ -1,6 +1,13 @@
 // filepath: c:\Users\Chu Trung Anh\Desktop\Project\Product\Stock-Market-Simulator\app\backend\src\controllers\orderBookController.js
 import { OrderBook } from '../services/orderMatchingService.js';
 
+// In-memory store for tracking last changes per stock ID
+// In a production environment, this should be in a database or Redis
+const lastChanges = {
+  timestamps: {},  // When each stock was last updated
+  updates: {}       // Cache of recent updates by stock ID
+};
+
 // Controller to get the order book data
 export const getOrderBook = (req, res) => {
   try {
@@ -16,9 +23,15 @@ export const getOrderBook = (req, res) => {
       sellOrdersCount: sellOrders.length,
       recentTransactionsCount: Object.keys(recentTransactions).length
     });
-    
-    // Process data for frontend display
+      // Process data for frontend display
     const processedData = processOrderBookData(buyOrders, sellOrders, recentTransactions);
+    
+    // Store the current state and timestamp for each stock
+    const now = Date.now();
+    processedData.forEach(stock => {
+      lastChanges.timestamps[stock.symbol] = now;
+      lastChanges.updates[stock.symbol] = stock;
+    });
     
     res.status(200).json(processedData);
   } catch (error) {
@@ -133,6 +146,52 @@ function processOrderBookData(buyOrders, sellOrders, recentTransactions) {
       matchedVolume: null
     }];
   }
-  
-  return result;
+    return result;
 }
+
+// Controller to get only the updated order book data since a timestamp
+export const getOrderBookUpdates = (req, res) => {
+  try {
+    // Get the timestamp from the query params
+    const sinceTimestamp = parseInt(req.query.since) || 0;
+    
+    // If no valid timestamp, return the full data
+    if (!sinceTimestamp) {
+      return getOrderBook(req, res);
+    }
+    
+    const orderBook = OrderBook.getInstance();
+    
+    // Get the order book data
+    const buyOrders = orderBook.limitBuyOrderQueue || [];
+    const sellOrders = orderBook.limitSellOrderQueue || [];
+    const recentTransactions = orderBook.recentTransactions || {};
+    
+    // Process all data first (to ensure we have valid data to work with)
+    const allProcessedData = processOrderBookData(buyOrders, sellOrders, recentTransactions);
+    
+    // Find stocks that were updated since the timestamp
+    const updatedStocks = [];
+    
+    allProcessedData.forEach(stock => {
+      const stockSymbol = stock.symbol;
+      const lastTimestamp = lastChanges.timestamps[stockSymbol] || 0;
+      
+      // If this stock has been updated since the requested timestamp
+      if (lastTimestamp > sinceTimestamp) {
+        updatedStocks.push(stock);
+        
+        // Update our timestamp record
+        lastChanges.timestamps[stockSymbol] = Date.now();
+        lastChanges.updates[stockSymbol] = stock;
+      }
+    });
+    
+    console.log(`Returning ${updatedStocks.length} updated stocks since ${new Date(sinceTimestamp).toISOString()}`);
+    
+    res.status(200).json(updatedStocks);
+  } catch (error) {
+    console.error('Error fetching order book updates:', error);
+    res.status(500).json({ message: 'Failed to fetch order book updates' });
+  }
+};

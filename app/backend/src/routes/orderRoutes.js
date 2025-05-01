@@ -1,6 +1,6 @@
 import express from 'express';
 import { createOrder, cancelOrder } from '../controllers/orderController.js';
-import { getOrderBook } from '../controllers/orderBookController.js';
+import { getOrderBook, getOrderBookUpdates } from '../controllers/orderBookController.js';
 import authMiddleware from '../middlewares/authenticationMiddleware.js';
 import  isTradingSessionMiddleware  from '../middlewares/tradingSessionMiddleware.js';
 const router = express.Router();
@@ -17,5 +17,8 @@ router.delete('/cancelOrder/:orderId', cancelOrder);
 
 // Route to get the order book data
 router.get('/orderBook', getOrderBook);
+
+// Route to get order book updates since a specific timestamp
+router.get('/orderBook/updates', getOrderBookUpdates);
 
 export default router;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import './Tables.css';
 import { 
   Paper, 
@@ -12,7 +12,50 @@ import {
   CircularProgress
 } from '@mui/material';
 import { getOrderBookData } from '../../../api/orderBook';
+import { getOrderBookUpdates } from '../../../api/orderBookUpdates';
 import eventEmitter from '../../../services/eventEmitter';
+
+// Memoized row component
+const OrderBookTableRow = memo(({ row, columns, getCellTextColor }) => {
+  return (
+    <TableRow hover role="checkbox" tabIndex={-1}>
+      {columns.map((column) => {
+        const value = row[column.id];
+        return (
+          <TableCell
+            key={column.id}
+            align={column.align}
+            style={{
+              fontWeight: column.id === 'Symbol' ? 'bold' : 'normal',
+              color: ['bid_vol1', 'match_vol', 'bid_vol2', 'ask_vol1', 'ask_vol2'].includes(column.id)
+                ? getCellTextColor(column.id.replace('_vol', '_prc'), row[column.id.replace('_vol', '_prc')], row.floor, row.ceil, row.ref)
+                : getCellTextColor(column.id, value, row.floor, row.ceil, row.ref),
+              borderRight: ['Symbol', 'floor', 'bid_vol2', 'match_vol'].includes(column.id) ? '3px solid #000' : '1px solid #ccc',
+            }}
+          >
+            {column.format && typeof value === 'number' ? column.format(value) : value}
+          </TableCell>
+        );
+      })}
+    </TableRow>
+  );
+}, (prevProps, nextProps) => {
+  // Custom comparison function to determine if re-render is needed
+  // Only re-render if any price or volume values have changed
+  const prevRow = prevProps.row;
+  const nextRow = nextProps.row;
+  
+  if (prevRow.Symbol !== nextRow.Symbol) return false; // Symbol changed, re-render
+  
+  // Check if any numeric values changed
+  const fieldsToCompare = [
+    'bid_prc1', 'bid_vol1', 'bid_prc2', 'bid_vol2',
+    'ask_prc1', 'ask_vol1', 'ask_prc2', 'ask_vol2',
+    'match_prc', 'match_vol'
+  ];
+  
+  return !fieldsToCompare.some(field => prevRow[field] !== nextRow[field]);
+});
 
 const columns = [
     { id: 'Symbol', label: 'Symbol', minWidth: 100 },
@@ -171,20 +214,73 @@ function getCellTextColor(columnId, value, floor, ceil, ref) {
 
 function Tables() {
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [orderBookData, setOrderBookData] = useState([]);
+  const [rowsPerPage, setRowsPerPage] = useState(10);  const [orderBookData, setOrderBookData] = useState([]);
+  const [orderBookMap, setOrderBookMap] = useState({});  // For efficient updates 
+  const [lastUpdateTime, setLastUpdateTime] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);  // Function to fetch order book data
+  const [error, setError] = useState(null);
+  
+  // Function to fetch complete order book data
   const fetchOrderBookData = async () => {
     try {
       setLoading(true);
       const data = await getOrderBookData();
       setOrderBookData(data);
+      
+      // Update the timestamp and the map for efficient updates
+      setLastUpdateTime(Date.now());
+      
+      // Create a map for more efficient updates
+      const dataMap = {};
+      data.forEach(item => {
+        dataMap[item.symbol] = item;
+      });
+      setOrderBookMap(dataMap);
+      
       setLoading(false);
     } catch (error) {
       console.error('Failed to fetch order book data:', error);
       setError('Failed to fetch order book data. Please try again later.');
       setLoading(false);
+    }
+  };
+  // Function to fetch only the updates since last fetch
+  const fetchOrderBookUpdates = async () => {
+    try {
+      // Only fetch updates if we have a valid lastUpdateTime
+      if (lastUpdateTime === 0) {
+        await fetchOrderBookData();
+        return;
+      }
+      
+      console.log('Fetching partial updates since', new Date(lastUpdateTime).toISOString());
+      const updates = await getOrderBookUpdates(lastUpdateTime);
+      
+      if (!updates || updates.length === 0) {
+        console.log('No updates available');
+        return;
+      }
+      
+      // Update the timestamp
+      setLastUpdateTime(Date.now());
+      
+      // Apply updates to our existing data
+      const updatedMap = { ...orderBookMap };
+      
+      updates.forEach(update => {
+        updatedMap[update.symbol] = update;
+      });
+      
+      setOrderBookMap(updatedMap);
+      
+      // Convert map back to array for rendering
+      setOrderBookData(Object.values(updatedMap));
+      
+      console.log(`Applied ${updates.length} updates to order book data`);
+    } catch (error) {
+      console.error('Failed to fetch order book updates:', error);
+      // If updates fail, try to get complete data
+      await fetchOrderBookData();
     }
   };
 
@@ -196,8 +292,8 @@ function Tables() {
 
     // Set up order created event listener
     const unsubscribe = eventEmitter.on('orderCreated', () => {
-      console.log('Order created event received, refreshing order book data');
-      fetchOrderBookData();
+      console.log('Order created event received, fetching order book updates');
+      fetchOrderBookUpdates();
     });
 
     // Clean up event listener on component unmount
@@ -212,38 +308,40 @@ function Tables() {
 
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(10);
-  };
-  // Transform orderBookData into the format expected by the table
-  const processedRows = orderBookData.map(stockData => {
-    // Get bid and ask data
-    const bid1 = stockData.bids[0] || { price: null, volume: null };
-    const bid2 = stockData.bids[1] || { price: null, volume: null };
-    const ask1 = stockData.asks[0] || { price: null, volume: null };
-    const ask2 = stockData.asks[1] || { price: null, volume: null };
-    
-    // For now, using placeholder values for ref, ceil, floor
-    // These would come from your stock data in a real implementation
-    const ref = bid1.price || ask1.price || 0; // Simplification - in real app get from stock data
-    const ceil = ref * 1.1; // +10% - simplified
-    const floor = ref * 0.9; // -10% - simplified
+  };  // Transform orderBookData into the format expected by the table
+  // Use useMemo to only recalculate when orderBookData changes
+  const processedRows = React.useMemo(() => {
+    return orderBookData.map(stockData => {
+      // Get bid and ask data
+      const bid1 = stockData.bids[0] || { price: null, volume: null };
+      const bid2 = stockData.bids[1] || { price: null, volume: null };
+      const ask1 = stockData.asks[0] || { price: null, volume: null };
+      const ask2 = stockData.asks[1] || { price: null, volume: null };
+      
+      // For now, using placeholder values for ref, ceil, floor
+      // These would come from your stock data in a real implementation
+      const ref = bid1.price || ask1.price || 0; // Simplification - in real app get from stock data
+      const ceil = ref * 1.1; // +10% - simplified
+      const floor = ref * 0.9; // -10% - simplified
 
-    return createData(
-      stockData.symbol,
-      ref,
-      ceil,
-      floor,
-      bid1.price || 0,
-      bid1.volume || 0,
-      bid2.price || 0,
-      bid2.volume || 0,
-      stockData.matchedPrice || 0,
-      stockData.matchedVolume || 0,
-      ask1.price || 0,
-      ask1.volume || 0,
-      ask2.price || 0,
-      ask2.volume || 0
-    );
-  });
+      return createData(
+        stockData.symbol,
+        ref,
+        ceil,
+        floor,
+        bid1.price || 0,
+        bid1.volume || 0,
+        bid2.price || 0,
+        bid2.volume || 0,
+        stockData.matchedPrice || 0,
+        stockData.matchedVolume || 0,
+        ask1.price || 0,
+        ask1.volume || 0,
+        ask2.price || 0,
+        ask2.volume || 0
+      );
+    });
+  }, [orderBookData]);
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
@@ -286,32 +384,17 @@ function Tables() {
                   ))}
                 </TableRow>
               </TableHead>
-              <TableBody sx={{ borderBottom: '1px solid #ccc' }}>
-                {processedRows.length > 0 ? (
+              <TableBody sx={{ borderBottom: '1px solid #ccc' }}>                {processedRows.length > 0 ? (
                   processedRows
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((row, index) => {
                       return (
-                        <TableRow hover role="checkbox" tabIndex={-1} key={row.Symbol || index}>
-                          {columns.map((column) => {
-                            const value = row[column.id];
-                            return (
-                              <TableCell
-                                key={column.id}
-                                align={column.align}
-                                style={{
-                                  fontWeight: column.id === 'Symbol' ? 'bold' : 'normal',
-                                  color: ['bid_vol1', 'match_vol', 'bid_vol2', 'ask_vol1', 'ask_vol2'].includes(column.id)
-                                    ? getCellTextColor(column.id.replace('_vol', '_prc'), row[column.id.replace('_vol', '_prc')], row.floor, row.ceil, row.ref)
-                                    : getCellTextColor(column.id, value, row.floor, row.ceil, row.ref),
-                                  borderRight: ['Symbol', 'floor', 'bid_vol2', 'match_vol'].includes(column.id) ? '3px solid #000' : '1px solid #ccc',
-                                }}
-                              >
-                              {column.format && typeof value === 'number' ? column.format(value) : value}
-                              </TableCell>
-                            );
-                          })}
-                        </TableRow>
+                        <OrderBookTableRow 
+                          key={row.Symbol || index}
+                          row={row}
+                          columns={columns}
+                          getCellTextColor={getCellTextColor}
+                        />
                       );
                     })
                 ) : (
@@ -323,16 +406,31 @@ function Tables() {
                 )}
               </TableBody>
             </Table>
-          </TableContainer>
-          <TablePagination
-            rowsPerPageOptions={[10]} 
-            component="div"
-            count={processedRows.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
+          </TableContainer>          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px' }}>
+            <button 
+              onClick={fetchOrderBookData}
+              style={{
+                padding: '6px 12px',
+                backgroundColor: '#1976d2',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '14px'
+              }}
+            >
+              Refresh Data
+            </button>
+            <TablePagination
+              rowsPerPageOptions={[10]} 
+              component="div"
+              count={processedRows.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+          </div>
         </>
       )}
     </Paper>
