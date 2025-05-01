@@ -239,29 +239,24 @@ function Tables() {  const [page, setPage] = useState(0);
     setRowsPerPage(10);  };
 
   // Transform orderBookData into the format expected by the table
-  // Use useMemo to only recalculate when orderBookData changes  // Calculate price limits from reference price
-  const calculatePriceLimits = (refPrice) => {
-    const roundToTwoDecimals = (value) => Math.round(value * 100) / 100;
-    return {
-      ceil: roundToTwoDecimals(refPrice * 1.07),
-      floor: roundToTwoDecimals(refPrice * 0.93)
-    };
-  };
-
+  // Use useMemo to only recalculate when orderBookData changes
   const processedRows = React.useMemo(() => {
     if (!Array.isArray(orderBookData) || orderBookData.length === 0) {
       return [];
     }
-
-    return orderBookData.map(stockData => {
+      return orderBookData.map(stockData => {
+      // Calculate ceiling and floor prices from reference price +- 7%
+      // Use Math.round to round to 2 decimal places
       const refPrice = stockData.ref || 0;
-      const { ceil, floor } = calculatePriceLimits(refPrice);
+      const ceilPrice = Math.round(refPrice * 1.07 * 100) / 100;
+      const floorPrice = Math.round(refPrice * 0.93 * 100) / 100;
+
       
       return createData(
         stockData.symbol,
         refPrice,
-        ceil,
-        floor,
+        ceilPrice,
+        floorPrice,
         stockData.bid_prc1 || 0,
         stockData.bid_vol1 || 0,
         stockData.bid_prc2 || 0,
