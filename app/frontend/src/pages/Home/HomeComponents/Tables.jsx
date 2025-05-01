@@ -1,6 +1,13 @@
 import React from 'react';
 import './Tables.css';
-
+import Paper from '@mui/material/Paper';
+import Table from '@mui/material/Table';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import TableCell from '@mui/material/TableCell';
+import TableBody from '@mui/material/TableBody';
+import TablePagination from '@mui/material/TablePagination';
 const columns = [
     { id: 'Symbol', label: 'Symbol', minWidth: 100 },
     { id: 'ref', label: 'Ref', minWidth: 50, align: 'center', format: (value) => value.toFixed(2) },
