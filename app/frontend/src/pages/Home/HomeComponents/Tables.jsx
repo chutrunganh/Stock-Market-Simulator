@@ -54,81 +54,39 @@ const OrderBookTableRow = memo(({ row, columns, getCellTextColor }) => {
   return !fieldsToCompare.some(field => prevRow[field] !== nextRow[field]);
 });
 
+// Column factory functions
+const createPriceColumn = (id, label) => ({
+  id,
+  label,
+  minWidth: 50,
+  align: 'center',
+  format: (value) => value.toFixed(2)
+});
+
+const createVolumeColumn = (id, label) => ({
+  id,
+  label,
+  minWidth: 70,
+  align: 'center',
+  format: (value) => value.toLocaleString('en-US')
+});
+
+// Column definitions
 const columns = [
-    { id: 'Symbol', label: 'Symbol', minWidth: 100 },
-    { id: 'ref', label: 'Ref', minWidth: 50, align: 'center', format: (value) => value.toFixed(2) },
-    { id: 'ceil', label: 'Ceil', minWidth: 50, align: 'center', format: (value) => value.toFixed(2) },
-    { id: 'floor', label: 'Floor', minWidth: 50, align: 'center', format: (value) => value.toFixed(2) },
-    {
-      id: 'bid_prc2',
-      label: 'Prc\u00a02',
-      minWidth: 50,
-      align: 'center',
-      format: (value) => value.toFixed(2),
-    },
-    {
-      id: 'bid_vol2',
-      label: 'Vol\u00a02',
-      minWidth: 70,
-      align: 'center',
-      format: (value) => value.toLocaleString('en-US'),
-    },
-    {
-      id: 'bid_prc1',
-      label: 'Prc\u00a01',
-      minWidth: 50,
-      align: 'center',
-      format: (value) => value.toFixed(2),
-    },
-    {
-      id: 'bid_vol1',
-      label: 'Vol\u00a01',
-      minWidth: 70,
-      align: 'center',
-      format: (value) => value.toLocaleString('en-US'),
-    },
-    {
-      id: 'match_prc',
-      label: 'Price',
-      minWidth: 50,
-      align: 'center',
-      format: (value) => value.toFixed(2),
-    },
-    {
-      id: 'match_vol',
-      label: 'Vol',
-      minWidth: 70,
-      align: 'center',
-      format: (value) => value.toLocaleString('en-US'),
-    },
-    {
-      id: 'ask_prc1',
-      label: 'Prc\u00a01',
-      minWidth: 50,
-      align: 'center',
-      format: (value) => value.toFixed(2),
-    },
-    {
-      id: 'ask_vol1',
-      label: 'Vol\u00a01',
-      minWidth: 70,
-      align: 'center',
-      format: (value) => value.toLocaleString('en-US'),
-    },
-    {
-      id: 'ask_prc2',
-      label: 'Prc\u00a02',
-      minWidth: 50,
-      align: 'center',
-      format: (value) => value.toFixed(2),
-    },
-    {
-      id: 'ask_vol2',
-      label: 'Vol\u00a02',
-      minWidth: 70,
-      align: 'center',
-      format: (value) => value.toLocaleString('en-US'),
-    },
+  { id: 'Symbol', label: 'Symbol', minWidth: 100 },
+  createPriceColumn('ref', 'Ref'),
+  createPriceColumn('ceil', 'Ceil'),
+  createPriceColumn('floor', 'Floor'),
+  createPriceColumn('bid_prc2', 'Prc\u00a02'),
+  createVolumeColumn('bid_vol2', 'Vol\u00a02'),
+  createPriceColumn('bid_prc1', 'Prc\u00a01'),
+  createVolumeColumn('bid_vol1', 'Vol\u00a01'),
+  createPriceColumn('match_prc', 'Price'),
+  createVolumeColumn('match_vol', 'Vol'),
+  createPriceColumn('ask_prc1', 'Prc\u00a01'),
+  createVolumeColumn('ask_vol1', 'Vol\u00a01'),
+  createPriceColumn('ask_prc2', 'Prc\u00a02'),
+  createVolumeColumn('ask_vol2', 'Vol\u00a02'),
 ];
   
 function createData(Symbol, ref, ceil, floor, bid_prc1, bid_vol1, bid_prc2, bid_vol2, match_prc, match_vol, ask_prc1, ask_vol1, ask_prc2, ask_vol2) {
@@ -137,54 +95,45 @@ function createData(Symbol, ref, ceil, floor, bid_prc1, bid_vol1, bid_prc2, bid_
 }
   
 
-// Added a function to compare data between 'ref' and 'price' and return a color
+// Color constants
+const COLORS = {
+  DEFAULT: '#000000',
+  UP: 'green',
+  DOWN: 'red',
+  FLOOR: '#006fff',
+  CEILING: '#FF00FF',
+  REF: '#FFA33E'
+};
+
+// Get color based on price comparison
 function compareRefAndPrice(ref, price, floor, ceil) {
-  // If price is 0, return black. This is by default when no order is placed.
-  if (price == 0) {
-    return '#000000'; // Black
-  }
-  if (price > ref && price < ceil) {
-    return 'green';
-  } else if (ref > price && price > floor) {
-    return 'red';
-  } else if (price <= floor) {
-    return '#006fff'; // Blue
-  } else if (price >= ceil) {
-    return '#FF00FF'; // Pink
-  }
-  return 'inherit';
+  if (!price || price === 0) return COLORS.DEFAULT;
+  if (price >= ceil) return COLORS.CEILING;
+  if (price <= floor) return COLORS.FLOOR;
+  return price > ref ? COLORS.UP : COLORS.DOWN;
 }
 
-// Updated to set color for each cell based on its value
+// Get column color based on type and values
 function getCellTextColor(columnId, value, floor, ceil, ref, match_prc, row) {
-  switch (columnId) {
-    case 'Symbol':
-      if (match_prc === 0) return '#000000'; // Default black when no matching price
-      return match_prc > ref ? 'green' : match_prc < ref ? 'red' : '#000000';
-    case 'ref':
-      return '#FFA33E'; // Orange
-    case 'ceil':
-      return '#FF00FF'; // Pink
-    case 'floor':
-      return '#006fff'; // Blue
-    case 'bid_prc1':
-    case 'bid_vol1':
-      return compareRefAndPrice(ref, row.bid_prc1, floor, ceil);
-    case 'bid_prc2':
-    case 'bid_vol2':
-      return compareRefAndPrice(ref, row.bid_prc2, floor, ceil);
-    case 'ask_prc1':
-    case 'ask_vol1':
-      return compareRefAndPrice(ref, row.ask_prc1, floor, ceil);
-    case 'ask_prc2':
-    case 'ask_vol2':
-      return compareRefAndPrice(ref, row.ask_prc2, floor, ceil);
-    case 'match_prc':
-    case 'match_vol':
-      return compareRefAndPrice(ref, row.match_prc, floor, ceil);
-    default:
-      return 'inherit';
-  }
+  // Static column colors
+  const staticColors = {
+    Symbol: match_prc === 0 ? COLORS.DEFAULT : match_prc > ref ? COLORS.UP : match_prc < ref ? COLORS.DOWN : COLORS.DEFAULT,
+    ref: COLORS.REF,
+    ceil: COLORS.CEILING,
+    floor: COLORS.FLOOR
+  };
+  if (staticColors[columnId]) return staticColors[columnId];
+
+  // Price and volume columns
+  const priceMap = {
+    'bid_prc1': row.bid_prc1, 'bid_vol1': row.bid_prc1,
+    'bid_prc2': row.bid_prc2, 'bid_vol2': row.bid_prc2,
+    'ask_prc1': row.ask_prc1, 'ask_vol1': row.ask_prc1,
+    'ask_prc2': row.ask_prc2, 'ask_vol2': row.ask_prc2,
+    'match_prc': row.match_prc, 'match_vol': row.match_prc
+  };
+
+  return priceMap[columnId] ? compareRefAndPrice(ref, priceMap[columnId], floor, ceil) : 'inherit';
 }
 
 function Tables() {  const [page, setPage] = useState(0);
@@ -290,24 +239,29 @@ function Tables() {  const [page, setPage] = useState(0);
     setRowsPerPage(10);  };
 
   // Transform orderBookData into the format expected by the table
-  // Use useMemo to only recalculate when orderBookData changes
+  // Use useMemo to only recalculate when orderBookData changes  // Calculate price limits from reference price
+  const calculatePriceLimits = (refPrice) => {
+    const roundToTwoDecimals = (value) => Math.round(value * 100) / 100;
+    return {
+      ceil: roundToTwoDecimals(refPrice * 1.07),
+      floor: roundToTwoDecimals(refPrice * 0.93)
+    };
+  };
+
   const processedRows = React.useMemo(() => {
     if (!Array.isArray(orderBookData) || orderBookData.length === 0) {
       return [];
     }
-      return orderBookData.map(stockData => {
-      // Calculate ceiling and floor prices from reference price +- 7%
-      // Use Math.round to round to 2 decimal places
-      const refPrice = stockData.ref || 0;
-      const ceilPrice = Math.round(refPrice * 1.07 * 100) / 100;
-      const floorPrice = Math.round(refPrice * 0.93 * 100) / 100;
 
+    return orderBookData.map(stockData => {
+      const refPrice = stockData.ref || 0;
+      const { ceil, floor } = calculatePriceLimits(refPrice);
       
       return createData(
         stockData.symbol,
         refPrice,
-        ceilPrice,
-        floorPrice,
+        ceil,
+        floor,
         stockData.bid_prc1 || 0,
         stockData.bid_vol1 || 0,
         stockData.bid_prc2 || 0,
