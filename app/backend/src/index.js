@@ -28,7 +28,6 @@ import userRoutes from './routes/userRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import tradingSessionRoutes from './routes/tradingSessionRoutes.js';
 import stockRoutes from './routes/stockRoutes.js';
-import devRoutes from './routes/devRoutes.js';
 
 // --- Middlewares ---
 import errorHandling from './middlewares/errorHandlerMiddleware.js';
@@ -67,16 +66,10 @@ app.get('/auth/google/callback', googleAuthCallback);
 // --- API Routes ---
 app.use('/api', userRoutes);
 app.use('/api', orderRoutes);
-app.use('/api/stocks', stockRoutes); // Plan to delete
+app.use('/api/stocks', stockRoutes); 
 
 // Use trading session routes
 app.use('/api', tradingSessionRoutes);
-
-// Development routes (only in development environment)
-if (process.env.NODE_ENV !== 'production') {
-  app.use('/api/dev', devRoutes);
-}
-
 
 // --- Error Handling Middleware ---
 // This should be the last middleware in the stack

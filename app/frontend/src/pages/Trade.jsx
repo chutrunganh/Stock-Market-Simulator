@@ -2,7 +2,6 @@ import './Trade.css';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { createOrder, getMostTradedStocks, getStockBySymbol } from '../api/trade';
-import eventEmitter from '../services/eventEmitter';
 
 const MiniLineChart = ({ data, width = 150, height = 50, strokeColor = '#007bff' }) => {
     if (!data || data.length < 2) {

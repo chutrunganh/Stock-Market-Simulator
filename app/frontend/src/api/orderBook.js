@@ -1,8 +1,10 @@
-// filepath: c:\Users\Chu Trung Anh\Desktop\Project\Product\Stock-Market-Simulator\app\frontend\src\api\orderBook.js
 import apiClient from './apiClient';
 
 /**
- * Get order book data from the backend
+ * Get order book data from the backend. This includes:
+ * - Stock information (symbol, company name)
+ * - Reference prices (ref, ceiling, floor)
+ * - Current order book state (bids, asks, matched trades)
  * @returns {Promise} The order book data for all stocks
  */
 export const getOrderBookData = async () => {

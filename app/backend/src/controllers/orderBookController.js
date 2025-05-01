@@ -1,5 +1,5 @@
-// filepath: c:\Users\Chu Trung Anh\Desktop\Project\Product\Stock-Market-Simulator\app\backend\src\controllers\orderBookController.js
 import { OrderBook } from '../services/orderMatchingService.js';
+import pool from '../config/dbConnect.js';
 
 // In-memory store for tracking last changes per stock ID
 // In a production environment, this should be in a database or Redis
@@ -9,8 +9,29 @@ const lastChanges = {
 };
 
 // Controller to get the order book data
-export const getOrderBook = (req, res) => {
+export const getOrderBook = async (req, res) => {
   try {
+    // First, get all stocks with their latest closing prices
+    const stocksResult = await pool.query(`
+      WITH LatestPrices AS (
+        SELECT DISTINCT ON (stock_id) 
+          stock_id,
+          close_price,
+          date
+        FROM stockprices
+        ORDER BY stock_id, date DESC
+      )
+      SELECT 
+        s.stock_id,
+        s.symbol,
+        s.company_name,
+        lp.close_price as reference_price,
+        lp.date as price_date
+      FROM stocks s
+      LEFT JOIN LatestPrices lp ON s.stock_id = lp.stock_id
+      ORDER BY s.symbol;
+    `);
+
     const orderBook = OrderBook.getInstance();
     
     // Get the order book data
@@ -19,12 +40,14 @@ export const getOrderBook = (req, res) => {
     const recentTransactions = orderBook.recentTransactions || {};
     
     console.log('OrderBook data:', {
+      stocksCount: stocksResult.rows.length,
       buyOrdersCount: buyOrders.length,
       sellOrdersCount: sellOrders.length,
       recentTransactionsCount: Object.keys(recentTransactions).length
     });
-      // Process data for frontend display
-    const processedData = processOrderBookData(buyOrders, sellOrders, recentTransactions);
+
+    // Process data for frontend display, passing the stocks data
+    const processedData = processOrderBookData(stocksResult.rows, buyOrders, sellOrders, recentTransactions);
     
     // Store the current state and timestamp for each stock
     const now = Date.now();
@@ -41,116 +64,54 @@ export const getOrderBook = (req, res) => {
 };
 
 // Helper function to format order book data for the frontend
-function processOrderBookData(buyOrders, sellOrders, recentTransactions) {
-  // Group orders by stockId
-  const stockGroups = {};
-
-  // If there's no data, return a sample structure with empty arrays
-  if (!buyOrders.length && !sellOrders.length && Object.keys(recentTransactions).length === 0) {
-    // Return an empty order book structure
-    return [{
-      symbol: 'No Data',
-      bids: [],
-      asks: [],
-      matchedPrice: null,
-      matchedVolume: null
-    }];
+function processOrderBookData(stocks, buyOrders, sellOrders, recentTransactions) {
+  // If no stocks, return empty array to avoid errors
+  if (!stocks || !stocks.length) {
+    return [];
   }
 
-  // Helper function to aggregate orders by price
-  const aggregateOrders = (orders, isBuyOrder) => {
-    const aggregated = {};
-    if (!orders || !Array.isArray(orders)) {
-      return [];
-    }
-    orders.forEach(order => {
-      if (!aggregated[order.price]) {
-        aggregated[order.price] = { price: order.price, volume: 0 };
-      }
-      aggregated[order.price].volume += order.volume;
-    });
-    // Sort buy orders high to low, sell orders low to high
-    return Object.values(aggregated).sort((a, b) => 
-      isBuyOrder ? b.price - a.price : a.price - b.price
-    );
-  };
-  // Process buy orders
-  if (Array.isArray(buyOrders)) {
-    buyOrders.forEach(order => {
-      if (order && order.stockId) {
-        if (!stockGroups[order.stockId]) {
-          stockGroups[order.stockId] = {
-            symbol: order.stockId,
-            bids: [],
-            asks: [],
-            matchedPrice: null,
-            matchedVolume: null
-          };
-        }
-        stockGroups[order.stockId].bids = aggregateOrders(
-          buyOrders.filter(o => o && o.stockId === order.stockId),
-          true
-        );
-      }
-    });
-  }
+  // Process each stock
+  return stocks.map(stock => {
+    // Get orders for this stock
+    const stockBuyOrders = buyOrders
+      .filter(order => order.stockId === stock.stock_id)
+      .sort((a, b) => b.price - a.price); // Sort by price descending
+      
+    const stockSellOrders = sellOrders
+      .filter(order => order.stockId === stock.stock_id)
+      .sort((a, b) => a.price - b.price); // Sort by price ascending
 
-  // Process sell orders
-  if (Array.isArray(sellOrders)) {
-    sellOrders.forEach(order => {
-      if (order && order.stockId) {
-        if (!stockGroups[order.stockId]) {
-          stockGroups[order.stockId] = {
-            symbol: order.stockId,
-            bids: [],
-            asks: [],
-            matchedPrice: null,
-            matchedVolume: null
-          };
-        }
-        stockGroups[order.stockId].asks = aggregateOrders(
-          sellOrders.filter(o => o && o.stockId === order.stockId),
-          false
-        );
-      }
-    });
-  }
+    // Get recent transaction for this stock
+    const transaction = recentTransactions[stock.stock_id];
 
-  // Add recent transactions
-  if (recentTransactions && typeof recentTransactions === 'object') {
-    Object.entries(recentTransactions).forEach(([stockId, transaction]) => {
-      if (stockId && transaction) {
-        if (!stockGroups[stockId]) {
-          stockGroups[stockId] = {
-            symbol: stockId,
-            bids: [],
-            asks: [],
-            matchedPrice: null,
-            matchedVolume: null
-          };
-        }
-        stockGroups[stockId].matchedPrice = transaction.price;
-        stockGroups[stockId].matchedVolume = transaction.volume;
-      }
-    });
-  }
+    // Calculate ceiling and floor prices (±10% of reference price)
+    const refPrice = stock.reference_price || 0;
+    const ceilPrice = Math.round(refPrice * 1.1 * 100) / 100; // Round to 2 decimal places
+    const floorPrice = Math.round(refPrice * 0.9 * 100) / 100;
 
-  // If we end up with no data, provide a sample structure
-  const result = Object.values(stockGroups);
-  if (result.length === 0) {
-    return [{
-      symbol: 'No Data',
-      bids: [],
-      asks: [],
-      matchedPrice: null,
-      matchedVolume: null
-    }];
-  }
-    return result;
+    // Return the processed data
+    return {
+      symbol: stock.symbol,
+      company_name: stock.company_name,
+      ref: refPrice,
+      ceil: ceilPrice,
+      floor: floorPrice,
+      bid_prc2: stockBuyOrders[1]?.price || 0,
+      bid_vol2: stockBuyOrders[1]?.volume || 0,
+      bid_prc1: stockBuyOrders[0]?.price || 0,
+      bid_vol1: stockBuyOrders[0]?.volume || 0,
+      match_prc: transaction?.price || 0,
+      match_vol: transaction?.volume || 0,
+      ask_prc1: stockSellOrders[0]?.price || 0,
+      ask_vol1: stockSellOrders[0]?.volume || 0,
+      ask_prc2: stockSellOrders[1]?.price || 0,
+      ask_vol2: stockSellOrders[1]?.volume || 0
+    };
+  });
 }
 
 // Controller to get only the updated order book data since a timestamp
-export const getOrderBookUpdates = (req, res) => {
+export const getOrderBookUpdates = async (req, res) => {
   try {
     // Get the timestamp from the query params
     const sinceTimestamp = parseInt(req.query.since) || 0;
@@ -160,6 +121,27 @@ export const getOrderBookUpdates = (req, res) => {
       return getOrderBook(req, res);
     }
     
+    // Get all stocks first
+    const stocksResult = await pool.query(`
+      WITH LatestPrices AS (
+        SELECT DISTINCT ON (stock_id) 
+          stock_id,
+          close_price,
+          date
+        FROM stockprices
+        ORDER BY stock_id, date DESC
+      )
+      SELECT 
+        s.stock_id,
+        s.symbol,
+        s.company_name,
+        lp.close_price as reference_price,
+        lp.date as price_date
+      FROM stocks s
+      LEFT JOIN LatestPrices lp ON s.stock_id = lp.stock_id
+      ORDER BY s.symbol;
+    `);
+
     const orderBook = OrderBook.getInstance();
     
     // Get the order book data
@@ -168,7 +150,7 @@ export const getOrderBookUpdates = (req, res) => {
     const recentTransactions = orderBook.recentTransactions || {};
     
     // Process all data first (to ensure we have valid data to work with)
-    const allProcessedData = processOrderBookData(buyOrders, sellOrders, recentTransactions);
+    const allProcessedData = processOrderBookData(stocksResult.rows, buyOrders, sellOrders, recentTransactions);
     
     // Find stocks that were updated since the timestamp
     const updatedStocks = [];
