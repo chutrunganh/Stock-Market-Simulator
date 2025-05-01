@@ -119,8 +119,14 @@ function Trade(props) {
     const [limitPrice, setLimitPrice] = useState(0);
     const [loading, setLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
-    const { user } = useAuth();    const handleSubmit = async () => {
+    const [errorMessage, setErrorMessage] = useState('');
+    const { user } = useAuth();    
+    
+    const handleSubmit = async () => {
         setLoading(true);
+        setSuccessMessage('');
+        setErrorMessage('');
+        
         try {
             // First get the stock details to get the stock ID
             const stockDetails = await getStockBySymbol(symbol.toUpperCase());
@@ -130,28 +136,30 @@ function Trade(props) {
             
             const orderData = {
                 userId: user.id,
-                stockId: stockDetails.id, // Use the stock ID from the fetched details
+                stockId: stockDetails.id,
                 quantity: parseInt(quantity),
                 price: orderType === 'limit' ? parseFloat(limitPrice) : null,
-                orderType: `${orderType.charAt(0).toUpperCase() + orderType.slice(1)} ${action.charAt(0).toUpperCase() + action.slice(1)}` // "Market Buy", "Limit Sell", etc.
+                orderType: `${orderType.charAt(0).toUpperCase() + orderType.slice(1)} ${action.charAt(0).toUpperCase() + action.slice(1)}`
             };
 
             const result = await createOrder(orderData);
-        
             
-            // Set success message
+            if (!result.success) {
+                // Handle trading closed or other unsuccessful cases
+                setErrorMessage(result.message);
+                return;
+            }
+            
+            // Set success message only if order was actually placed
             setSuccessMessage(`Order placed successfully! Stock: ${symbol}, Quantity: ${quantity}, Price: ${orderType === 'limit' ? `$${limitPrice}` : 'Market Price'}`);
             setTimeout(() => setSuccessMessage(''), 5000); // Clear message after 5 seconds
             
-            // Reset form
+            // Reset form only if order was placed
             setQuantity(0);
             setLimitPrice(0);
         } catch (error) {
-            if (error.response && error.response.status === 403) {
-                alert(error.response.data.message); // Show user-friendly message
-            } else {
-                alert('Failed to place order: ' + error.message);
-            }
+            const message = error.response?.data?.message || error.message;
+            setErrorMessage(message);
         } finally {
             setLoading(false);
         }
@@ -279,8 +287,13 @@ function Trade(props) {
                     </button>
                 </div>
                 {successMessage && (
-                    <div className="success-message">
+                    <div className="alert alert-success" role="alert">
                         {successMessage}
+                    </div>
+                )}
+                {errorMessage && (
+                    <div className="alert alert-warning" role="alert">
+                        {errorMessage}
                     </div>
                 )}
             </div>
