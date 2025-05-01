@@ -1,5 +1,15 @@
 import React from 'react';
 import './Tables.css';
+import { 
+  Paper, 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableContainer, 
+  TableHead, 
+  TablePagination, 
+  TableRow 
+} from '@mui/material';
 
 const columns = [
     { id: 'Symbol', label: 'Symbol', minWidth: 100 },
