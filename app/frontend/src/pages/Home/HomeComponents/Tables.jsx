@@ -8,6 +8,7 @@ import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import TableBody from '@mui/material/TableBody';
 import TablePagination from '@mui/material/TablePagination';
+
 const columns = [
     { id: 'Symbol', label: 'Symbol', minWidth: 100 },
     { id: 'ref', label: 'Ref', minWidth: 50, align: 'center', format: (value) => value.toFixed(2) },
