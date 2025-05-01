@@ -44,12 +44,10 @@ export const AuthProvider = ({ children }) => {
     };
     
     checkAuth();
-  }, []);
-
-  const logout = () => {
+  }, []);  const logout = () => {
     localStorage.removeItem('authToken');
     setUser(null);
-  };  // Login function
+  };// Login function
 const login = async (credentials) => {
     setLoading(true);
     setError(null);

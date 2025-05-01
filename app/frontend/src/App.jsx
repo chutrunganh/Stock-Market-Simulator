@@ -3,7 +3,7 @@
  * Sets up routing, authentication context, and main layout structure.
  */
 import { useState, useEffect } from 'react';
-import { Route, Routes, useLocation } from 'react-router-dom';
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
 // Components
 import Header from './components/header/Header';
@@ -33,11 +33,10 @@ function App() {
     // State for modals
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [showRegisterModal, setShowRegisterModal] = useState(false);
-    const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
-
-    // Get auth context
+    const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);    // Get auth context
     const { user, isAuthenticated, logout, login } = useAuth();
-    const location = useLocation();    // Check for auth message from redirects
+    const location = useLocation();
+    const navigate = useNavigate();// Check for auth message from redirects
     useEffect(() => {
         if (location.state?.authMessage) {
             // Could show a notification here
@@ -89,12 +88,14 @@ function App() {
 
     return (
         <TradingSessionProvider>
-            <div className="App">
-                <Header 
+            <div className="App">                <Header 
                     onLoginClick={handleOpenLoginModal} 
                     isLoggedIn={isAuthenticated}
                     userEmail={user?.username || user?.email}
-                    onLogoutClick={logout}
+                    onLogoutClick={() => {
+                        logout();
+                        navigate('/home');
+                    }}
                 />
                 
                 {/* Authentication Modals */}
