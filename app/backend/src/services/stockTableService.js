@@ -16,11 +16,8 @@ export const getStocksWithReferencePrices = async () => {
             SELECT 
                 s.stock_id,
                 s.symbol,
-                s.company_name,
-                lp.close_price as reference_price,
-                lp.date as price_date,
-                ROUND(lp.close_price * 1.1, 2) as ceiling_price,
-                ROUND(lp.close_price * 0.9, 2) as floor_price
+                s.company_name,                lp.close_price as reference_price,
+                lp.date as price_date
             FROM stocks s
             LEFT JOIN LatestPrices lp ON s.stock_id = lp.stock_id
             ORDER BY s.symbol;

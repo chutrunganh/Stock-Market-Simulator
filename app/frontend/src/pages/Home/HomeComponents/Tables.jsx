@@ -287,13 +287,17 @@ function Tables() {  const [page, setPage] = useState(0);
     if (!Array.isArray(orderBookData) || orderBookData.length === 0) {
       return [];
     }
-    
-    return orderBookData.map(stockData => {
+      return orderBookData.map(stockData => {
+      // Calculate ceiling and floor prices from reference price
+      const refPrice = stockData.ref || 0;
+      const ceilPrice = Math.round(refPrice * 1.1 * 100) / 100;
+      const floorPrice = Math.round(refPrice * 0.9 * 100) / 100;
+      
       return createData(
         stockData.symbol,
-        stockData.ref || 0,
-        stockData.ceil || 0,
-        stockData.floor || 0,
+        refPrice,
+        ceilPrice,
+        floorPrice,
         stockData.bid_prc1 || 0,
         stockData.bid_vol1 || 0,
         stockData.bid_prc2 || 0,

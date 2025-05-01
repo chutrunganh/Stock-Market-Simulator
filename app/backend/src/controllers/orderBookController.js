@@ -79,23 +79,16 @@ function processOrderBookData(stocks, buyOrders, sellOrders, recentTransactions)
       
     const stockSellOrders = sellOrders
       .filter(order => order.stockId === stock.stock_id)
-      .sort((a, b) => a.price - b.price); // Sort by price ascending
-
-    // Get recent transaction for this stock
+      .sort((a, b) => a.price - b.price); // Sort by price ascending    // Get recent transaction for this stock
     const transaction = recentTransactions[stock.stock_id];
 
-    // Calculate ceiling and floor prices (±10% of reference price)
+    // Get reference price from the latest closing price
     const refPrice = stock.reference_price || 0;
-    const ceilPrice = Math.round(refPrice * 1.1 * 100) / 100; // Round to 2 decimal places
-    const floorPrice = Math.round(refPrice * 0.9 * 100) / 100;
 
     // Return the processed data
     return {
-      symbol: stock.symbol,
-      company_name: stock.company_name,
-      ref: refPrice,
-      ceil: ceilPrice,
-      floor: floorPrice,
+      symbol: stock.symbol,      company_name: stock.company_name,
+      ref: refPrice,  // Reference price only - ceiling/floor calculated on frontend
       bid_prc2: stockBuyOrders[1]?.price || 0,
       bid_vol2: stockBuyOrders[1]?.volume || 0,
       bid_prc1: stockBuyOrders[0]?.price || 0,
