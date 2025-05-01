@@ -30,7 +30,7 @@ const OrderBookTableRow = memo(({ row, columns, getCellTextColor }) => {
               color: ['bid_vol1', 'match_vol', 'bid_vol2', 'ask_vol1', 'ask_vol2'].includes(column.id)
                 ? getCellTextColor(column.id.replace('_vol', '_prc'), row[column.id.replace('_vol', '_prc')], row.floor, row.ceil, row.ref)
                 : getCellTextColor(column.id, value, row.floor, row.ceil, row.ref),
-              borderRight: ['Symbol', 'floor', 'bid_vol2', 'match_vol'].includes(column.id) ? '3px solid #000' : '1px solid #ccc',
+              borderRight: ['Symbol', 'floor', 'bid_vol1', 'match_vol'].includes(column.id) ? '3px solid #000' : '1px solid #ccc',
             }}
           >
             {column.format && typeof value === 'number' ? column.format(value) : value}
@@ -63,20 +63,6 @@ const columns = [
     { id: 'ceil', label: 'Ceil', minWidth: 50, align: 'center', format: (value) => value.toFixed(2) },
     { id: 'floor', label: 'Floor', minWidth: 50, align: 'center', format: (value) => value.toFixed(2) },
     {
-      id: 'bid_prc1',
-      label: 'Prc\u00a01',
-      minWidth: 50,
-      align: 'center',
-      format: (value) => value.toFixed(2),
-    },
-    {
-      id: 'bid_vol1',
-      label: 'Vol\u00a01',
-      minWidth: 70,
-      align: 'center',
-      format: (value) => value.toLocaleString('en-US'),
-    },
-    {
       id: 'bid_prc2',
       label: 'Prc\u00a02',
       minWidth: 50,
@@ -86,6 +72,20 @@ const columns = [
     {
       id: 'bid_vol2',
       label: 'Vol\u00a02',
+      minWidth: 70,
+      align: 'center',
+      format: (value) => value.toLocaleString('en-US'),
+    },
+    {
+      id: 'bid_prc1',
+      label: 'Prc\u00a01',
+      minWidth: 50,
+      align: 'center',
+      format: (value) => value.toFixed(2),
+    },
+    {
+      id: 'bid_vol1',
+      label: 'Vol\u00a01',
       minWidth: 70,
       align: 'center',
       format: (value) => value.toLocaleString('en-US'),
@@ -372,11 +372,10 @@ function Tables() {
                     <TableCell
                       key={column.id}
                       align={column.align}
-                      style={{
-                        minWidth: column.minWidth,
+                      style={{                        minWidth: column.minWidth,
                         paddingLeft: '16px',
                         paddingRight: '16px',
-                        borderRight: ['bid_vol2', 'match_vol'].includes(column.id) ? '3px solid #000' : '1px solid #ccc',
+                        borderRight: ['bid_vol1', 'match_vol'].includes(column.id) ? '3px solid #000' : '1px solid #ccc',
                       }}
                     >
                       {column.label}
@@ -406,31 +405,15 @@ function Tables() {
                 )}
               </TableBody>
             </Table>
-          </TableContainer>          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px' }}>
-            <button 
-              onClick={fetchOrderBookData}
-              style={{
-                padding: '6px 12px',
-                backgroundColor: '#1976d2',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
-            >
-              Refresh Data
-            </button>
-            <TablePagination
-              rowsPerPageOptions={[10]} 
-              component="div"
-              count={processedRows.length}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-            />
-          </div>
+          </TableContainer>          <TablePagination
+            rowsPerPageOptions={[10]} 
+            component="div"
+            count={processedRows.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
         </>
       )}
     </Paper>
