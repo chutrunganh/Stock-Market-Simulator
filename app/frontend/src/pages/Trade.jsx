@@ -147,7 +147,11 @@ function Trade(props) {
             setQuantity(0);
             setLimitPrice(0);
         } catch (error) {
-            alert('Failed to place order: ' + error.message);
+            if (error.response && error.response.status === 403) {
+                alert(error.response.data.message); // Show user-friendly message
+            } else {
+                alert('Failed to place order: ' + error.message);
+            }
         } finally {
             setLoading(false);
         }

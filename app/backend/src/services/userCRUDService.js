@@ -8,7 +8,6 @@ import bcrypt from 'bcrypt';
 const SALT_ROUNDS = 10; // Cost factor for bcrypt
 import pool from '../config/dbConnect.js';
 import User from '../models/userModel.js';
-import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 dotenv.config({ path: '../../.env' }); // Adjust based on relative depth
 

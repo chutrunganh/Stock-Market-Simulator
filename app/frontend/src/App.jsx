@@ -24,6 +24,7 @@ import ForgotPasswordForm from './components/forms/ForgotPasswordForm';
 
 // Auth Context
 import { useAuth } from './context/AuthContext';
+import { TradingSessionProvider } from './context/TradingSessionContext';
 
 // Styles
 import './styles/App.css';
@@ -87,51 +88,53 @@ function App() {
     };
 
     return (
-        <div className="App">
-            <Header 
-                onLoginClick={handleOpenLoginModal} 
-                isLoggedIn={isAuthenticated}
-                userEmail={user?.username || user?.email}
-                onLogoutClick={logout}
-            />
-            
-            {/* Authentication Modals */}
-            <Modal isOpen={showLoginModal} onClose={handleCloseAllModals}>
-                <LoginForm 
-                    onLogin={handleLogin} // Pass the onLogin function here
-                    onRegisterClick={handleOpenRegisterModal}
-                    onForgotPasswordClick={handleOpenForgotPasswordModal}
+        <TradingSessionProvider>
+            <div className="App">
+                <Header 
+                    onLoginClick={handleOpenLoginModal} 
+                    isLoggedIn={isAuthenticated}
+                    userEmail={user?.username || user?.email}
+                    onLogoutClick={logout}
                 />
-            </Modal>
-            
-            <Modal isOpen={showRegisterModal} onClose={handleCloseAllModals}>
-                <RegisterForm onClose={handleCloseAllModals} />
-            </Modal>
-            
-            <Modal isOpen={showForgotPasswordModal} onClose={handleCloseAllModals}>
-                <ForgotPasswordForm onClose={handleCloseAllModals} />
-            </Modal>
-            
-            {/* Routes */}
-            <main className="main-content">
-                <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/home" element={<Home />} />
-                    <Route path="/trade" element={<Trade />} />
-                    <Route 
-                        path="/portfolio" 
-                        element={
-                            <ProtectedRoute>
-                                <Portfolio />
-                            </ProtectedRoute>
-                        } 
+                
+                {/* Authentication Modals */}
+                <Modal isOpen={showLoginModal} onClose={handleCloseAllModals}>
+                    <LoginForm 
+                        onLogin={handleLogin} // Pass the onLogin function here
+                        onRegisterClick={handleOpenRegisterModal}
+                        onForgotPasswordClick={handleOpenForgotPasswordModal}
                     />
-                    <Route path="/tutorial" element={<Tutorial />} />
-                </Routes>
-            </main>
-            
-            <Footer />  
-        </div>
+                </Modal>
+                
+                <Modal isOpen={showRegisterModal} onClose={handleCloseAllModals}>
+                    <RegisterForm onClose={handleCloseAllModals} />
+                </Modal>
+                
+                <Modal isOpen={showForgotPasswordModal} onClose={handleCloseAllModals}>
+                    <ForgotPasswordForm onClose={handleCloseAllModals} />
+                </Modal>
+                
+                {/* Routes */}
+                <main className="main-content">
+                    <Routes>
+                        <Route path="/" element={<Home />} />
+                        <Route path="/home" element={<Home />} />
+                        <Route path="/trade" element={<Trade />} />
+                        <Route 
+                            path="/portfolio" 
+                            element={
+                                <ProtectedRoute>
+                                    <Portfolio />
+                                </ProtectedRoute>
+                            } 
+                        />
+                        <Route path="/tutorial" element={<Tutorial />} />
+                    </Routes>
+                </main>
+                
+                <Footer />  
+            </div>
+        </TradingSessionProvider>
     );
 }
 

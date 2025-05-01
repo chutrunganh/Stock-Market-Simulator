@@ -147,6 +147,37 @@ Content-Type: application/json
   "orderType": "Market Buy"
 }
 
+### Start trading session
+POST http://localhost:3000/api/startTrading
+Content-Type: application/json
+
+### Stop trading session
+POST http://localhost:3000/api/stopTrading
+Content-Type: application/json
+
+### Test for creating a new buy order during trading session
+POST http://localhost:3000/api/createOrder
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "stockId": 101,
+  "quantity": 20,
+  "price": 50,
+  "orderType": "Limit Buy"
+}
+
+### Test for creating a new buy order outside trading session
+POST http://localhost:3000/api/createOrder
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "stockId": 101,
+  "quantity": 20,
+  "price": 50,
+  "orderType": "Limit Buy"
+}
 
 ### Test for canceling an order
 DELETE http://localhost:3000/api/cancelOrder/1744103796519
