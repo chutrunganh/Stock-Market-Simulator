@@ -26,9 +26,7 @@ const OrderBookTableRow = memo(({ row, columns, getCellTextColor }) => {
             align={column.align}
             style={{
               fontWeight: column.id === 'Symbol' ? 'bold' : 'normal',
-              color: ['bid_vol1', 'match_vol', 'bid_vol2', 'ask_vol1', 'ask_vol2'].includes(column.id)
-                ? getCellTextColor(column.id.replace('_vol', '_prc'), row[column.id.replace('_vol', '_prc')], row.floor, row.ceil, row.ref)
-                : getCellTextColor(column.id, value, row.floor, row.ceil, row.ref),
+              color: getCellTextColor(column.id, value, row.floor, row.ceil, row.ref, row.match_prc, row),
               borderRight: ['Symbol', 'floor', 'bid_vol1', 'match_vol'].includes(column.id) ? '3px solid #000' : '1px solid #ccc',
             }}
           >
@@ -141,6 +139,10 @@ function createData(Symbol, ref, ceil, floor, bid_prc1, bid_vol1, bid_prc2, bid_
 
 // Added a function to compare data between 'ref' and 'price' and return a color
 function compareRefAndPrice(ref, price, floor, ceil) {
+  // If price is 0, return black. This is by default when no order is placed.
+  if (price == 0) {
+    return '#000000'; // Black
+  }
   if (price > ref && price < ceil) {
     return 'green';
   } else if (ref > price && price > floor) {
@@ -154,26 +156,32 @@ function compareRefAndPrice(ref, price, floor, ceil) {
 }
 
 // Updated to set color for each cell based on its value
-function getCellTextColor(columnId, value, floor, ceil, ref) {
+function getCellTextColor(columnId, value, floor, ceil, ref, match_prc, row) {
   switch (columnId) {
     case 'Symbol':
-      return '#2200FF';
+      if (match_prc === 0) return '#000000'; // Default black when no matching price
+      return match_prc > ref ? 'green' : match_prc < ref ? 'red' : '#000000';
     case 'ref':
       return '#FFA33E'; // Orange
     case 'ceil':
       return '#FF00FF'; // Pink
     case 'floor':
       return '#006fff'; // Blue
-    case 'bid_prc1':   
-      return compareRefAndPrice(ref, value, floor, ceil);
+    case 'bid_prc1':
+    case 'bid_vol1':
+      return compareRefAndPrice(ref, row.bid_prc1, floor, ceil);
     case 'bid_prc2':
-      return compareRefAndPrice(ref, value, floor, ceil);
+    case 'bid_vol2':
+      return compareRefAndPrice(ref, row.bid_prc2, floor, ceil);
     case 'ask_prc1':
-      return compareRefAndPrice(ref, value, floor, ceil);
+    case 'ask_vol1':
+      return compareRefAndPrice(ref, row.ask_prc1, floor, ceil);
     case 'ask_prc2':
-      return compareRefAndPrice(ref, value, floor, ceil); 
+    case 'ask_vol2':
+      return compareRefAndPrice(ref, row.ask_prc2, floor, ceil);
     case 'match_prc':
-      return compareRefAndPrice(ref, value, floor, ceil);
+    case 'match_vol':
+      return compareRefAndPrice(ref, row.match_prc, floor, ceil);
     default:
       return 'inherit';
   }
@@ -288,10 +296,12 @@ function Tables() {  const [page, setPage] = useState(0);
       return [];
     }
       return orderBookData.map(stockData => {
-      // Calculate ceiling and floor prices from reference price
+      // Calculate ceiling and floor prices from reference price +- 7%
+      // Use Math.round to round to 2 decimal places
       const refPrice = stockData.ref || 0;
-      const ceilPrice = Math.round(refPrice * 1.1 * 100) / 100;
-      const floorPrice = Math.round(refPrice * 0.9 * 100) / 100;
+      const ceilPrice = Math.round(refPrice * 1.07 * 100) / 100;
+      const floorPrice = Math.round(refPrice * 0.93 * 100) / 100;
+
       
       return createData(
         stockData.symbol,
