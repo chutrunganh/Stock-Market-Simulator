@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './Tables.css';
 import { 
   Paper, 
@@ -8,8 +8,11 @@ import {
   TableContainer, 
   TableHead, 
   TablePagination, 
-  TableRow 
+  TableRow,
+  CircularProgress
 } from '@mui/material';
+import { getOrderBookData } from '../../../api/orderBook';
+import eventEmitter from '../../../services/eventEmitter';
 
 const columns = [
     { id: 'Symbol', label: 'Symbol', minWidth: 100 },
@@ -121,16 +124,10 @@ const rows = [
   createData('SNOW', 25, 26, 27, 2550, 2600, 2555, 2650, 2552, 2700, 2558, 2750, 2560, 2800),
   createData('DOCU', 26, 27, 28, 2650, 2700, 2655, 2750, 2652, 2800, 2658, 2850, 2660, 2900),
   createData('PINS', 27, 28, 29, 2750, 2800, 2755, 2850, 2752, 2900, 2758, 2950, 2760, 3000),
-  createData('TWTR', 28, 29, 30, 2850, 2900, 2855, 2950, 2852, 3000, 2858, 3050, 2860, 3100),
-  createData('SQ', 29, 30, 31, 2950, 3000, 2955, 3050, 2952, 3100, 2958, 3150, 2960, 3200),
+  createData('TWTR', 28, 29, 30, 2850, 2900, 2855, 2950, 2852, 3000, 2858, 3050, 2860, 3100),  createData('SQ', 29, 30, 31, 2950, 3000, 2955, 3050, 2952, 3100, 2958, 3150, 2960, 3200),
   createData('UBER', 30, 31, 32, 3050, 3100, 3055, 3150, 3052, 3200, 3058, 3250, 3060, 3300),
-  createData('LYFT', 31, 32, 33, 3150, 3200, 3155, 3250, 3152, 3300, 3158, 3350, 3160, 3400),
-  ,
+  createData('LYFT', 31, 32, 33, 3150, 3200, 3155, 3250, 3152, 3300, 3158, 3350, 3160, 3400)
 ];
-
-function datacheck(value, ref) {
-  
-}
 
 // Added a function to compare data between 'ref' and 'price' and return a color
 function compareRefAndPrice(ref, price, floor, ceil) {
@@ -173,8 +170,41 @@ function getCellTextColor(columnId, value, floor, ceil, ref) {
 }
 
 function Tables() {
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [orderBookData, setOrderBookData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);  // Function to fetch order book data
+  const fetchOrderBookData = async () => {
+    try {
+      setLoading(true);
+      const data = await getOrderBookData();
+      setOrderBookData(data);
+      setLoading(false);
+    } catch (error) {
+      console.error('Failed to fetch order book data:', error);
+      setError('Failed to fetch order book data. Please try again later.');
+      setLoading(false);
+    }
+  };
+
+  // Fetch the order book data from the backend on component load
+  // and set up event listeners
+  useEffect(() => {
+    // Initial data fetch
+    fetchOrderBookData();
+
+    // Set up order created event listener
+    const unsubscribe = eventEmitter.on('orderCreated', () => {
+      console.log('Order created event received, refreshing order book data');
+      fetchOrderBookData();
+    });
+
+    // Clean up event listener on component unmount
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -183,77 +213,128 @@ function Tables() {
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(10);
   };
+  // Transform orderBookData into the format expected by the table
+  const processedRows = orderBookData.map(stockData => {
+    // Get bid and ask data
+    const bid1 = stockData.bids[0] || { price: null, volume: null };
+    const bid2 = stockData.bids[1] || { price: null, volume: null };
+    const ask1 = stockData.asks[0] || { price: null, volume: null };
+    const ask2 = stockData.asks[1] || { price: null, volume: null };
+    
+    // For now, using placeholder values for ref, ceil, floor
+    // These would come from your stock data in a real implementation
+    const ref = bid1.price || ask1.price || 0; // Simplification - in real app get from stock data
+    const ceil = ref * 1.1; // +10% - simplified
+    const floor = ref * 0.9; // -10% - simplified
+
+    return createData(
+      stockData.symbol,
+      ref,
+      ceil,
+      floor,
+      bid1.price || 0,
+      bid1.volume || 0,
+      bid2.price || 0,
+      bid2.volume || 0,
+      stockData.matchedPrice || 0,
+      stockData.matchedVolume || 0,
+      ask1.price || 0,
+      ask1.volume || 0,
+      ask2.price || 0,
+      ask2.volume || 0
+    );
+  });
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-      <TableContainer sx={{ maxHeight: 1000 }}>
-        <Table stickyHeader aria-label="sticky table">
-          <TableHead>
-            <TableRow>
-              <TableCell rowSpan={2} style={{ minWidth: '100px', textAlign: 'center', borderRight: '3px solid #000' }}>Symbol</TableCell>
-              <TableCell rowSpan={2} style={{ minWidth: '50px', textAlign: 'center', borderRight: '1px solid #ccc' }}>Ref</TableCell>
-              <TableCell rowSpan={2} style={{ minWidth: '50px', textAlign: 'center', borderRight: '1px solid #ccc' }}>Ceil</TableCell>
-              <TableCell rowSpan={2} style={{ minWidth: '50px', textAlign: 'center', borderRight: '3px solid #000' }}>Floor</TableCell>
-              <TableCell colSpan={4} align="center" style={{ borderRight: '3px solid #000' }}>Bid</TableCell>
-              <TableCell colSpan={2} align="center" style={{ borderRight: '3px solid #000' }}>Match</TableCell>
-              <TableCell colSpan={4} align="center">Ask</TableCell>
-            </TableRow>
-            <TableRow>
-              {columns.slice(4).map((column) => (
-                <TableCell
-                  key={column.id}
-                  align={column.align}
-                  style={{
-                    minWidth: column.minWidth,
-                    paddingLeft: '16px',
-                    paddingRight: '16px',
-                    borderRight: ['bid_vol2', 'match_vol'].includes(column.id) ? '3px solid #000' : '1px solid #ccc',
-                  }}
-                >
-                  {column.label}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody sx={{ borderBottom: '1px solid #ccc' }}>
-            {rows
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row) => {
-                return (
-                  <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
-                    {columns.map((column) => {
-                      const value = row[column.id];
+      {loading ? (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
+          <CircularProgress />
+        </div>
+      ) : error ? (
+        <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>
+          {error}
+        </div>
+      ) : (
+        <>
+          <TableContainer sx={{ maxHeight: 1000 }}>
+            <Table stickyHeader aria-label="sticky table">
+              <TableHead>
+                <TableRow>
+                  <TableCell rowSpan={2} style={{ minWidth: '100px', textAlign: 'center', borderRight: '3px solid #000' }}>Symbol</TableCell>
+                  <TableCell rowSpan={2} style={{ minWidth: '50px', textAlign: 'center', borderRight: '1px solid #ccc' }}>Ref</TableCell>
+                  <TableCell rowSpan={2} style={{ minWidth: '50px', textAlign: 'center', borderRight: '1px solid #ccc' }}>Ceil</TableCell>
+                  <TableCell rowSpan={2} style={{ minWidth: '50px', textAlign: 'center', borderRight: '3px solid #000' }}>Floor</TableCell>
+                  <TableCell colSpan={4} align="center" style={{ borderRight: '3px solid #000' }}>Bid</TableCell>
+                  <TableCell colSpan={2} align="center" style={{ borderRight: '3px solid #000' }}>Match</TableCell>
+                  <TableCell colSpan={4} align="center">Ask</TableCell>
+                </TableRow>
+                <TableRow>
+                  {columns.slice(4).map((column) => (
+                    <TableCell
+                      key={column.id}
+                      align={column.align}
+                      style={{
+                        minWidth: column.minWidth,
+                        paddingLeft: '16px',
+                        paddingRight: '16px',
+                        borderRight: ['bid_vol2', 'match_vol'].includes(column.id) ? '3px solid #000' : '1px solid #ccc',
+                      }}
+                    >
+                      {column.label}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody sx={{ borderBottom: '1px solid #ccc' }}>
+                {processedRows.length > 0 ? (
+                  processedRows
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .map((row, index) => {
                       return (
-                        <TableCell
-                          key={column.id}
-                          align={column.align}
-                          style={{
-                            fontWeight: column.id === 'Symbol' ? 'bold' : 'normal',
-                            color: ['bid_vol1', 'match_vol', 'bid_vol2', 'ask_vol1', 'ask_vol2'].includes(column.id)
-                              ? getCellTextColor(column.id.replace('_vol', '_prc'), row[column.id.replace('_vol', '_prc')], row.floor, row.ceil, row.ref)
-                              : getCellTextColor(column.id, value, row.floor, row.ceil, row.ref),
-                            borderRight: ['Symbol', 'floor', 'bid_vol2', 'match_vol'].includes(column.id) ? '3px solid #000' : '1px solid #ccc',
-                          }}
-                        >
-                        {column.format && typeof value === 'number' ? column.format(value) : value}
-                        </TableCell>
+                        <TableRow hover role="checkbox" tabIndex={-1} key={row.Symbol || index}>
+                          {columns.map((column) => {
+                            const value = row[column.id];
+                            return (
+                              <TableCell
+                                key={column.id}
+                                align={column.align}
+                                style={{
+                                  fontWeight: column.id === 'Symbol' ? 'bold' : 'normal',
+                                  color: ['bid_vol1', 'match_vol', 'bid_vol2', 'ask_vol1', 'ask_vol2'].includes(column.id)
+                                    ? getCellTextColor(column.id.replace('_vol', '_prc'), row[column.id.replace('_vol', '_prc')], row.floor, row.ceil, row.ref)
+                                    : getCellTextColor(column.id, value, row.floor, row.ceil, row.ref),
+                                  borderRight: ['Symbol', 'floor', 'bid_vol2', 'match_vol'].includes(column.id) ? '3px solid #000' : '1px solid #ccc',
+                                }}
+                              >
+                              {column.format && typeof value === 'number' ? column.format(value) : value}
+                              </TableCell>
+                            );
+                          })}
+                        </TableRow>
                       );
-                    })}
+                    })
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} style={{ textAlign: 'center', padding: '20px' }}>
+                      No order book data available
+                    </TableCell>
                   </TableRow>
-                );
-              })}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[10]} 
-        component="div"
-        count={rows.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[10]} 
+            component="div"
+            count={processedRows.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </>
+      )}
     </Paper>
   );
 }

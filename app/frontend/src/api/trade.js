@@ -31,9 +31,15 @@ export const getStockBySymbol = async (symbol) => {
  * @param {string} orderData.orderType - The type of order ("Market Buy", "Market Sell", "Limit Buy", "Limit Sell")
  * @returns {Promise} The created order
  */
+import eventEmitter from '../services/eventEmitter';
+
 export const createOrder = async (orderData) => {
   try {
     const response = await apiClient.post('/createOrder', orderData);
+    // Emit order created event for the app to respond to
+    if (response.data.success !== false) { // Only emit if order actually created
+      eventEmitter.emit('orderCreated', response.data);
+    }
     return response.data;
   } catch (error) {
     console.error('Error creating order:', error);
