@@ -120,24 +120,17 @@ function Trade(props) {
     const [loading, setLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
-    const { user } = useAuth();    const handleSubmit = async () => {
+    const { user } = useAuth();
+    
+    const handleSubmit = async () => {
         setLoading(true);
         setSuccessMessage('');
         setErrorMessage('');
         
         try {
-            // Log user state for debugging
-            console.log('Current user state:', user);
-            
             // Check if user is authenticated
-            if (!user) {
+            if (!user || !user.id) {
                 throw new Error('You must be logged in to place an order');
-            }
-            
-            // Verify user has an ID
-            if (!user.id) {
-                console.error('User object missing ID:', user);
-                throw new Error('User profile is incomplete. Please try logging out and back in.');
             }
             
             // First get the stock details to get the stock ID
@@ -152,16 +145,16 @@ function Trade(props) {
                 quantity: parseInt(quantity),
                 price: orderType === 'limit' ? parseFloat(limitPrice) : null,
                 orderType: `${orderType.charAt(0).toUpperCase() + orderType.slice(1)} ${action.charAt(0).toUpperCase() + action.slice(1)}`
-            };            // Log order data being sent
-            console.log('Sending order data:', orderData);
-              const result = await createOrder(orderData);
-            console.log('Order API response:', result);
+            };
+            
+            const result = await createOrder(orderData);
             
             if (!result) {
                 setErrorMessage('Order placement failed with no response');
                 return;
             }
-              if (result.status === 201 || result.success === true) {
+            
+            if (result.status === 201 || result.success === true) {
                 // Success case - set success message
                 const successMsg = result.message || 'Order placed successfully';
                 setSuccessMessage(`${successMsg} - Stock: ${symbol}, Quantity: ${quantity}, Price: ${orderType === 'limit' ? `$${limitPrice}` : 'Market Price'}`);
@@ -176,7 +169,6 @@ function Trade(props) {
                 // Failure case (like trading closed)
                 setErrorMessage(result.message || 'Order placement failed with no error message');
             }
-            return;
         } catch (error) {
             console.error('Order placement error:', error);
             let errorMsg = 'Failed to place order';
@@ -299,15 +291,15 @@ function Trade(props) {
                         </div>
                     )}
                 </div>
-                <div className="form-actions">
-                    <button 
+                <div className="form-actions">                    <button 
                         type="button" 
                         className="btn btn-clear" 
                         onClick={handleClear}
                         disabled={loading}
                     >
                         CLEAR
-                    </button>                    <button 
+                    </button>
+                    <button 
                         type="button" 
                         className="btn btn-preview" 
                         onClick={handleSubmit}
@@ -316,12 +308,12 @@ function Trade(props) {
                         {loading ? 'PLACING ORDER...' : 'PLACE ORDER'}
                     </button>
                 </div>                {successMessage && (
-                    <div className="alert alert-success" role="alert" style={{ backgroundColor: '#d4edda', color: '#155724', border: '1px solid #c3e6cb', borderRadius: '4px', padding: '12px', marginTop: '15px' }}>
+                    <div className="alert alert-success" role="alert">
                         {successMessage}
                     </div>
                 )}
                 {errorMessage && (
-                    <div className="alert alert-danger" role="alert" style={{ backgroundColor: '#f8d7da', color: '#721c24', border: '1px solid #f5c6cb', borderRadius: '4px', padding: '12px', marginTop: '15px' }}>
+                    <div className="alert alert-danger" role="alert">
                         {errorMessage}
                     </div>
                 )}

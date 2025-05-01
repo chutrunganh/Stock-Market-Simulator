@@ -1,7 +1,7 @@
 // --- Logging ---
 import log from '../utils/loggerUtil.js';
 
-let isTradingSessionActive = false;
+let isTradingSessionActive = true;
 
 export const activateTradingSession = () => {
     isTradingSessionActive = true;
