@@ -120,14 +120,26 @@ function Trade(props) {
     const [loading, setLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
-    const { user } = useAuth();    
-    
-    const handleSubmit = async () => {
+    const { user } = useAuth();    const handleSubmit = async () => {
         setLoading(true);
         setSuccessMessage('');
         setErrorMessage('');
         
         try {
+            // Log user state for debugging
+            console.log('Current user state:', user);
+            
+            // Check if user is authenticated
+            if (!user) {
+                throw new Error('You must be logged in to place an order');
+            }
+            
+            // Verify user has an ID
+            if (!user.id) {
+                console.error('User object missing ID:', user);
+                throw new Error('User profile is incomplete. Please try logging out and back in.');
+            }
+            
             // First get the stock details to get the stock ID
             const stockDetails = await getStockBySymbol(symbol.toUpperCase());
             if (!stockDetails || !stockDetails.id) {
@@ -140,26 +152,44 @@ function Trade(props) {
                 quantity: parseInt(quantity),
                 price: orderType === 'limit' ? parseFloat(limitPrice) : null,
                 orderType: `${orderType.charAt(0).toUpperCase() + orderType.slice(1)} ${action.charAt(0).toUpperCase() + action.slice(1)}`
-            };
-
-            const result = await createOrder(orderData);
+            };            // Log order data being sent
+            console.log('Sending order data:', orderData);
+              const result = await createOrder(orderData);
+            console.log('Order API response:', result);
             
-            if (!result.success) {
-                // Handle trading closed or other unsuccessful cases
-                setErrorMessage(result.message);
+            if (!result) {
+                setErrorMessage('Order placement failed with no response');
                 return;
             }
-            
-            // Set success message only if order was actually placed
-            setSuccessMessage(`Order placed successfully! Stock: ${symbol}, Quantity: ${quantity}, Price: ${orderType === 'limit' ? `$${limitPrice}` : 'Market Price'}`);
-            setTimeout(() => setSuccessMessage(''), 5000); // Clear message after 5 seconds
-            
-            // Reset form only if order was placed
-            setQuantity(0);
-            setLimitPrice(0);
+              if (result.status === 201 || result.success === true) {
+                // Success case - set success message
+                const successMsg = result.message || 'Order placed successfully';
+                setSuccessMessage(`${successMsg} - Stock: ${symbol}, Quantity: ${quantity}, Price: ${orderType === 'limit' ? `$${limitPrice}` : 'Market Price'}`);
+                
+                // Reset form only if order was placed
+                setQuantity(0);
+                setLimitPrice(0);
+                
+                // Clear success message after 5 seconds
+                setTimeout(() => setSuccessMessage(''), 5000);
+            } else {
+                // Failure case (like trading closed)
+                setErrorMessage(result.message || 'Order placement failed with no error message');
+            }
+            return;
         } catch (error) {
-            const message = error.response?.data?.message || error.message;
-            setErrorMessage(message);
+            console.error('Order placement error:', error);
+            let errorMsg = 'Failed to place order';
+            
+            if (error.response) {
+                errorMsg = error.response.data?.message || `Server error: ${error.response.status}`;
+            } else if (error.request) {
+                errorMsg = 'No response from server. Please check your connection.';
+            } else {
+                errorMsg = error.message || 'Unknown error occurred';
+            }
+            
+            setErrorMessage(errorMsg);
         } finally {
             setLoading(false);
         }
@@ -285,14 +315,13 @@ function Trade(props) {
                     >
                         {loading ? 'PLACING ORDER...' : 'PLACE ORDER'}
                     </button>
-                </div>
-                {successMessage && (
-                    <div className="alert alert-success" role="alert">
+                </div>                {successMessage && (
+                    <div className="alert alert-success" role="alert" style={{ backgroundColor: '#d4edda', color: '#155724', border: '1px solid #c3e6cb', borderRadius: '4px', padding: '12px', marginTop: '15px' }}>
                         {successMessage}
                     </div>
                 )}
                 {errorMessage && (
-                    <div className="alert alert-warning" role="alert">
+                    <div className="alert alert-danger" role="alert" style={{ backgroundColor: '#f8d7da', color: '#721c24', border: '1px solid #f5c6cb', borderRadius: '4px', padding: '12px', marginTop: '15px' }}>
                         {errorMessage}
                     </div>
                 )}

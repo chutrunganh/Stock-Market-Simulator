@@ -13,10 +13,14 @@ const apiClient = axios.create({
   withCredentials: true, // Important for cookies/authentication
 });
 
-// Request interceptor - could be used for adding auth tokens, etc.
+// Request interceptor - adds auth token to requests
 apiClient.interceptors.request.use(
   (config) => {
-    // You can modify the request config here (add headers, etc.)
+    // Add auth token to headers if available
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {
