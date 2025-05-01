@@ -1,7 +1,8 @@
 import express from 'express';
-import { createOrder, cancelOrder } from '../controllers/orderController.js';
+import { createOrder, createArtificialOrder, cancelOrder } from '../controllers/orderController.js';
 import { getOrderBook, getOrderBookUpdates } from '../controllers/orderBookController.js';
 import authMiddleware from '../middlewares/authenticationMiddleware.js';
+import authorizeRole from '../middlewares/roleBasedAccessControlMiddleware.js';
 import  isTradingSessionMiddleware  from '../middlewares/tradingSessionMiddleware.js';
 const router = express.Router();
 
@@ -9,9 +10,12 @@ const router = express.Router();
 router.post('/createOrder', 
     authMiddleware,
     isTradingSessionMiddleware,
-    createOrder);
-
-
+    createOrder);   
+//only allow for admin
+//and only open in trading session
+router.post('/createArtiOrder',
+    isTradingSessionMiddleware,
+    createArtificialOrder);
 // Route to cacel a specific order by ID
 router.delete('/cancelOrder/:orderId', cancelOrder);
 
