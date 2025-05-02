@@ -1,5 +1,5 @@
-// import pool from '../config/dbConnect.js';
-// import Holdings from '../models/holdingModel.js';
+import pool from '../config/dbConnect.js';
+import Holdings from '../models/holdingModel.js';
 
 // //create
 

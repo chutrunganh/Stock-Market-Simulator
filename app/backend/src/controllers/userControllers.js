@@ -1,7 +1,12 @@
 /**
- * Controller fucntions are responsible for extracting data from the request, calling and passing data to the service functions, and 
-sending the response back to the client. They should not contain any business logic or database queries. The service 
-functions will be responsible for those tasks.
+ * @file userController.js
+ * @description This file contains the controller functions for frontend to interact with the user CRUD service and user authentication service, which incluides:
+ * - Register a new user
+ * - Get all users
+ * - Get a user by ID
+ * - Update a user by ID
+ * - Delete a user by ID
+ * - Login a user (via email/password or Google SSO), also set the JWT token in a cookie to return to the client
  */
 import dotenv from 'dotenv';
 dotenv.config({ path: '../../.env' }); // Adjust based on relative depth

@@ -1,14 +1,27 @@
+/**
+ * @file createUserTable.js
+ * @description This file contains the function to create the user table in the database.
+ * Each user will have:
+ * - A unique username
+ * - A unique email address
+ * - Password for authentication
+ * - Google ID for SSO authentication. Note that in case the user registers with Google email that already used 
+ * when registering with username and password, then they will be merged into one account.
+ * - Role: user or admin. Creata account from frontend can only be user role. There is no way to creata admin account except run query directly in database.
+ * - Created at: timestamp of when the account was created.
+ * - Updated at: timestamp of when the account was last updated.
+ * - CHECK constraint to ensure that at least one of the authentication methods (password or Google ID) is provided.
+ */
+
 import pool from './dbConnect.js';
-import bcrypt from 'bcrypt';
 import log from '../utils/loggerUtil.js';
 
-const SALT_ROUNDS = 10;
 
 const createUserTable = async () => {
   const queryText = ` 
     CREATE TABLE IF NOT EXISTS "users" (
       id SERIAL PRIMARY KEY,
-      username VARCHAR(100) NOT NULL,
+      username VARCHAR(100) UNIQUE NOT NULL,
       email VARCHAR(100) UNIQUE NOT NULL,
       password VARCHAR(255),
       google_id VARCHAR(255) UNIQUE,

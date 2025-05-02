@@ -1,3 +1,11 @@
+/**
+ * @file createHoldingTable.js
+ * @description This file contains the function to create the holdings table in the database. 
+ * This table will be initialized with empty data. Only when a new user is created in user table -> trigger a corresponding portfolio created
+ * in the portfolio table -> trigger create stock holdings with a default quantity of every stock in the stock table for that portfolio. See 
+ * implementation in userCRUDService.js for more details.
+ */
+
 import pool from './dbConnect.js'
 import log from '../utils/loggerUtil.js';
 

@@ -1,3 +1,8 @@
+/**
+ * @file createTransactionTable.js
+ * @description This file contains the function to create the transaction table in the database.
+ * When an order is successfully matching, a transaction will be written into this table.
+ */
 import pool from './dbConnect.js';
 import log from '../utils/loggerUtil.js';
 

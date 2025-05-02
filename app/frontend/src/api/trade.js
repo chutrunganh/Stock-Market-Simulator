@@ -1,7 +1,9 @@
 import apiClient from './apiClient';
+import eventEmitter from '../services/eventEmitter';
 
 /**
- * Get stock details by symbol
+ * Get stock details by symbol. When user place an order, they use the stock name, but in the backend it only owkr with stock id. So we need to conver
+ * these two things between each other sides.
  * @param {string} symbol - The stock symbol to look up
  * @returns {Promise} The stock details
  */
@@ -31,7 +33,6 @@ export const getStockBySymbol = async (symbol) => {
  * @param {string} orderData.orderType - The type of order ("Market Buy", "Market Sell", "Limit Buy", "Limit Sell")
  * @returns {Promise} The created order
  */
-import eventEmitter from '../services/eventEmitter';
 
 export const createOrder = async (orderData) => {
   try {
@@ -64,7 +65,8 @@ export const cancelOrder = async (orderId) => {
 
 /**
  * Get most traded stocks
- * This is a placeholder that would normally fetch from the backend
+ * This is a placeholder that would normally fetch from the backend but in this project we are using fixed data.
+ * This is the section that is display in the Most Traded Stocks section box of the trade page.
  * @returns {Promise} Array of most traded stocks
  */
 export const getMostTradedStocks = async () => {
