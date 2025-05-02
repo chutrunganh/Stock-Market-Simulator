@@ -178,7 +178,16 @@ Content-Type: application/json
   "price": 50,
   "orderType": "Limit Buy"
 }
+### Test for creating artificial orders
+POST http://localhost:3000/api/createArtiOrder
+Content-Type: application/json
 
+{
+  "stockId": 101,
+  "quantity": 10,
+  "price": 50,
+  "orderType": "Limit Buy"
+}
 ### Test for canceling an order
 DELETE http://localhost:3000/api/cancelOrder/1744103796519
 

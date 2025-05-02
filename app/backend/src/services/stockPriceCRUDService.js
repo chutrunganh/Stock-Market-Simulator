@@ -51,20 +51,20 @@ export const createStockPriceService = async (stockpriceData) => {
 
 // //get the latest price of a stock given its stock_id - for transaction
 
-// export const getLatestStockPriceByStockIdService = async (stock_id) => {
-//     try {
-//         const result = await pool.query(
-//             'SELECT * FROM stockprices WHERE stock_id = $1 ORDER BY date DESC LIMIT 1', //find another way to get the lastest price
-//         [stock_id]);
-//         if (!result.rows[0]){ //no stock price found
-//             throw new Error('This stock does not have any price history');
-//         }
-//         return StockPrices.getStockPrices(result.rows[0]);
-//     }
-//     catch(error){
-//         throw error;
-//     }
-// };
+ export const getLatestStockPriceByStockIdService = async (stock_id) => {
+     try {
+         const result = await pool.query(
+             'SELECT * FROM stockprices WHERE stock_id = $1 ORDER BY date DESC LIMIT 1', //find another way to get the lastest price
+         [stock_id]);
+         if (!result.rows[0]){ //no stock price found
+             throw new Error('This stock does not have any price history');
+         }
+         return StockPrices.getStockPrices(result.rows[0]);
+     }
+     catch(error){
+         throw error;
+     }
+};
 
 //no update and delete
 //because the stock price has foreign constraints to stocks table
