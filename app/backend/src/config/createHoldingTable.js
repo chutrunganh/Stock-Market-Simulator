@@ -32,13 +32,13 @@ const createHoldingTable = async () => {
 
 const seedHoldingTestData = async () => {
     try{
-        const queryText = `
-        INSERT INTO holdings (portfolio_id, stock_id, quantity, average_price)
-        VALUES
-        (1,1,10,150.00),
-        (1,2,50,200.00)`;
-        await pool.query(queryText);
-        //console.log('\nTest data added to holdings table successfully');
+        // const queryText = `
+        // INSERT INTO holdings (portfolio_id, stock_id, quantity, average_price)
+        // VALUES
+        // (1,1,10,150.00),
+        // (1,2,50,200.00)`;
+        // await pool.query(queryText);
+        // //console.log('\nTest data added to holdings table successfully');
     }
     catch(error){
         log.error('\nError adding test data for holdings table:', error.message);

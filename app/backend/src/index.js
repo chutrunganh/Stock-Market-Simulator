@@ -66,10 +66,11 @@ app.get('/auth/google/callback', googleAuthCallback);
 // --- API Routes ---
 app.use('/api', userRoutes);
 app.use('/api', orderRoutes);
-app.use('/api/stocks', stockRoutes); 
+app.use('/api/stocks', stockRoutes); // Plan to delete
 
 // Use trading session routes
 app.use('/api', tradingSessionRoutes);
+
 
 // --- Error Handling Middleware ---
 // This should be the last middleware in the stack

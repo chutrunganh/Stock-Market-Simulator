@@ -8,6 +8,7 @@ import bcrypt from 'bcrypt';
 const SALT_ROUNDS = 10; // Cost factor for bcrypt
 import pool from '../config/dbConnect.js';
 import User from '../models/userModel.js';
+import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 dotenv.config({ path: '../../.env' }); // Adjust based on relative depth
 
@@ -67,6 +68,90 @@ export const createUserService = async (userData) => {
     // More detailed error logging
     console.error('Full error details:', error);
     throw new Error(`Error creating user: ${error.message}`);
+  }
+};
+
+/**
+ * This function finds an existing user by Google ID or creates a new one if it doesn't exist.
+ * It also links an existing user account with the same email to the Google account.
+ * 
+ * @param {Object} userData - Data received from Google OAuth containing google_id, email, username
+ * @returns {Object} - The user object and JWT token
+ */
+export const findOrCreateGoogleUserService = async (userData) => {
+  const { google_id, email, username } = userData;
+  
+  try {
+    // Begin transaction
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      
+      // First check if user exists with this Google ID
+      let result = await client.query(
+        'SELECT id, username, email, role, google_id, created_at FROM users WHERE google_id = $1',
+        [google_id]
+      );
+      
+      let user = result.rows[0];
+        // If no user found with Google ID, check if user exists with the same email
+      if (!user) {
+        result = await client.query(
+          'SELECT id, username, email, role, google_id, created_at FROM users WHERE email = $1',
+          [email]
+        );
+        
+        user = result.rows[0];
+        
+        // If user exists with same email but no Google ID, link the accounts
+        if (user) {
+          result = await client.query(
+            'UPDATE users SET google_id = $1 WHERE id = $2 RETURNING id, username, email, role, google_id, created_at',
+            [google_id, user.id]
+          );
+          
+          user = result.rows[0];
+        } 
+        // If no user exists at all, create a new one
+        else {
+          result = await client.query(
+            'INSERT INTO users (username, email, google_id, role) VALUES ($1, $2, $3, $4) RETURNING id, username, email, role, google_id, created_at',
+            [username, email, google_id, 'user']
+          );
+          
+          user = result.rows[0];
+        }
+      }
+      
+      // Commit transaction
+      await client.query('COMMIT');
+      
+      // Generate JWT token
+      const userForToken = {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role
+      };
+      
+      const token = jwt.sign(
+        userForToken,
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
+      );
+      
+      return {
+        user: User.getSafeUser(user),
+        token
+      };
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    throw new Error(`Error during Google authentication: ${error.message}`);
   }
 };
 
