@@ -15,7 +15,8 @@ const router = express.Router();
 router.post('/createOrder',
     authMiddleware,
     isTradingSessionMiddleware,
-    createOrder);   
+    validateOrder, // Add the combined validation middleware here
+    createOrder);  
 //only allow for admin
 //and only open in trading session
 router.post('/createArtiOrder',
@@ -29,8 +30,7 @@ router.get('/orderBook', getOrderBook);
 
 // Route to get order book updates since a specific timestamp
 router.get('/orderBook/updates', getOrderBookUpdates);
-    validateOrder, // Add the combined validation middleware here
-    createOrder);
+
 
 
 // Route to cancel a specific order by ID
