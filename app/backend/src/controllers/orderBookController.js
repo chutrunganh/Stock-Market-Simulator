@@ -3,7 +3,8 @@
  * @description This file contains the function to help frontend side can display and efficiently update the order book data.
  */
 import { OrderBook } from '../services/orderMatchingService.js';
-import pool from '../config/dbConnect.js';
+import { getLatestStockPriceByStockIdService } from '../services/stockPriceCRUDService.js';
+
 
 // In-memory store for tracking last changes per stock ID
 // In a production environment, this should be in a database or Redis
@@ -15,26 +16,8 @@ const lastChanges = {
 // Controller to get the order book data
 export const getOrderBook = async (req, res) => {
   try {
-    // First, get all stocks with their latest closing prices
-    const stocksResult = await pool.query(`
-      WITH LatestPrices AS (
-        SELECT DISTINCT ON (stock_id) 
-          stock_id,
-          close_price,
-          date
-        FROM stockprices
-        ORDER BY stock_id, date DESC
-      )
-      SELECT 
-        s.stock_id,
-        s.symbol,
-        s.company_name,
-        lp.close_price as reference_price,
-        lp.date as price_date
-      FROM stocks s
-      LEFT JOIN LatestPrices lp ON s.stock_id = lp.stock_id
-      ORDER BY s.symbol;
-    `);
+    // Get all stocks with their latest closing prices using the service
+    const stocksResult = await getLatestStockPriceByStockIdService();
 
     const orderBook = OrderBook.getInstance();
     
@@ -43,15 +26,8 @@ export const getOrderBook = async (req, res) => {
     const sellOrders = orderBook.limitSellOrderQueue || [];
     const recentTransactions = orderBook.recentTransactions || {};
     
-    // console.log('OrderBook data:', {
-    //   stocksCount: stocksResult.rows.length,
-    //   buyOrdersCount: buyOrders.length,
-    //   sellOrdersCount: sellOrders.length,
-    //   recentTransactionsCount: Object.keys(recentTransactions).length
-    // });
-
     // Process data for frontend display, passing the stocks data
-    const processedData = processOrderBookData(stocksResult.rows, buyOrders, sellOrders, recentTransactions);
+    const processedData = processOrderBookData(stocksResult, buyOrders, sellOrders, recentTransactions);
     
     // Store the current state and timestamp for each stock
     const now = Date.now();
@@ -162,26 +138,8 @@ export const getOrderBookUpdates = async (req, res) => {
     // --- Fetch Current State (Similar to getOrderBook) ---
     // We need the current full state to compare against the last known updates.
     
-    // 1. Get all stocks with their latest reference prices.
-    const stocksResult = await pool.query(`
-      WITH LatestPrices AS (
-        SELECT DISTINCT ON (stock_id) 
-          stock_id,
-          close_price,
-          date
-        FROM stockprices
-        ORDER BY stock_id, date DESC
-      )
-      SELECT 
-        s.stock_id,
-        s.symbol,
-        s.company_name,
-        lp.close_price as reference_price,
-        lp.date as price_date
-      FROM stocks s
-      LEFT JOIN LatestPrices lp ON s.stock_id = lp.stock_id
-      ORDER BY s.symbol;
-    `);
+    // Get all stocks with their latest reference prices using the service
+    const stocksResult = await getLatestStockPriceByStockIdService();
 
     // 2. Get the current order book instance.
     const orderBook = OrderBook.getInstance();
@@ -193,7 +151,7 @@ export const getOrderBookUpdates = async (req, res) => {
     
     // 4. Process all current data into the frontend format.
     // This gives us the *potential* data to send for each stock.
-    const allProcessedData = processOrderBookData(stocksResult.rows, buyOrders, sellOrders, recentTransactions);
+    const allProcessedData = processOrderBookData(stocksResult, buyOrders, sellOrders, recentTransactions);
     
     // --- Filter for Updates ---
     

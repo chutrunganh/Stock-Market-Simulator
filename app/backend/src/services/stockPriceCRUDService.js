@@ -18,53 +18,52 @@ export const createStockPriceService = async (stockpriceData) => {
     }
 };
 
+// Get latest stock prices with additional stock information
+export const getLatestStockPriceByStockIdService = async (stockId = null) => {
+    try {
+        const query = `
+            WITH LatestPrices AS (
+                SELECT DISTINCT ON (stock_id) 
+                    stock_id,
+                    close_price,
+                    date
+                FROM stockprices
+                ORDER BY stock_id, date DESC
+            )
+            SELECT 
+                s.stock_id,
+                s.symbol,
+                s.company_name,
+                lp.close_price as reference_price,
+                lp.date as price_date
+            FROM stocks s
+            LEFT JOIN LatestPrices lp ON s.stock_id = lp.stock_id
+            ${stockId ? 'WHERE s.stock_id = $1' : ''}
+            ORDER BY s.symbol;
+        `;
+        
+        const params = stockId ? [stockId] : [];
+        const result = await pool.query(query, params);
+        
+        if (stockId && !result.rows[0]) {
+            throw new Error('This stock does not have any price history');
+        }
+        
+        return result.rows;
+    } catch (error) {
+        throw error;
+    }
+};
 
-// //read
-
-// //get all stock prices - for admin
-// export const getAllStockPricesService = async () => {
-//     try{
-//         const result = await pool.query('SELECT * FROM stockprices');
-//         return result.rows;
-//     }
-//     catch (error){
-//         throw new Error('Error occurs when getting all stock prices:', error.message);
-//     }
-// };
-
-// //get all stock price by stock_id - for stock presentation
-
-// export const getStockPricesByStockIdService = async (stock_id) => {
+// // Update getLatestStockPriceByStockIdService to use the new function
+// export const getLatestStockPriceByStockIdService = async (stock_id) => {
 //     try {
-//         const result = await pool.query(
-//             'SELECT * FROM stockprices WHERE stock_id = $1 ORDER BY date ASC', //sort by date
-//         [stock_id]);
-//         if (!result.rows[0]){ //no stock price found
-//             throw new Error('This stock does not have any price history');
-//         }
-//         return result.rows.map(row => StockPrices.getStockPrices(row)); //get all the rows needed
-//     }
-//     catch(error){
+//         const result = await getLatestPrices(stock_id);
+//         return result[0]; // Return first (and only) result
+//     } catch (error) {
 //         throw error;
 //     }
 // };
-
-// //get the latest price of a stock given its stock_id - for transaction
-
- export const getLatestStockPriceByStockIdService = async (stock_id) => {
-     try {
-         const result = await pool.query(
-             'SELECT * FROM stockprices WHERE stock_id = $1 ORDER BY date DESC LIMIT 1', //find another way to get the lastest price
-         [stock_id]);
-         if (!result.rows[0]){ //no stock price found
-             throw new Error('This stock does not have any price history');
-         }
-         return StockPrices.getStockPrices(result.rows[0]);
-     }
-     catch(error){
-         throw error;
-     }
-};
 
 //no update and delete
 //because the stock price has foreign constraints to stocks table

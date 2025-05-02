@@ -1,10 +1,8 @@
 import express from 'express';
 import { createOrder, createArtificialOrder, cancelOrder } from '../controllers/orderController.js';
 import { getOrderBook, getOrderBookUpdates } from '../controllers/orderBookController.js';
-import { createOrder, cancelOrder } from '../controllers/orderController.js';
 import authMiddleware from '../middlewares/authenticationMiddleware.js';
 import authorizeRole from '../middlewares/roleBasedAccessControlMiddleware.js';
-import  isTradingSessionMiddleware  from '../middlewares/tradingSessionMiddleware.js';
 import isTradingSessionMiddleware from '../middlewares/tradingSessionMiddleware.js';
 import { validateOrder } from '../middlewares/orderMiddleware.js'; // Import the combined validator
 import pool from '../config/dbConnect.js'; // Import pool for database connection
