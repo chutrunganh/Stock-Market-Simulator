@@ -27,14 +27,17 @@ const configurePassport = () => {
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         callbackURL: process.env.GOOGLE_CALLBACK_URL,
         scope: ['profile', 'email']
-      },
-      async (accessToken, refreshToken, profile, done) => {
+      },      async (accessToken, refreshToken, profile, done) => {
         try {
           // Extract user information from Google profile
+          const email = profile.emails[0].value;
+          // Use email prefix as username (part before the @)
+          const username = email.split('@')[0];
+          
           const userData = {
             google_id: profile.id,
-            email: profile.emails[0].value,
-            username: profile.displayName || profile.emails[0].value.split('@')[0]
+            email: email,
+            username: username
           };
 
           // Find or create user based on Google ID
