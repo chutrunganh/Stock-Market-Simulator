@@ -34,13 +34,6 @@ const createPortfolioTable = async () => {
 const seedPortfolioTestData = async () => {
     try{
         // No need to seed anymore, since with each new user created, a portfolio is created for them automatically
-        // const queryText = `
-        // INSERT INTO portfolios (user_id, cash_balance, total_value)
-        // VALUES
-        // (1, 100000.00, 100000.00),
-        // (2, 200000.00, 200000.00)`;
-        // await pool.query(queryText);
-        //console.log('Test data added to portfolios table successfully');
     }
     catch(error){
         log.error('Error adding test data for portfolios table:', error);

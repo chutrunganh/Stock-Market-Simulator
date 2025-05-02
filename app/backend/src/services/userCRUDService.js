@@ -52,18 +52,41 @@ export const createUserService = async (userData) => {
   try {
     // Hash the password before storing it
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    
+    // Begin transaction to ensure both user and portfolio are created together
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
 
-    // Debug log to see what data is being received
-    console.log('Creating user with data:', { username, email, password: '***' });
+      // Debug log to see what data is being received
+      console.log('Creating user with data:', { username, email, password: '***' });
     
-    // Database operation - always set role to 'user' for API-created accounts
-    // Admin accounts can only be created by direct database queries
-    const result = await pool.query(
-      'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, username, email, role, created_at',
-      [username, email, hashedPassword, 'user'] // Always set role to 'user', ignore any role value provided in request
-    );
-    
-    return User.getSafeUser(result.rows[0]);
+      // Database operation - always set role to 'user' for API-created accounts
+      // Admin accounts can only be created by direct database queries
+      const userResult = await client.query(
+        'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, username, email, role, created_at',
+        [username, email, hashedPassword, 'user'] // Always set role to 'user', ignore any role value provided in request
+      );
+      
+      const userId = userResult.rows[0].id;
+      
+      // Create a default portfolio for the new user
+      // Default starting cash balance is 10,000,000 (can be adjusted as needed)
+      const initialCashBalance = 10000000;
+      await client.query(
+        'INSERT INTO portfolios (user_id, cash_balance, total_value) VALUES ($1, $2, $3)',
+        [userId, initialCashBalance, initialCashBalance] // Initially, total_value equals cash_balance
+      );
+      
+      await client.query('COMMIT');
+      
+      return User.getSafeUser(userResult.rows[0]);
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   } catch (error) {
     // More detailed error logging
     console.error('Full error details:', error);
@@ -94,7 +117,9 @@ export const findOrCreateGoogleUserService = async (userData) => {
       );
       
       let user = result.rows[0];
-        // If no user found with Google ID, check if user exists with the same email
+      let isNewUser = false;
+      
+      // If no user found with Google ID, check if user exists with the same email
       if (!user) {
         result = await client.query(
           'SELECT id, username, email, role, google_id, created_at FROM users WHERE email = $1',
@@ -120,6 +145,14 @@ export const findOrCreateGoogleUserService = async (userData) => {
           );
           
           user = result.rows[0];
+          isNewUser = true;
+          
+          // Create a portfolio for the new user with initial balance
+          const initialCashBalance = 10000000;
+          await client.query(
+            'INSERT INTO portfolios (user_id, cash_balance, total_value) VALUES ($1, $2, $3)',
+            [user.id, initialCashBalance, initialCashBalance]
+          );
         }
       }
       

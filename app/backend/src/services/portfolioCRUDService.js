@@ -2,23 +2,25 @@ import pool from '../config/dbConnect.js';
 import Portfolio from '../models/portfolioModel.js';
 
 
-//create 
+// //create 
 
-export const createPortfolioService = async (portfolioData) => {
-    const {user_id, cash_balance,total_value} = portfolioData;
-    try{
-        console.log("Create portfolio:", {user_id, cash_balance, total_value});
-        const result = await pool.query(
-            'INSERT INTO portfolios (user_id, cash_balance, total_value) VALUES ($1, $2, $3) RETURNING *',
-            [user_id, cash_balance, total_value]
-        );
-        return Portfolio.getPortfolio(result.rows[0]);
-    }
-    catch(error){
-        console.error('Error when create portfolio:', error.message);
-        throw new Error(error.message);
-    }
-};
+// NO need this function, since when we create a user, we also create a portfolio for this user right away, see the userCRUDService.js
+
+// export const createPortfolioService = async (portfolioData) => {
+//     const {user_id, cash_balance,total_value} = portfolioData;
+//     try{
+//         console.log("Create portfolio:", {user_id, cash_balance, total_value});
+//         const result = await pool.query(
+//             'INSERT INTO portfolios (user_id, cash_balance, total_value) VALUES ($1, $2, $3) RETURNING *',
+//             [user_id, cash_balance, total_value]
+//         );
+//         return Portfolio.getPortfolio(result.rows[0]);
+//     }
+//     catch(error){
+//         console.error('Error when create portfolio:', error.message);
+//         throw new Error(error.message);
+//     }
+// };
 
 
 //read 
