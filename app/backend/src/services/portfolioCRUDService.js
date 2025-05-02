@@ -2,29 +2,6 @@ import pool from '../config/dbConnect.js';
 import Portfolio from '../models/portfolioModel.js';
 
 
-// //create 
-
-// NO need this function, since when we create a user, we also create a portfolio for this user right away, see the userCRUDService.js
-
-// export const createPortfolioService = async (portfolioData) => {
-//     const {user_id, cash_balance,total_value} = portfolioData;
-//     try{
-//         console.log("Create portfolio:", {user_id, cash_balance, total_value});
-//         const result = await pool.query(
-//             'INSERT INTO portfolios (user_id, cash_balance, total_value) VALUES ($1, $2, $3) RETURNING *',
-//             [user_id, cash_balance, total_value]
-//         );
-//         return Portfolio.getPortfolio(result.rows[0]);
-//     }
-//     catch(error){
-//         console.error('Error when create portfolio:', error.message);
-//         throw new Error(error.message);
-//     }
-// };
-
-
-//read 
-
 //get all portfolios - for admin
 export const getAllPortfoliosService = async () => {
     try{
@@ -96,25 +73,3 @@ export const updatePortfolioService = async (portfolio_id, portfolioData) => {
         throw error;
     }
 };
-
-
-// //delete portfolio by user_id
-// //when create portfolio table, we set the foreign key constraint 
-// // to delete portfolio of an user when the user is deleted in user table
-// //so maybe we don't need to delete transaction history of this portfolio
-// //but we can keep this function for future use
-// export const deletePortfolioByPortfolioIdService = async (portfolio_id) => {
-//     try {
-//         const result = await pool.query(
-//             'DELETE FROM portfolios WHERE portfolio_id = $1 RETURNING *',
-//             [portfolio_id]
-//         );
-//         if (!result.rows[0]){ //no portfolio found
-//             throw new Error('This user does not have any portfolio');
-//         }
-//         return Portfolio.getPortfolio(result.rows[0]);
-//     }
-//     catch(error){
-//         throw error;
-//     }
-// };

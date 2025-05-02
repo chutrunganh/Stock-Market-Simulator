@@ -14,43 +14,45 @@ import {
 import { getOrderBookData } from '../../../api/orderBook';
 import eventEmitter from '../../../services/eventEmitter';
 
-// Memoized row component
+// Refactor the memoized row component to improve readability and maintainability
 const OrderBookTableRow = memo(({ row, columns, getCellTextColor }) => {
   return (
     <TableRow hover role="checkbox" tabIndex={-1}>
-      {columns.map((column) => {
-        const value = row[column.id];
+      {columns.map(({ id, align, format }) => {
+        const value = row[id];
+        const isSymbolColumn = id === 'Symbol';
+        const borderRightStyle = ['Symbol', 'floor', 'bid_vol1', 'match_vol'].includes(id)
+          ? '3px solid #000'
+          : '1px solid #ccc';
+
         return (
           <TableCell
-            key={column.id}
-            align={column.align}
+            key={id}
+            align={align}
             style={{
-              fontWeight: column.id === 'Symbol' ? 'bold' : 'normal',
-              color: getCellTextColor(column.id, value, row.floor, row.ceil, row.ref, row.match_prc, row),
-              borderRight: ['Symbol', 'floor', 'bid_vol1', 'match_vol'].includes(column.id) ? '3px solid #000' : '1px solid #ccc',
+              fontWeight: isSymbolColumn ? 'bold' : 'normal',
+              color: getCellTextColor(id, value, row.floor, row.ceil, row.ref, row.match_prc, row),
+              borderRight: borderRightStyle,
             }}
           >
-            {column.format && typeof value === 'number' ? column.format(value) : value}
+            {format && typeof value === 'number' ? format(value) : value}
           </TableCell>
         );
       })}
     </TableRow>
   );
 }, (prevProps, nextProps) => {
-  // Custom comparison function to determine if re-render is needed
-  // Only re-render if any price or volume values have changed
-  const prevRow = prevProps.row;
-  const nextRow = nextProps.row;
-  
-  if (prevRow.Symbol !== nextRow.Symbol) return false; // Symbol changed, re-render
-  
-  // Check if any numeric values changed
+  const { row: prevRow } = prevProps;
+  const { row: nextRow } = nextProps;
+
+  if (prevRow.Symbol !== nextRow.Symbol) return false;
+
   const fieldsToCompare = [
     'bid_prc1', 'bid_vol1', 'bid_prc2', 'bid_vol2',
     'ask_prc1', 'ask_vol1', 'ask_prc2', 'ask_vol2',
     'match_prc', 'match_vol'
   ];
-  
+
   return !fieldsToCompare.some(field => prevRow[field] !== nextRow[field]);
 });
 

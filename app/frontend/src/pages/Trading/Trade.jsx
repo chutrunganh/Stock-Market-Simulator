@@ -111,7 +111,8 @@ const InfoIcon = ({ title }) => (
     </span>
 );
 
-function Trade(props) {
+// Removed unused props from Trade component
+function Trade() {
     const [symbol, setSymbol] = useState('');
     const [action, setAction] = useState('buy');
     const [quantity, setQuantity] = useState(0);
