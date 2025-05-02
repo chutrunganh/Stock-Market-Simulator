@@ -1,46 +1,79 @@
 import axios from 'axios';
-// node src/utils/createArtificialOrders.js to run this file
-
-//define constants
+import { getLatestStockPriceByStockIdService } from '../services/stockPriceCRUDService.js';
+import { getAllStockService } from '../services/stockCRUDService.js';
+// Constants
 const SERVER_URL = 'http://localhost:3000/api';
-const ADMIN_JWT = 'your_admin_jwt_token_here'; 
-//Replace above with the admin JWT token
-//in reality we shoud login with admin account to get the token
-const INTERVAL_MS = 5000; //delay to send requests (5 seconds)
+const ADMIN_JWT = 'your_admin_jwt_token_here'; //replace with admin token when signed up
+const INTERVAL_MS = 5000; //one order every 5 sec = one cycle
+const ORDERS_PER_CYCLE = 5; //num of orders per cycle 
+const TREND = 'neutral'; // 'buy-dominant', 'sell-dominant', 'neutral'
 
-// Helper function to get available stocks
-const getAvailableStocks = async () => {
+//get the list of stocks from server
+const getAvailableStocksAndPrices = async () => {
     try {
-        const response = await axios.get(`${SERVER_URL}/stocks`, {
-            headers: {
-                Authorization: `Bearer ${ADMIN_JWT}`,
-            },
-        });
-        return response.data.data;
+        // Fetch all stocks
+        const stocks = await getAllStockService();
+
+        // Fetch the latest price for each stock
+        const stocksWithPrices = await Promise.all(
+            stocks.map(async (stock) => {
+                const latestPrice = await getLatestStockPriceByStockIdService(stock.stock_id);
+                return {
+                    ...stock,
+                    latestPrice: latestPrice.close_price,
+                };
+            })
+        );
+
+        return stocksWithPrices;
     } catch (error) {
-        console.error('Error fetching stocks:', error.message);
-        return [];
+        console.error('Error fetching stocks and prices:', error.message);
+        throw error;
     }
 };
 
-// Helper function to generate random artificial orders
+
 const generateArtificialOrder = (stocks) => {
     const randomStock = stocks[Math.floor(Math.random() * stocks.length)];
-    const randomQuantity = Math.floor(Math.random() * 100) + 1; // Random quantity between 1 and 100
-    const randomPrice = parseFloat(
-        (randomStock.referencePrice * (1 + (Math.random() * 0.14 - 0.07))).toFixed(2)
-    ); // Random price within ±7% of reference price
-    const orderType = Math.random() > 0.5 ? 'Limit Buy' : 'Limit Sell'; // Randomly choose buy or sell
+    const quantity = Math.floor(Math.random() * 100) + 1;
 
-    return {
-        stockId: randomStock.id,
-        quantity: randomQuantity,
-        price: randomPrice,
+    //calculate ceiling and floor price - in ±7% range
+    const referencePrice = randomStock.latestPrice;
+    const floorPrice = referencePrice * 0.93;
+    const ceilPrice = referencePrice * 1.07;
+
+    const price = parseFloat(
+        (floorPrice + Math.random() * (ceilPrice - floorPrice)).toFixed(2)
+    );
+
+    
+    let orderType;
+    const marketChance = 0.2; //assume that 20% of orders are market orders 
+    const rand = Math.random();
+
+    if (rand < marketChance) {
+        orderType = Math.random() > 0.5 ? 'Market Buy' : 'Market Sell';
+    } else {
+        if (TREND === 'buy-dominant') {
+            orderType = Math.random() < 0.8 ? 'Limit Buy' : 'Limit Sell';
+        } else if (TREND === 'sell-dominant') {
+            orderType = Math.random() < 0.8 ? 'Limit Sell' : 'Limit Buy';
+        } else {
+            orderType = Math.random() > 0.5 ? 'Limit Buy' : 'Limit Sell';
+        }
+    }
+
+    const order = {
+        stockId: randomStock.stock_id,
+        quantity,
+        price: orderType.includes('Limit') ? price : undefined,
         orderType,
     };
+
+    return order;
 };
 
-// Helper function to send artificial order to the server
+
 const sendArtificialOrder = async (order) => {
     try {
         const response = await axios.post(`${SERVER_URL}/createArtiOrder`, order, {
@@ -48,27 +81,29 @@ const sendArtificialOrder = async (order) => {
                 Authorization: `Bearer ${ADMIN_JWT}`,
             },
         });
-        console.log('Artificial order created:', response.data);
+        console.log('Created:', order.orderType, '–', order);
     } catch (error) {
-        console.error('Error creating artificial order:', error.message);
+        console.error('Failed to create order:', error.message);
     }
 };
 
-// Main function to periodically create artificial orders
+//main function
 const startCreatingArtificialOrders = async () => {
-    const stocks = await getAvailableStocks();
+    const stocks = await getAvailableStocksAndPrices();
     if (stocks.length === 0) {
         console.error('No stocks available to create orders.');
         return;
     }
 
-    console.log('Starting to create artificial orders...');
+    console.log('Starting auto-create orders...');
+    console.log(`Current trend: ${TREND}`);
+
     setInterval(async () => {
-        const order = generateArtificialOrder(stocks);
-        console.log('Generated order:', order);
-        await sendArtificialOrder(order);
+        for (let i = 0; i < ORDERS_PER_CYCLE; i++) {
+            const order = generateArtificialOrder(stocks);
+            await sendArtificialOrder(order);
+        }
     }, INTERVAL_MS);
 };
 
-// Start the script
 startCreatingArtificialOrders();
