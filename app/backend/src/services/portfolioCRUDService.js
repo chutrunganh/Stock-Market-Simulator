@@ -63,27 +63,26 @@ export const updatePortfolioService = async (portfolio_id, portfolioData) => {
 
         let queryText = 'UPDATE portfolios SET ';
         const queryParams = [];
-        const updates = [];
-
-        if (cash_balance !== undefined) {
-            if (cash_balance < 0) {
+        const updates = [];        if (cash_balance !== undefined) {
+            const cashBalanceNum = Number(parseFloat(cash_balance).toFixed(2));
+            if (cashBalanceNum < 0) {
                 throw new Error('Cash balance can not be negative');
             }
-            queryParams.push(cash_balance);
+            queryParams.push(cashBalanceNum);
             updates.push(`cash_balance = $${queryParams.length}`);
         }
 
         if (total_value !== undefined) {
-            if (total_value < 0) {
+            const totalValueNum = Number(parseFloat(total_value).toFixed(2));
+            if (totalValueNum < 0) {
                 throw new Error('Total value can not be negative');
             }
-            queryParams.push(total_value);
+            queryParams.push(totalValueNum);
             updates.push(`total_value = $${queryParams.length}`);
-        }
-
-        const updated_at = new Date();
-        queryParams.push(updated_at);
-        updates.push(`updated_at = $${queryParams.length}`);
+        }        // Update last_updated timestamp
+        const lastUpdated = new Date();
+        queryParams.push(lastUpdated);
+        updates.push(`last_updated = $${queryParams.length}`);
 
         queryText += updates.join(', ');
         queryParams.push(portfolio_id);

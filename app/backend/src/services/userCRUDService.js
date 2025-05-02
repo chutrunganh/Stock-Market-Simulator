@@ -68,19 +68,18 @@ export const createUserService = async (userData) => {
         'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, username, email, role, created_at',
         [username, email, hashedPassword, 'user'] // Always set role to 'user', ignore any role value provided in request
       );
+        const userId = userResult.rows[0].id;
       
-      const userId = userResult.rows[0].id;
-      const portfolioId = userId; // Assuming portfolioId is the same as userId based on schema
-      
-      // Create a default portfolio for the new user
-      // Default starting cash balance is 10,000,000 (can be adjusted as needed)
+      // Create a default portfolio for the new user and get its ID
       const initialCashBalance = 10000000;
-      await client.query(
-        'INSERT INTO portfolios (user_id, cash_balance, total_value) VALUES ($1, $2, $3)',
-        [userId, initialCashBalance, initialCashBalance] // Initially, total_value equals cash_balance
+      const portfolioResult = await client.query(
+        'INSERT INTO portfolios (user_id, cash_balance, total_value) VALUES ($1, $2, $3) RETURNING portfolio_id',
+        [userId, initialCashBalance, initialCashBalance]
       );
-
-      // Create default holdings for the new portfolio
+      
+      const portfolioId = portfolioResult.rows[0].portfolio_id;
+      
+      // Now create default holdings with the actual portfolio ID
       await createDefaultHoldingsForPortfolioService(portfolioId, client);
       
       await client.query('COMMIT');
@@ -148,18 +147,18 @@ export const findOrCreateGoogleUserService = async (userData) => {
             'INSERT INTO users (username, email, google_id, role) VALUES ($1, $2, $3, $4) RETURNING id, username, email, role, google_id, created_at',
             [username, email, google_id, 'user']
           );
-          
-          user = result.rows[0];
+            user = result.rows[0];
           isNewUser = true;
-          const portfolioId = user.id; // Assuming portfolioId is the same as userId
           
           // Create a portfolio for the new user with initial balance
           const initialCashBalance = 10000000;
-          await client.query(
-            'INSERT INTO portfolios (user_id, cash_balance, total_value) VALUES ($1, $2, $3)',
+          const portfolioResult = await client.query(
+            'INSERT INTO portfolios (user_id, cash_balance, total_value) VALUES ($1, $2, $3) RETURNING portfolio_id',
             [user.id, initialCashBalance, initialCashBalance]
           );
-
+          
+          const portfolioId = portfolioResult.rows[0].portfolio_id;
+          
           // Create default holdings for the new portfolio
           await createDefaultHoldingsForPortfolioService(portfolioId, client);
         }

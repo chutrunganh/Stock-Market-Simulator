@@ -82,7 +82,7 @@ const initializeDatabase = async () => {  try {
     // Create tables
     await createUserTable();
     await createPortfolioTable();
-    //await createTransactionTable();
+    await createTransactionTable();
     await createStockTable();
     await createStockPriceTable();
     await createHoldingTable();

@@ -1,8 +1,6 @@
 import pool from '../config/dbConnect.js';
 import Holdings from '../models/holdingModel.js';
 
-
-
 // Service to create default holdings for a new portfolio
 export const createDefaultHoldingsForPortfolioService = async (portfolioId, client) => {
     const defaultQuantity = 10; // Default number of shares for each stock
@@ -37,5 +35,62 @@ export const createDefaultHoldingsForPortfolioService = async (portfolioId, clie
         console.error(`Error creating default holdings for portfolio ${portfolioId}:`, error.message);
         // Re-throw the error to be caught by the transaction handler in userCRUDService
         throw new Error(`Failed to create default holdings: ${error.message}`);
+    }
+};
+
+// Update holding after a trade
+export const updateHoldingService = async (portfolioId, stockId, quantity, price, isBuying, client = pool) => {
+    try {        // Get current holding
+        const currentHolding = await client.query(
+            'SELECT quantity, average_price FROM holdings WHERE portfolio_id = $1 AND stock_id = $2',
+            [portfolioId, stockId]
+        );
+
+        if (!currentHolding.rows[0]) {
+            throw new Error(`No holding found for portfolio ${portfolioId} and stock ${stockId}`);
+        }
+
+        let { quantity: currentQty, average_price: currentAvgPrice } = currentHolding.rows[0];
+        let newQuantity, newAveragePrice;        if (isBuying) {
+            // Calculate new average price when buying
+            newQuantity = currentQty + quantity;
+            // For simplicity, use the matched price as the new average price as suggested
+            newAveragePrice = price;
+        } else {
+            // For selling, reduce quantity and keep same average price
+            newQuantity = currentQty - quantity;
+            if (newQuantity < 0) {
+                throw new Error('Insufficient shares to sell');
+            }
+            newAveragePrice = currentAvgPrice; // Average price doesn't change when selling
+        }
+
+        // Update the holding
+        const result = await client.query(
+            'UPDATE holdings SET quantity = $1, average_price = $2 WHERE portfolio_id = $3 AND stock_id = $4 RETURNING *',
+            [newQuantity, newAveragePrice, portfolioId, stockId]
+        );
+
+        return Holdings.getHoldings(result.rows[0]);
+    } catch (error) {
+        console.error('Error updating holding:', error);
+        throw error;
+    }
+};
+
+// Get holding by portfolio and stock
+export const getHoldingByPortfolioAndStockService = async (portfolioId, stockId, client = pool) => {
+    try {
+        const result = await client.query(
+            'SELECT * FROM holdings WHERE portfolio_id = $1 AND stock_id = $2',
+            [portfolioId, stockId]
+        );
+        if (!result.rows[0]) {
+            throw new Error(`No holding found for portfolio ${portfolioId} and stock ${stockId}`);
+        }
+        return Holdings.getHoldings(result.rows[0]);
+    } catch (error) {
+        console.error('Error getting holding:', error);
+        throw error;
     }
 };

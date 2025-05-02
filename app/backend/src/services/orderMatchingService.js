@@ -1,3 +1,5 @@
+import { settleMatchedOrder } from './orderSettlementService.js';
+
 // Order Matching Service
 // This service is responsible for matching buy and sell orders based on price and time priority.
 export class OrderBook {
@@ -23,7 +25,7 @@ export class OrderBook {
 
   // --- Market Order Matching ---
   // Match market orders with the best available limit orders
-  marketOrderMatching(order) {
+  async marketOrderMatching(order) {
     if (order.type === "Market Buy") {
       // Execute immediately with the best available sell prices
       while (order.volume > 0 && this.limitSellOrderQueue.length > 0) {
@@ -35,9 +37,16 @@ export class OrderBook {
         order.volume -= matchedQuantity;
         sellOrder.volume -= matchedQuantity;
 
-        // Record transaction
-        console.log(`Transaction: ${matchedQuantity} shares of stock ${order.stockId} at $${matchedPrice} each`);
-        
+        // Settle the matched order
+        await settleMatchedOrder({
+          buyerPortfolioId: order.portfolioId,
+          sellerPortfolioId: sellOrder.portfolioId,
+          stockId: order.stockId,
+          quantity: matchedQuantity,
+          price: matchedPrice,
+          matchType: 'market'
+        });
+
         // Store the transaction for display
         this.recentTransactions[order.stockId] = {
           price: matchedPrice,
@@ -62,9 +71,16 @@ export class OrderBook {
         order.volume -= matchedQuantity;
         buyOrder.volume -= matchedQuantity;
 
-        // Record transaction
-        console.log(`Transaction: ${matchedQuantity} shares of stock ${order.stockId} at $${matchedPrice} each`);
-        
+        // Settle the matched order
+        await settleMatchedOrder({
+          buyerPortfolioId: buyOrder.portfolioId,
+          sellerPortfolioId: order.portfolioId,
+          stockId: order.stockId,
+          quantity: matchedQuantity,
+          price: matchedPrice,
+          matchType: 'market'
+        });
+
         // Store the transaction for display
         this.recentTransactions[order.stockId] = {
           price: matchedPrice,
@@ -92,7 +108,7 @@ export class OrderBook {
     }
   }
 
- limitOrderMatching() {
+  async limitOrderMatching() {
     while (this.limitBuyOrderQueue.length > 0 && this.limitSellOrderQueue.length > 0) {
       const buyOrder = this.limitBuyOrderQueue[0]; // Highest price buy order
       const sellOrder = this.limitSellOrderQueue[0]; // Lowest price sell order
@@ -106,9 +122,18 @@ export class OrderBook {
 
         // Update volumes
         buyOrder.volume -= matchedQuantity;
-        sellOrder.volume -= matchedQuantity;        // Record transaction (simplified for now)
-        console.log(`Transaction: ${matchedQuantity} shares of stock ${buyOrder.stockId} at $${matchedPrice} each`);
-        
+        sellOrder.volume -= matchedQuantity;
+
+        // Settle the matched order
+        await settleMatchedOrder({
+          buyerPortfolioId: buyOrder.portfolioId,
+          sellerPortfolioId: sellOrder.portfolioId,
+          stockId: buyOrder.stockId,
+          quantity: matchedQuantity,
+          price: matchedPrice,
+          matchType: 'limit'
+        });
+
         // Store the transaction for display
         this.recentTransactions[buyOrder.stockId] = {
           price: matchedPrice,
