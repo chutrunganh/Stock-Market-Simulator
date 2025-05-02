@@ -289,3 +289,16 @@ text-overflow: ellipsis; overflow: hidden;
   background-color: #007bff; border-color: #007bff; color: #ffffff;
 }
 .btn-preview:hover { background-color: #0056b3; border-color: #004085; }
+
+.estimated-value-display {
+  margin-top: 8px; /* Add some space above the text */
+  font-size: 0.9em; /* Slightly smaller font size */
+  color: #555; /* Grey color for the text */
+  text-align: right; /* Align to the right below the input */
+  padding-right: 5px; /* Align with input padding if needed */
+}
+
+/* Optional: Adjust input padding if needed */
+.input-with-side-action input {
+  padding-right: 10px; /* Ensure space for potential side actions */
+}

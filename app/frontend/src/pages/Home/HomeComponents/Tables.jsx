@@ -165,7 +165,7 @@ function Tables() {  const [page, setPage] = useState(0);
       setLoading(false);
     } catch (error) {
       console.error('Failed to fetch order book data:', error);
-      setError('Failed to fetch order book data. Please try again later.');
+      setError('Failed to fetch order book data. May be server connection issue or you haven\'t logged in.');
       setLoading(false);
     }
   };

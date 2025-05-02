@@ -117,9 +117,16 @@ const validateSellOrderQuantity = async (req, res, next) => {
              return res.status(400).json({ message: 'Invalid quantity: Quantity must be a positive integer.' });
         }
 
-        const portfolioId = userId; // Assuming userId maps to portfolioId
+        // Find the portfolio_id associated with the userId
+        const portfolioQuery = `SELECT portfolio_id FROM portfolios WHERE user_id = $1`;
+        const portfolioResult = await pool.query(portfolioQuery, [userId]);
 
-        // Check current holdings
+        if (portfolioResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Portfolio not found for this user.' });
+        }
+        const portfolioId = portfolioResult.rows[0].portfolio_id;
+
+        // Check current holdings using the correct portfolioId
         const holdingsQuery = `
             SELECT quantity
             FROM holdings
@@ -181,21 +188,24 @@ const validateBuyOrderBalance = async (req, res, next) => {
             });
         }
 
-        const portfolioId = userId; // Assuming userId maps to portfolioId
+        // Find the portfolio_id and cash_balance associated with the userId
+        const portfolioQuery = `SELECT portfolio_id, cash_balance FROM portfolios WHERE user_id = $1`;
+        const portfolioResult = await pool.query(portfolioQuery, [userId]);
+
+        if (portfolioResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Portfolio not found for this user.' });
+        }
+
+        const portfolio = portfolioResult.rows[0];
+        const portfolioId = portfolio.portfolio_id; // Use the correct portfolioId
+        const currentBalance = portfolio.cash_balance;
         const orderCost = quantity * price;
 
         // Check current portfolio balance
-        const balanceQuery = `
-            SELECT cash_balance
-            FROM portfolios
-            WHERE portfolio_id = $1`;
-
-        const result = await pool.query(balanceQuery, [portfolioId]);
-
-        if (result.rows.length === 0 || result.rows[0].cash_balance < orderCost) {
+        if (currentBalance < orderCost) {
             return res.status(400).json({
                 message: 'Insufficient balance for buy order.',
-                available: result.rows[0]?.cash_balance || 0,
+                available: currentBalance,
                 required: orderCost
             });
         }
@@ -206,7 +216,6 @@ const validateBuyOrderBalance = async (req, res, next) => {
         next(error); // Pass the error to the main error handler
     }
 };
-
 
 /**
  * Combined middleware that runs all order validations in sequence
@@ -237,7 +246,6 @@ const validateOrder = (req, res, next) => {
         });
     });
 };
-
 
 export {
     validateOrder
