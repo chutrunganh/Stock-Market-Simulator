@@ -20,9 +20,6 @@ const createHoldingTable = async () => {
             await pool.query('DROP TABLE IF EXISTS "holdings" CASCADE');
         }
         await pool.query(queryText);
-        if(process.env.NODE_ENV === 'development'){
-            await seedHoldingTestData();
-        }
     }
     catch(error){
         log.error('\nError occurs when creating holdings table:', error.message);
@@ -30,13 +27,5 @@ const createHoldingTable = async () => {
     }
 };
 
-const seedHoldingTestData = async () => {
-    try{
-        // No need to seed to avoid conflict with the real data
-    }
-    catch(error){
-        log.error('\nError adding test data for holdings table:', error.message);
-    }
-}
 
 export default createHoldingTable;

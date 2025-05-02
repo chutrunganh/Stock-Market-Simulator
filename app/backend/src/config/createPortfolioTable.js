@@ -20,24 +20,12 @@ const createPortfolioTable = async () => {
         
         await pool.query(queryText);
         //console.log('\nPortfolios table created successfully');
-
-        if (process.env.NODE_ENV === 'development'){
-            await seedPortfolioTestData();
-        }
-
     }
     catch(error){
         log.error('\nError occurs when creating portfolios table:', error);
         throw new Error(error.message);
     }
 };
-const seedPortfolioTestData = async () => {
-    try{
-        // No need to seed anymore, since with each new user created, a portfolio is created for them automatically
-    }
-    catch(error){
-        log.error('Error adding test data for portfolios table:', error);
-    }
-}
+
 
 export default createPortfolioTable;

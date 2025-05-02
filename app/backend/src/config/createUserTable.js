@@ -39,40 +39,10 @@ const createUserTable = async () => {
     await pool.query(queryText);
     //log.info('User table verified/created successfully');
     
-    // Seed some test data if in development mode
-    if (process.env.NODE_ENV === 'development') {
-      await seedTestData();
-    }
   } 
   catch (error) {
     log.error('Error creating user table:', error);
     throw new Error(error.message);
-  }
-};
-
-// Optional seeding function for development, we create two test accounts: one regular user and one admin user
-// to the database every time the server starts in development mode.
-const seedTestData = async () => {
-  try {
-    // Hash the passwords
-    const userPassword = await bcrypt.hash('password123', SALT_ROUNDS);
-    const adminPassword = await bcrypt.hash('admin123', SALT_ROUNDS);
-    
-    const seedQuery = `
-      INSERT INTO users (username, email, password, role)
-      VALUES 
-        ('TestUser', 'test@example.com', $1, 'user'),
-        ('AdminUser', 'admin@example.com', $2, 'admin')
-      ON CONFLICT (email) DO NOTHING;
-    `;
-    
-    await pool.query(seedQuery, [userPassword, adminPassword]);
-    // console.log('Test data seeded successfully');
-    // console.log('Test accounts created:');
-    // console.log('- Regular user: email=test@example.com, password=password123');
-    // console.log('- Admin user: email=admin@example.com, password=admin123');
-  } catch (error) {
-    log.error('Error seeding test data:', error);
   }
 };
 

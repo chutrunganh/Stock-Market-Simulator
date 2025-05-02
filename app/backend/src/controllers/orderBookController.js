@@ -5,7 +5,7 @@ import pool from '../config/dbConnect.js';
 // In a production environment, this should be in a database or Redis
 const lastChanges = {
   timestamps: {},  // When each stock was last updated
-  updates: {}       // Cache of recent updates by stock ID
+  updates: {}      // Cache of recent updates by stock ID
 };
 
 // Controller to get the order book data
@@ -39,12 +39,12 @@ export const getOrderBook = async (req, res) => {
     const sellOrders = orderBook.limitSellOrderQueue || [];
     const recentTransactions = orderBook.recentTransactions || {};
     
-    console.log('OrderBook data:', {
-      stocksCount: stocksResult.rows.length,
-      buyOrdersCount: buyOrders.length,
-      sellOrdersCount: sellOrders.length,
-      recentTransactionsCount: Object.keys(recentTransactions).length
-    });
+    // console.log('OrderBook data:', {
+    //   stocksCount: stocksResult.rows.length,
+    //   buyOrdersCount: buyOrders.length,
+    //   sellOrdersCount: sellOrders.length,
+    //   recentTransactionsCount: Object.keys(recentTransactions).length
+    // });
 
     // Process data for frontend display, passing the stocks data
     const processedData = processOrderBookData(stocksResult.rows, buyOrders, sellOrders, recentTransactions);
