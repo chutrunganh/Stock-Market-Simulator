@@ -8,24 +8,26 @@ const INTERVAL_MS = 5000; //one order every 5 sec = one cycle
 const ORDERS_PER_CYCLE = 5; //num of orders per cycle 
 const TREND = 'neutral'; // 'buy-dominant', 'sell-dominant', 'neutral'
 
-//get the list of stocks from server
+
 const getAvailableStocksAndPrices = async () => {
     try {
-        // Fetch all stocks
-        const stocks = await getAllStockService();
+        // Fetch all stocks with their latest prices
+        const stocksWithPrices = await getLatestStockPriceByStockIdService();
 
-        // Fetch the latest price for each stock
-        const stocksWithPrices = await Promise.all(
-            stocks.map(async (stock) => {
-                const latestPrice = await getLatestStockPriceByStockIdService(stock.stock_id);
-                return {
-                    ...stock,
-                    latestPrice: latestPrice.close_price,
-                };
-            })
-        );
+        // Filter out stocks with invalid or missing prices
+        const validStocks = stocksWithPrices.filter(stock => {
+            if (!stock.reference_price || isNaN(stock.reference_price)) {
+                console.error(`Invalid or missing price for stock ID ${stock.stock_id}`);
+                return false; // Exclude invalid stocks with latest price = Nan or undefined
+            }
+            return true;
+        });
 
-        return stocksWithPrices;
+        // Map the result to include the latest price as `latestPrice`
+        return validStocks.map(stock => ({
+            ...stock,
+            latestPrice: stock.reference_price,
+        }));
     } catch (error) {
         console.error('Error fetching stocks and prices:', error.message);
         throw error;
@@ -84,6 +86,7 @@ const sendArtificialOrder = async (order) => {
         console.log('Created:', order.orderType, '–', order);
     } catch (error) {
         console.error('Failed to create order:', error.message);
+        process.exit(1);
     }
 };
 
@@ -94,10 +97,8 @@ const startCreatingArtificialOrders = async () => {
         console.error('No stocks available to create orders.');
         return;
     }
-
     console.log('Starting auto-create orders...');
     console.log(`Current trend: ${TREND}`);
-
     setInterval(async () => {
         for (let i = 0; i < ORDERS_PER_CYCLE; i++) {
             const order = generateArtificialOrder(stocks);
