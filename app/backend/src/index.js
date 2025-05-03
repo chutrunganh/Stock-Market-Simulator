@@ -47,8 +47,22 @@ app.use(express.json()); // Parse JSON request bodies
 // Idealy, defined the origin in the .env file and use it here.
 app.use(cors({
   origin: 'http://localhost:5173', // Allow all origins while testing
-  credentials: true // Important for cookies to work with CORS
+  credentials: true, // Important for cookies to work with CORS
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Type']
 }));
+
+// Add headers specifically for SSE connections
+app.use((req, res, next) => {
+  // Check if the request is for SSE
+  if (req.path === '/api/orderBook/stream') {
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('X-Accel-Buffering', 'no'); // Disable buffering for Nginx
+    res.setHeader('Connection', 'keep-alive');
+  }
+  next();
+});
 
 app.use(cookieParser()); // Add cookie-parser middleware
 

@@ -16,3 +16,12 @@ export const getOrderBookData = async () => {
     throw new Error('Failed to fetch order book data. Please try again.');
   }
 };
+
+/**
+ * Creates an EventSource connection to the server for real-time updates.
+ * @returns {EventSource} The EventSource object for the SSE connection
+ */
+export const createOrderBookStream = () => {
+  // Construct the URL manually since EventSource doesn't use axios
+  return new EventSource('http://localhost:3000/api/orderBook/stream');
+};
