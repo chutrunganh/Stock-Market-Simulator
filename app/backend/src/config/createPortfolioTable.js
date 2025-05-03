@@ -1,3 +1,9 @@
+/**
+ * @file createPortfolioTable.js
+ * @description This file contains the function to create the portfolio table in the database.
+ * This table will be initialized with empty data. Only when a new user is created in user table -> trigger a corresponding portfolio created
+ * in the portfolio table, see implementation in userCRUDService.js for more details.
+ */
 import pool from './dbConnect.js';
 import log from '../utils/loggerUtil.js';
 
@@ -20,30 +26,12 @@ const createPortfolioTable = async () => {
         
         await pool.query(queryText);
         //console.log('\nPortfolios table created successfully');
-
-        if (process.env.NODE_ENV === 'development'){
-            await seedPortfolioTestData();
-        }
-
     }
     catch(error){
         log.error('\nError occurs when creating portfolios table:', error);
         throw new Error(error.message);
     }
 };
-const seedPortfolioTestData = async () => {
-    try{
-        const queryText = `
-        INSERT INTO portfolios (user_id, cash_balance, total_value)
-        VALUES
-        (1, 100000.00, 100000.00),
-        (2, 200000.00, 200000.00)`;
-        await pool.query(queryText);
-        //console.log('Test data added to portfolios table successfully');
-    }
-    catch(error){
-        log.error('Error adding test data for portfolios table:', error);
-    }
-}
+
 
 export default createPortfolioTable;

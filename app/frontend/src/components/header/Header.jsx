@@ -9,8 +9,8 @@ function Header({ onLoginClick, isLoggedIn, userEmail, onLogoutClick }) {
   return (
     <header className="header">
       <h1>
-        <Link to="/" className="title">
-          <img src="logo.png" height="50" alt="Logo" /> Stock Market Simulator
+        <Link to="/home" className="title">
+          <img src="logo.png" height="35" alt="Logo" /> Stock Market Simulator
         </Link>
       </h1>
 

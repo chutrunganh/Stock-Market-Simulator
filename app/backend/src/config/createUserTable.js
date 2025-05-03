@@ -1,14 +1,27 @@
+/**
+ * @file createUserTable.js
+ * @description This file contains the function to create the user table in the database.
+ * Each user will have:
+ * - A unique username
+ * - A unique email address
+ * - Password for authentication
+ * - Google ID for SSO authentication. Note that in case the user registers with Google email that already used 
+ * when registering with username and password, then they will be merged into one account.
+ * - Role: user or admin. Creata account from frontend can only be user role. There is no way to creata admin account except run query directly in database.
+ * - Created at: timestamp of when the account was created.
+ * - Updated at: timestamp of when the account was last updated.
+ * - CHECK constraint to ensure that at least one of the authentication methods (password or Google ID) is provided.
+ */
+
 import pool from './dbConnect.js';
-import bcrypt from 'bcrypt';
 import log from '../utils/loggerUtil.js';
 
-const SALT_ROUNDS = 10;
 
 const createUserTable = async () => {
   const queryText = ` 
     CREATE TABLE IF NOT EXISTS "users" (
       id SERIAL PRIMARY KEY,
-      username VARCHAR(100) NOT NULL,
+      username VARCHAR(100) UNIQUE NOT NULL,
       email VARCHAR(100) UNIQUE NOT NULL,
       password VARCHAR(255),
       google_id VARCHAR(255) UNIQUE,
@@ -39,40 +52,10 @@ const createUserTable = async () => {
     await pool.query(queryText);
     //log.info('User table verified/created successfully');
     
-    // Seed some test data if in development mode
-    if (process.env.NODE_ENV === 'development') {
-      await seedTestData();
-    }
   } 
   catch (error) {
     log.error('Error creating user table:', error);
     throw new Error(error.message);
-  }
-};
-
-// Optional seeding function for development, we create two test accounts: one regular user and one admin user
-// to the database every time the server starts in development mode.
-const seedTestData = async () => {
-  try {
-    // Hash the passwords
-    const userPassword = await bcrypt.hash('password123', SALT_ROUNDS);
-    const adminPassword = await bcrypt.hash('admin123', SALT_ROUNDS);
-    
-    const seedQuery = `
-      INSERT INTO users (username, email, password, role)
-      VALUES 
-        ('TestUser', 'test@example.com', $1, 'user'),
-        ('AdminUser', 'admin@example.com', $2, 'admin')
-      ON CONFLICT (email) DO NOTHING;
-    `;
-    
-    await pool.query(seedQuery, [userPassword, adminPassword]);
-    // console.log('Test data seeded successfully');
-    // console.log('Test accounts created:');
-    // console.log('- Regular user: email=test@example.com, password=password123');
-    // console.log('- Admin user: email=admin@example.com, password=admin123');
-  } catch (error) {
-    log.error('Error seeding test data:', error);
   }
 };
 

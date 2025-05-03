@@ -1,3 +1,8 @@
+/**
+ * @file TradingSessionContext.jsx
+ * @description This file contains the context for managing the trading session state throughout the application.
+ * Every other componet if want to check the trading session status, import this file and use the context.
+ */
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 

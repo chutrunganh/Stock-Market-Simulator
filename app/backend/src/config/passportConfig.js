@@ -1,13 +1,21 @@
 /**
- * Configuration for Passport.js and Google OAuth 2.0 authentication
+ * @file passportConfig.js
+ * @description Configuration for Passport dependencies, which is a NodeJS package that provides authentication with SSO (Single Sign-On). In
+ * our case, we use Google SSO authentication. The user can login with their Google account and the system will 
+ * create a new user in the database (or merge with existing user if the email is already used).
+ * 
+ * This file will read configuration from the .env file, including:
+ * - GOOGLE_CLIENT_ID: The client ID for Google OAuth 2.0.
+ * - GOOGLE_CLIENT_SECRET: The client secret for Google OAuth 2.0.
+ * - GOOGLE_CALLBACK_URL: The callback URL for Google OAuth 2.0.
+ * - GOOGLE_SCOPE: The scope of access requested from Google, including profile and email information.
+ * - GOOGLE_PROMPT: The prompt behavior for Google sign-in, such as 'select_account' to force account selection.
  */
-
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import dotenv from 'dotenv';
 dotenv.config({ path: '../../.env' }); // Adjust based on relative depth
-import { findOrCreateGoogleUserService } from '../services/userAuthService.js';
-import { getUserByIdService } from '../services/userCRUDService.js';
+import { getUserByIdService, findOrCreateGoogleUserService  } from '../services/userCRUDService.js';
 
 
 // Configure Google OAuth 2.0 strategy

@@ -1,3 +1,7 @@
+/**
+ * @file userValidationMiddleware.js
+ * @description Middleware to validate user input for creating, updating, and logging in users.
+ */
 import Joi from 'joi';
 
 // Middleware to validate user input when creating a new user

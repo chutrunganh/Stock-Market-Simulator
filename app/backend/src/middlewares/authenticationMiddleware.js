@@ -1,9 +1,11 @@
 /**
- * Authentication middleware to verify JWT tokens
+ * @file authenticationMiddleware.js
+ * @description Authentication middleware to verify JWT tokens
  * 
  * This middleware extracts the JWT token from cookies or Authorization header,
  * verifies it, and attaches the user information to the request object.
- * Protected routes should use this middleware to ensure authentication.
+ * 
+ * Protected routes that require login must use this middleware to ensure authentication before the request is processed.
  */
 
 import jwt from 'jsonwebtoken';

@@ -1,3 +1,7 @@
+/**
+ * @file holdingModel.js
+ * @description Define the schema gor the hoding table in the database.
+ */
 class Holdings{
     constructor(holdingData){
         this.holding_data = holdingData.holding_data;

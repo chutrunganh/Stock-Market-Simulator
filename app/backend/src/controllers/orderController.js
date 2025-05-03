@@ -1,3 +1,7 @@
+/**
+ * @file orderController.js
+ * @description This file contains the function for frontend to call the order CRUD service.
+ */
 import { 
     createOrderService, 
     getOrderByIdService, 

@@ -1,9 +1,7 @@
 import './Trade.css';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { createOrder, getMostTradedStocks, getStockBySymbol } from '../api/trade';
-
-
 
 const MiniLineChart = ({ data, width = 150, height = 50, strokeColor = '#007bff' }) => {
     if (!data || data.length < 2) {
@@ -123,20 +121,6 @@ function Trade(props) {
     const [successMessage, setSuccessMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const { user } = useAuth();
-
-    // Calculate estimated value for limit orders
-    const estimatedValue = useMemo(() => {
-        if (orderType === 'limit') {
-            const numQuantity = parseFloat(quantity);
-            const numLimitPrice = parseFloat(limitPrice);
-            if (numQuantity > 0 && numLimitPrice > 0) {
-                return (numQuantity * numLimitPrice).toFixed(2);
-            }
-        }
-        return null;
-    }, [orderType, quantity, limitPrice]);
-    
-    
     
     const handleSubmit = async () => {
         setLoading(true);
@@ -302,16 +286,8 @@ function Trade(props) {
                                     onChange={(e) => setLimitPrice(e.target.value)}
                                     min="0"
                                     step="0.01"
-                                    placeholder='0.00'
                                 />
                             </div>
-                            {/* Display Estimated Value */}
-                            {estimatedValue !== null && (
-                                <div className="estimated-value-display">
-                                    {action === 'buy' ? 'Estimated Cost: ' : 'Estimated Proceeds: '}
-                                    ${estimatedValue}
-                                </div>
-                            )}
                         </div>
                     )}
                 </div>
