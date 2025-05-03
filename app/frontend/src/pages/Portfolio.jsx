@@ -67,7 +67,7 @@ function Portfolio() {
                                 <p>TOP PLAYER</p>
                                 <div className='smaller-grid'>
                                     <a className='big-number3' href = "">ml7ru3</a>
-                                    <a className='big-number3'>${/*cash_balance of that user */}100,000,000.00</a>
+                                    <a className='big-number3 centered-div'>${/*cash_balance of that user */}100,000,000.00</a>
                                 </div>
                             </div>
                         </div>
