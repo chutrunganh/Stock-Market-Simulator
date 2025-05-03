@@ -21,49 +21,22 @@ export const createStockPriceService = async (stockpriceData) => {
 // Get latest stock prices with additional stock information
 export const getLatestStockPriceByStockIdService = async (stockId = null) => {
     try {
-        const query = `
-            WITH LatestPrices AS (
-                SELECT DISTINCT ON (stock_id) 
-                    stock_id,
-                    close_price,
-                    date
-                FROM stockprices
-                ORDER BY stock_id, date DESC
-            )
-            SELECT 
-                s.stock_id,
-                s.symbol,
-                s.company_name,
-                lp.close_price as reference_price,
-                lp.date as price_date
-            FROM stocks s
-            LEFT JOIN LatestPrices lp ON s.stock_id = lp.stock_id
-            ${stockId ? 'WHERE s.stock_id = $1' : ''}
-            ORDER BY s.symbol;
-        `;
-        
+        const query = stockId
+            ? 'SELECT s.stock_id, s.symbol, s.company_name, sp.close_price as reference_price, sp.date as price_date FROM stocks s LEFT JOIN stockprices sp ON s.stock_id = sp.stock_id WHERE s.stock_id = $1 ORDER BY sp.date DESC LIMIT 1'
+            : 'SELECT s.stock_id, s.symbol, s.company_name, sp.close_price as reference_price, sp.date as price_date FROM stocks s LEFT JOIN stockprices sp ON s.stock_id = sp.stock_id ORDER BY s.symbol, sp.date DESC';
+
         const params = stockId ? [stockId] : [];
         const result = await pool.query(query, params);
-        
+
         if (stockId && !result.rows[0]) {
             throw new Error('This stock does not have any price history');
         }
-        
-        return result.rows;
+
+        return stockId ? result.rows[0] : result.rows;
     } catch (error) {
         throw error;
     }
 };
-
-// // Update getLatestStockPriceByStockIdService to use the new function
-// export const getLatestStockPriceByStockIdService = async (stock_id) => {
-//     try {
-//         const result = await getLatestPrices(stock_id);
-//         return result[0]; // Return first (and only) result
-//     } catch (error) {
-//         throw error;
-//     }
-// };
 
 //no update and delete
 //because the stock price has foreign constraints to stocks table
