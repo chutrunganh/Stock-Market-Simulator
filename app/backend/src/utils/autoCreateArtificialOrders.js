@@ -84,6 +84,7 @@ const sendArtificialOrder = async (order) => {
         console.log('Created:', order.orderType, '–', order);
     } catch (error) {
         console.error('Failed to create order:', error.message);
+        process.exit(1);
     }
 };
 
