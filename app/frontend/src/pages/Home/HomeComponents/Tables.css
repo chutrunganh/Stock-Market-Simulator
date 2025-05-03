@@ -1,4 +1,3 @@
-
 /* Table styles */
 .MuiTableRow-root:nth-of-type(odd) {
   background-color: #ffffff;
@@ -16,4 +15,25 @@
 /* Header styling */
 .MuiTableHead-root .MuiTableRow-root {
   background-color: #e7eef6 !important;
+}
+
+/* Make price cells bold */
+.MuiTableCell-root[data-price-cell="true"] {
+  font-weight: bold !important;
+}
+
+/* Make volume cells bold */
+.MuiTableCell-root[data-volume-cell="true"] {
+  font-weight: bold !important;
+}
+
+/* Make match price cells extra prominent */
+.MuiTableCell-root[data-match-price="true"] {
+  font-weight: 700 !important;
+  font-size: 1.05em;
+}
+
+/* Style for reference price */
+.MuiTableCell-root[data-ref-price="true"] {
+  font-weight: bold !important;
 }

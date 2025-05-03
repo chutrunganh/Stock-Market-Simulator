@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, memo, useMemo } from 'react';
 import './Tables.css';
 import { 
   Paper, 
@@ -12,6 +12,16 @@ import {
   CircularProgress 
 } from '@mui/material';
 import { getOrderBookData, createOrderBookStream } from '../../../api/orderBook';
+
+// Color constants
+const COLORS = {
+  DEFAULT: '#000000',
+  UP: 'green',
+  DOWN: 'red',
+  FLOOR: '#006fff',
+  CEILING: '#FF00FF',
+  REF: '#FFA33E'
+};
 
 // Column factory functions
 const createPriceColumn = (id, label) => ({
@@ -48,30 +58,16 @@ const columns = [
   createVolumeColumn('ask_vol2', 'Vol\u00a02'),
 ];
 
-function createData(Symbol, ref, ceil, floor, bid_prc1, bid_vol1, bid_prc2, bid_vol2, match_prc, match_vol, ask_prc1, ask_vol1, ask_prc2, ask_vol2) {
-  return { Symbol, ref, ceil, floor, bid_prc1, bid_vol1, bid_prc2, bid_vol2, match_prc, match_vol, ask_prc1, ask_vol1, ask_prc2, ask_vol2 };
-}
-
-// Color constants
-const COLORS = {
-  DEFAULT: '#000000',
-  UP: 'green',
-  DOWN: 'red',
-  FLOOR: '#006fff',
-  CEILING: '#FF00FF',
-  REF: '#FFA33E'
-};
-
-// Get color based on price comparison
-function compareRefAndPrice(ref, price, floor, ceil) {
+// Helper function to get color based on price comparison
+const compareRefAndPrice = (ref, price, floor, ceil) => {
   if (!price || price === 0) return COLORS.DEFAULT;
   if (price >= ceil) return COLORS.CEILING;
   if (price <= floor) return COLORS.FLOOR;
   return price > ref ? COLORS.UP : COLORS.DOWN;
-}
+};
 
-// Get column color based on type and values
-function getCellTextColor(columnId, value, floor, ceil, ref, match_prc, row) {
+// Helper function to determine cell text color based on price changes
+const getCellTextColor = (columnId, value, floor, ceil, ref, match_prc, row) => {
   // Static column colors
   const staticColors = {
     Symbol: match_prc === 0 ? COLORS.DEFAULT : match_prc > ref ? COLORS.UP : match_prc < ref ? COLORS.DOWN : COLORS.DEFAULT,
@@ -79,6 +75,7 @@ function getCellTextColor(columnId, value, floor, ceil, ref, match_prc, row) {
     ceil: COLORS.CEILING,
     floor: COLORS.FLOOR
   };
+  
   if (staticColors[columnId]) return staticColors[columnId];
 
   // Price and volume columns
@@ -91,15 +88,23 @@ function getCellTextColor(columnId, value, floor, ceil, ref, match_prc, row) {
   };
 
   return priceMap[columnId] ? compareRefAndPrice(ref, priceMap[columnId], floor, ceil) : 'inherit';
-}
+};
+
+// Helper function to create data objects from API response
+const createData = (Symbol, ref, ceil, floor, bid_prc1, bid_vol1, bid_prc2, bid_vol2, match_prc, match_vol, ask_prc1, ask_vol1, ask_prc2, ask_vol2) => {
+  return { Symbol, ref, ceil, floor, bid_prc1, bid_vol1, bid_prc2, bid_vol2, match_prc, match_vol, ask_prc1, ask_vol1, ask_prc2, ask_vol2 };
+};
 
 // Memoized row component for performance
-const OrderBookTableRow = memo(({ row, columns, getCellTextColor }) => {
+const OrderBookTableRow = memo(({ row, columns }) => {
   return (
-    <TableRow hover role="checkbox" tabIndex={-1}>
-      {columns.map(({ id, align, format }) => {
-        const value = row[id];
+    <TableRow hover tabIndex={-1}>
+      {columns.map(({ id, align, format }) => {        const value = row[id];
         const isSymbolColumn = id === 'Symbol';
+        const isPriceCell = id.includes('prc') || id === 'match_prc' || id === 'ref' || id === 'ceil' || id === 'floor';
+        const isVolumeCell = id.includes('vol');
+        const isMatchPrice = id === 'match_prc';
+        const isRefPrice = id === 'ref';
         const borderRightStyle = ['Symbol', 'floor', 'bid_vol1', 'match_vol'].includes(id)
           ? '3px solid #000'
           : '1px solid #ccc';
@@ -108,6 +113,10 @@ const OrderBookTableRow = memo(({ row, columns, getCellTextColor }) => {
           <TableCell
             key={id}
             align={align}
+            data-price-cell={isPriceCell ? "true" : "false"}
+            data-volume-cell={isVolumeCell ? "true" : "false"}
+            data-match-price={isMatchPrice ? "true" : "false"}
+            data-ref-price={isRefPrice ? "true" : "false"}
             style={{
               fontWeight: isSymbolColumn ? 'bold' : 'normal',
               color: getCellTextColor(id, value, row.floor, row.ceil, row.ref, row.match_prc, row),
@@ -135,34 +144,57 @@ const OrderBookTableRow = memo(({ row, columns, getCellTextColor }) => {
   return !fieldsToCompare.some(field => prevRow[field] !== nextRow[field]);
 });
 
+// Table header component
+const OrderBookTableHeader = () => (
+  <TableHead>
+    <TableRow>
+      <TableCell rowSpan={2} style={{ minWidth: '100px', textAlign: 'center', borderRight: '3px solid #000' }}>Symbol</TableCell>
+      <TableCell rowSpan={2} style={{ minWidth: '50px', textAlign: 'center', borderRight: '1px solid #ccc' }}>Ref</TableCell>
+      <TableCell rowSpan={2} style={{ minWidth: '50px', textAlign: 'center', borderRight: '1px solid #ccc' }}>Ceil</TableCell>
+      <TableCell rowSpan={2} style={{ minWidth: '50px', textAlign: 'center', borderRight: '3px solid #000' }}>Floor</TableCell>
+      <TableCell colSpan={4} align="center" style={{ borderRight: '3px solid #000' }}>Bid</TableCell>
+      <TableCell colSpan={2} align="center" style={{ borderRight: '3px solid #000' }}>Match</TableCell>
+      <TableCell colSpan={4} align="center">Ask</TableCell>
+    </TableRow>
+    <TableRow>
+      {columns.slice(4).map((column) => (
+        <TableCell
+          key={column.id}
+          align={column.align}
+          style={{
+            minWidth: column.minWidth,
+            paddingLeft: '16px',
+            paddingRight: '16px',
+            borderRight: ['bid_vol1', 'match_vol'].includes(column.id) ? '3px solid #000' : '1px solid #ccc',
+          }}
+        >
+          {column.label}
+        </TableCell>
+      ))}
+    </TableRow>
+  </TableHead>
+);
+
 function Tables() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [orderBookData, setOrderBookData] = useState([]);
-  const [orderBookMap, setOrderBookMap] = useState({}); // For efficient updates
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
+  // Handle SSE connection and initial data loading
   useEffect(() => {
-    // Initial data load
+    // Load initial data
     const loadInitialData = async () => {
       try {
         setLoading(true);
         const data = await getOrderBookData();
-        console.log('Initial order book data:', data);
         if (data && Array.isArray(data)) {
           setOrderBookData(data);
-          
-          // Create a map for more efficient updates
-          const dataMap = {};
-          data.forEach(item => {
-            dataMap[item.symbol] = item;
-          });
-          setOrderBookMap(dataMap);
         }
         setLoading(false);
       } catch (error) {
-        console.error('Error loading initial order book data:', error);
+        console.error('Error loading order book data:', error);
         setError('Failed to load order book data. Please try again later.');
         setLoading(false);
       }
@@ -170,45 +202,31 @@ function Tables() {
     
     loadInitialData();
     
-    // Set up SSE connection
+    // Set up SSE connection for real-time updates
     const eventSource = createOrderBookStream();
     
     eventSource.onmessage = (event) => {
       try {
-        const eventData = JSON.parse(event.data);
-        console.log('SSE update received:', eventData);
+        const { type, data } = JSON.parse(event.data);
         
-        if (eventData.type === 'initial' || eventData.type === 'update') {
-          if (eventData.data && Array.isArray(eventData.data)) {
-            // Update the order book data
-            setOrderBookData(eventData.data);
-            
-            // Also update the map for efficient lookup
-            const updatedMap = {};
-            eventData.data.forEach(item => {
-              updatedMap[item.symbol] = item;
-            });
-            setOrderBookMap(updatedMap);
-            
-            setLoading(false);
-          }
+        if ((type === 'initial' || type === 'update') && Array.isArray(data)) {
+          setOrderBookData(data);
+          setLoading(false);
         }
       } catch (error) {
         console.error('Error processing SSE message:', error);
       }
     };
     
-    eventSource.onerror = (error) => {
-      console.error('SSE connection error:', error);
+    eventSource.onerror = () => {
       setError('Connection to server lost. Please refresh the page.');
     };
     
-    // Clean up on unmount
-    return () => {
-      eventSource.close();
-    };
+    // Clean up SSE connection when component unmounts
+    return () => eventSource.close();
   }, []);
 
+  // Pagination handlers
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -219,12 +237,12 @@ function Tables() {
   };
 
   // Transform orderBookData into the format expected by the table
-  const processedRows = React.useMemo(() => {
+  const processedRows = useMemo(() => {
     if (!Array.isArray(orderBookData) || orderBookData.length === 0) {
       return [];
     }
 
-    return orderBookData.map((stockData, index) => {
+    return orderBookData.map(stockData => {
       const refPrice = stockData.ref || 0;
       const ceilPrice = Math.round(refPrice * 1.07 * 100) / 100;
       const floorPrice = Math.round(refPrice * 0.93 * 100) / 100;
@@ -248,80 +266,66 @@ function Tables() {
     });
   }, [orderBookData]);
 
-  return (
-    <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-      {loading ? (
+  // Display loading state or error
+  if (loading) {
+    return (
+      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
         <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
           <CircularProgress />
         </div>
-      ) : error ? (
+      </Paper>
+    );
+  }
+
+  if (error) {
+    return (
+      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
         <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>
           {error}
         </div>
-      ) : (
-        <>
-          <TableContainer sx={{ maxHeight: 1000 }}>
-            <Table stickyHeader aria-label="sticky table">
-              <TableHead>
-                <TableRow>
-                  <TableCell rowSpan={2} style={{ minWidth: '100px', textAlign: 'center', borderRight: '3px solid #000' }}>Symbol</TableCell>
-                  <TableCell rowSpan={2} style={{ minWidth: '50px', textAlign: 'center', borderRight: '1px solid #ccc' }}>Ref</TableCell>
-                  <TableCell rowSpan={2} style={{ minWidth: '50px', textAlign: 'center', borderRight: '1px solid #ccc' }}>Ceil</TableCell>
-                  <TableCell rowSpan={2} style={{ minWidth: '50px', textAlign: 'center', borderRight: '3px solid #000' }}>Floor</TableCell>
-                  <TableCell colSpan={4} align="center" style={{ borderRight: '3px solid #000' }}>Bid</TableCell>
-                  <TableCell colSpan={2} align="center" style={{ borderRight: '3px solid #000' }}>Match</TableCell>
-                  <TableCell colSpan={4} align="center">Ask</TableCell>
-                </TableRow>
-                <TableRow>
-                  {columns.slice(4).map((column) => (
-                    <TableCell
-                      key={column.id}
-                      align={column.align}
-                      style={{
-                        minWidth: column.minWidth,
-                        paddingLeft: '16px',
-                        paddingRight: '16px',
-                        borderRight: ['bid_vol1', 'match_vol'].includes(column.id) ? '3px solid #000' : '1px solid #ccc',
-                      }}
-                    >
-                      {column.label}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody sx={{ borderBottom: '1px solid #ccc' }}>
-                {processedRows.length > 0 ? (
-                  processedRows
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((row) => (
-                      <OrderBookTableRow 
-                        key={row.Symbol} 
-                        row={row} 
-                        columns={columns} 
-                        getCellTextColor={getCellTextColor} 
-                      />
-                    ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={columns.length} style={{ textAlign: 'center', padding: '20px' }}>
-                      No order book data available
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <TablePagination
-            rowsPerPageOptions={[10]} 
-            component="div"
-            count={processedRows.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </>
-      )}
+      </Paper>
+    );
+  }
+
+  // Calculate paginated rows
+  const paginatedRows = processedRows.slice(
+    page * rowsPerPage, 
+    page * rowsPerPage + rowsPerPage
+  );
+
+  return (
+    <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+      <TableContainer sx={{ maxHeight: 1000 }}>
+        <Table stickyHeader aria-label="order book table">
+          <OrderBookTableHeader />
+          <TableBody sx={{ borderBottom: '1px solid #ccc' }}>
+            {paginatedRows.length > 0 ? (
+              paginatedRows.map((row) => (
+                <OrderBookTableRow 
+                  key={row.Symbol} 
+                  row={row} 
+                  columns={columns} 
+                />
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} style={{ textAlign: 'center', padding: '20px' }}>
+                  No order book data available
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        rowsPerPageOptions={[10]} 
+        component="div"
+        count={processedRows.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
     </Paper>
   );
 }
