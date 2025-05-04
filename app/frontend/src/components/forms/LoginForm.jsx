@@ -64,7 +64,7 @@ function LoginForm({ onLogin, onRegisterClick, onForgotPasswordClick }) {
 
   const handleGoogleLogin = () => {
     setIsLoading(true);
-    window.location.href = 'http://localhost:3000/auth/google';
+    window.location.href = 'http://localhost:3000/api/auth/google';
   };
 
   return (

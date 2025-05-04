@@ -46,7 +46,7 @@ app.use(express.json()); // Parse JSON request bodies
 // REMEBER TO CHANGE THE CROS ORIGIN BACK TO YOUR FRONTEND URL WHEN DEPLOYING, 
 // Idealy, defined the origin in the .env file and use it here.
 app.use(cors({
-  origin: 'http://localhost:5173', // Allow all origins while testing
+  origin: process.env.FE_URL, // Allow all origins while testing
   credentials: true, // Important for cookies to work with CORS
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -73,9 +73,9 @@ app.use(passport.initialize());
 // --- Google OAuth Routes ---
 // Define Google OAuth routes at the root level to match the callback URL in Google Cloud Console
 // Two routes will not have prefix /api as other routes since it is not our own API, but Google API
-// when user click on "Login with Google" button in frontend, they will be forward to  uor backend endpoint /auth/google
-app.get('/auth/google', googleAuth);
-app.get('/auth/google/callback', googleAuthCallback);
+// when user click on "Login with Google" button in frontend, they will be forward to  uor backend endpoint /api/auth/google
+app.get('/api/auth/google', googleAuth);
+app.get('/api/auth/google/callback', googleAuthCallback);
 
 // --- API Routes ---
 app.use('/api', userRoutes);
@@ -93,13 +93,13 @@ app.use(errorHandling);
 
 // --- Initialize All Database Tables ---
 const initializeDatabase = async () => {  try {
-    // Create tables
-    await createUserTable();
-    await createPortfolioTable();
-    await createTransactionTable();
-    await createStockTable();
-    await createStockPriceTable();
-    await createHoldingTable();
+    // Create tables in proper dependency order
+    await createUserTable();         // First create users
+    await createPortfolioTable();    // Portfolios depend on users
+    await createStockTable();        // Create stocks before stock-related tables
+    await createStockPriceTable();   // StockPrices depend on stocks
+    await createTransactionTable();  // Transactions depend on stocks and portfolios
+    await createHoldingTable();      // Holdings depend on stocks and portfolios
     
     log.info('All tables initialized successfully!');
   } catch (error) {
