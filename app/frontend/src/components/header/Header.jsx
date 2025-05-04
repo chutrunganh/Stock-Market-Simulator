@@ -22,6 +22,9 @@ function Header({ onLoginClick, isLoggedIn, userEmail, onLogoutClick }) {
           <li tabIndex="0" onClick={() => console.log('Tutorial clicked')}>
             <NavLink to="/tutorial" className="navbar__link">Tutorial</NavLink>
           </li>
+          <li tabIndex="0" onClick={() => console.log('Admin clicked')}>
+            <NavLink to="/admin" className="navbar__link">Admin</NavLink>
+          </li>
           {isLoggedIn && (
             <>
               <li tabIndex="0" onClick={() => console.log('Trade clicked')}>

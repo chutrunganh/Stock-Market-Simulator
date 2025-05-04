@@ -1,0 +1,80 @@
+.admin-page {
+    padding: 2rem;
+    max-width: 600px;
+    margin: 2rem auto;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgb(26, 28, 32);
+    text-align: center;
+  }
+  
+  .admin-page h2 {
+    color: #333;
+    margin-bottom: 0.5rem;
+  }
+  
+  .admin-page p {
+      color: #666;
+      margin-bottom: 2rem;
+  }
+  
+  .admin-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem; 
+    align-items: center; 
+  }
+  
+  .action-group {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+  }
+  
+  .admin-button {
+    padding: 12px 25px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, opacity 0.3s ease;
+    color: white;
+    min-width: 200px; /* Ensure buttons have a minimum width */
+  }
+  
+  .admin-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  .start-button {
+    background-color: rgb(240, 165, 0); /* Green */
+  }
+  
+  .start-button:hover:not(:disabled) {
+    background-color: rgb(240, 165, 0);
+  }
+  
+  .stop-button {
+    background-color: rgb(207, 117, 0); /* Red */
+  }
+  
+  .stop-button:hover:not(:disabled) {
+    background-color: rgb(207, 117, 0);
+  }
+  
+  .message {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    font-weight: bold;
+    min-height: 1.2em; 
+  }
+  
+  .message.success {
+    color: rgb(26, 28, 32);
+  }
+  
+  .message.error {
+    color: rgb(26, 28, 32);
+  }

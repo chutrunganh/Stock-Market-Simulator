@@ -16,6 +16,7 @@ import Home from './pages/Home/Home';
 import Trade from './pages/Trade';
 import Portfolio from './pages/Portfolio';
 import Tutorial from './pages/Tutorial';
+import AdminPage from './pages/AdminPage/AdminPage';
 
 // Forms
 import LoginForm from './components/forms/LoginForm';
@@ -120,6 +121,7 @@ function App() {
                     <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/home" element={<Home />} />
+                        <Route path="/admin" element={<AdminPage />} />
                         <Route path="/trade" element={<Trade />} />
                         <Route 
                             path="/portfolio" 
