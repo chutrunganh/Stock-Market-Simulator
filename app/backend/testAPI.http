@@ -62,7 +62,7 @@ Content-Type: application/json
 # The only difference is how the user was initially verified (password check vs Google validation).
 # The authentication middleware doesn't know or care which login method was used - it only validates the token.
 #
-# To test this, open: http://localhost:3000/auth/google in your browser(NOT Postman or Rest Client)
+# To test this, open: http://localhost:3000/api/auth/google in your browser(NOT Postman or Rest Client)
 # This will redirect you to the Google login page.
 # After successful authentication, you'll get a JWT token in the browser response.
 # Copy the token and replace YOUR_JWT_TOKEN_HERE with it in the global variable @google_user_jwt below

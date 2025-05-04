@@ -22,13 +22,13 @@ router.post("/register", validateUser, registerUser); // Register a new user
 router.post("/login", validateLogin, loginUser);  // User login
 
 // Google OAuth routes
-// when user click on "Login with Google" button in frontend, they will be forward to  uor backend endpoint /api/auth/google
+// when user click on "Login with Google" button in frontend, they will be forward to  uor backend endpoint /apiapi/auth/google
 // Our backend then redirect user to Google authentication page
-// After user successfully authenticate with Google, they will be redirected back to our backend endpoint /api/auth/google/callback
+// After user successfully authenticate with Google, they will be redirected back to our backend endpoint /apiapi/auth/google/callback
 // Our backend then handle the authentication and create a new user in our database if they don't exist yet
 // Then your backend will send the user information and redirect user back to the frontend
-router.get("/auth/google", googleAuth); // Google SSO authentication initiate
-router.get("/auth/google/callback", googleAuthCallback);  // Google SSO authentication callback
+router.get("/api/auth/google", googleAuth); // Google SSO authentication initiate
+router.get("/api/auth/google/callback", googleAuthCallback);  // Google SSO authentication callback
 
 
 // 2.Protected routes (authentication required)
