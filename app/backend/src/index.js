@@ -46,7 +46,7 @@ app.use(express.json()); // Parse JSON request bodies
 // REMEBER TO CHANGE THE CROS ORIGIN BACK TO YOUR FRONTEND URL WHEN DEPLOYING, 
 // Idealy, defined the origin in the .env file and use it here.
 app.use(cors({
-  origin: 'http://localhost:5173', // Allow all origins while testing
+  origin: process.env.FE_URL, // Allow all origins while testing
   credentials: true, // Important for cookies to work with CORS
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
