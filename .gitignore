@@ -99,7 +99,7 @@ web_modules/
 docs/techStack
 
 # dotenv files (uncomment if needed)
-# .env
+.env
 # .env.development.local
 # .env.test.local
 # .env.production.local
