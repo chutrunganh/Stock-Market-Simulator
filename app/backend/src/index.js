@@ -93,13 +93,13 @@ app.use(errorHandling);
 
 // --- Initialize All Database Tables ---
 const initializeDatabase = async () => {  try {
-    // Create tables
-    await createUserTable();
-    await createPortfolioTable();
-    await createTransactionTable();
-    await createStockTable();
-    await createStockPriceTable();
-    await createHoldingTable();
+    // Create tables in proper dependency order
+    await createUserTable();         // First create users
+    await createPortfolioTable();    // Portfolios depend on users
+    await createStockTable();        // Create stocks before stock-related tables
+    await createStockPriceTable();   // StockPrices depend on stocks
+    await createTransactionTable();  // Transactions depend on stocks and portfolios
+    await createHoldingTable();      // Holdings depend on stocks and portfolios
     
     log.info('All tables initialized successfully!');
   } catch (error) {
