@@ -74,8 +74,7 @@ app.use(passport.initialize());
 // Define Google OAuth routes at the root level to match the callback URL in Google Cloud Console
 // Two routes will not have prefix /api as other routes since it is not our own API, but Google API
 // when user click on "Login with Google" button in frontend, they will be forward to  uor backend endpoint /api/auth/google
-app.get('/api/auth/google', googleAuth);
-app.get('/api/auth/google/callback', googleAuthCallback);
+// See userRoutes.js for more details
 
 // --- API Routes ---
 app.use('/api', userRoutes);
