@@ -37,13 +37,43 @@ function App() {
     const { user, isAuthenticated, logout, login } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
-    
-    // Debug log for authentication state
-    console.log('App render - Auth state:', { user, isAuthenticated });// Check for auth message from redirects
+      // Debug log for authentication state
+    console.log('App render - Auth state:', { user, isAuthenticated });
+      // Effect to respond to auth state changes
     useEffect(() => {
+        console.log('App useEffect - Auth state changed:', { user, isAuthenticated });
+        // Force update when auth state changes
+        setForceUpdate(prev => prev + 1);
+    }, [user, isAuthenticated]);
+    
+    // Listen for auth state changed events
+    useEffect(() => {
+        const handleAuthStateChanged = (event) => {
+            console.log('App: Auth state changed event received:', event.detail);
+            // Force rerender
+            setForceUpdate(prev => prev + 1);
+        };
+        
+        window.addEventListener('auth-state-changed', handleAuthStateChanged);
+        
+        return () => {
+            window.removeEventListener('auth-state-changed', handleAuthStateChanged);
+        };
+    }, []);
+      // Check for auth message from redirects or URL parameters
+    useEffect(() => {
+        // Check for auth message in location state
         if (location.state?.authMessage) {
             // Could show a notification here
             console.log(location.state.authMessage);
+        }
+        
+        // Check for Google login success in URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('login') && urlParams.get('login') === 'success') {
+            console.log('App detected Google login success from URL parameters');
+            // Force open the login modal to trigger the Google callback handler
+            setShowLoginModal(true);
         }
 
         // Add event listener for opening login modal after registration
@@ -80,12 +110,21 @@ function App() {
     };    // Define the onLogin function
     const handleLogin = async (userData) => {
         try {
-            // userData should be the user object from login response
-            setShowLoginModal(false); // Close the login modal
+            console.log("App: Login successful, userData received:", userData);
+            
+            // Close the login modal
+            setShowLoginModal(false);
+            
+            // Force a UI update by setting a state variable
+            // This is a common React pattern to force child components to re-render
+            setForceUpdate(prev => prev + 1);
         } catch (err) {
             console.error("Login error in App:", err);
         }
     };
+    
+    // Add a state variable to force re-render when auth state changes
+    const [forceUpdate, setForceUpdate] = useState(0);
 
     return (
         <TradingSessionProvider>

@@ -86,7 +86,7 @@ app.use(passport.initialize());
 
 // --- API Routes ---
 // Mount routes
-app.use('/api/auth', userRoutes);
+app.use('/api', userRoutes); // Changed from '/api/auth' to '/api' to match frontend paths
 app.use('/api/orders', orderRoutes);
 app.use('/api/trading-session', tradingSessionRoutes);
 app.use('/api/stocks', stockRoutes)

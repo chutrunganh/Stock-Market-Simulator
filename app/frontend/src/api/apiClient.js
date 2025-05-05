@@ -45,7 +45,11 @@ apiClient.interceptors.response.use(
     // You can modify the response data here
     return response;
   },
-  (error) => {    // Handle errors consistently
+  (error) => {
+    // Log the full error for debugging
+    console.log("API Error:", error.response ? error.response.data : error.message);
+    
+    // Handle errors consistently
     if (error.response) {
       // The request was made and the server responded with a status code
       // that falls out of the range of 2xx

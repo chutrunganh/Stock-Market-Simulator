@@ -13,29 +13,39 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const [authState, setAuthState] = useState({ initialized: false });
   // Check for stored auth token on mount
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem('authToken');
+      console.log('AuthContext: Checking authentication with token:', token ? 'Token exists' : 'No token');
+      
       if (token) {
         try {
           // Verify token by fetching user profile
+          console.log('AuthContext: Verifying token by fetching user profile...');
           const response = await getUserProfile();
+          
+          console.log('AuthContext: User profile response:', response);
+          
           if (response && response.data && response.data.user) {
+            console.log('AuthContext: User authenticated successfully:', response.data.user);
             setUser(response.data.user);
           } else {
-            // If verification fails, clear the auth state
+            console.warn('AuthContext: Invalid user profile response:', response);
             localStorage.removeItem('authToken');
             setUser(null);
           }
         } catch (err) {
-          console.error('Token verification failed:', err);
+          console.error('AuthContext: Token verification failed:', err);
           localStorage.removeItem('authToken');
           setUser(null);
-        }
+        }      } else {
+        console.log('AuthContext: No auth token found');
       }
+      
       setLoading(false);
+      setAuthState({ initialized: true });
     };
     
     checkAuth();
@@ -45,7 +55,6 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('authToken');
     setUser(null);
   };
-
   // Login function
   const login = async (credentials) => {
     setLoading(true);
@@ -56,8 +65,10 @@ export const AuthProvider = ({ children }) => {
       
       // If credentials contains both user and token (from Google login)
       if (credentials.user && credentials.token) {
+        console.log('AuthContext: Processing Google login with user data:', credentials.user);
         userData = credentials.user;
-        authToken = credentials.token;      } else {
+        authToken = credentials.token;
+      } else {
         // Regular identifier/password login
         const response = await loginUser({
           identifier: credentials.identifier,
@@ -72,12 +83,18 @@ export const AuthProvider = ({ children }) => {
       
       // Store auth data and update state
       localStorage.setItem('authToken', authToken);
+      
+      // Update user state immediately 
+      console.log('AuthContext: Setting user data immediately after login:', userData);
       setUser(userData);
-        // Verify the stored token immediately
-      const verifyResponse = await getUserProfile();
-      if (!verifyResponse || !verifyResponse.data) {
-        throw new Error('Failed to verify login state');
-      }
+      
+      // Force an immediate state update by dispatching an event
+      window.dispatchEvent(new CustomEvent('auth-state-changed', { 
+        detail: { user: userData, isAuthenticated: true }
+      }));
+      
+      // No need to verify the token again as we just received it
+      // This was causing the UI not to update properly
       
       return userData;
     } catch (err) {
@@ -119,14 +136,14 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
-  return (
+  };  return (
     <AuthContext.Provider 
       value={{ 
         user, 
         loading, 
         error,
         isAuthenticated: !!user, // Add this to indicate if user is logged in
+        authInitialized: authState.initialized,
         login,
         logout,
         register 
