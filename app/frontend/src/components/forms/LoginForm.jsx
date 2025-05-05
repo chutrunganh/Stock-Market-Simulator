@@ -129,10 +129,6 @@ function LoginForm({ onLogin, onRegisterClick, onForgotPasswordClick }) {
       setIsLoading(true);
       console.log('Redirecting to Google login...');
       
-      // Store a flag in sessionStorage to indicate we're in the Google login flow
-      // This will help us detect if we're returning from Google authentication
-      sessionStorage.setItem('googleLoginInProgress', 'true');
-      
       // Use correct URL path for Google authentication
       window.location.href = '/api/auth/google';
       

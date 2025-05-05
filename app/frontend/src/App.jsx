@@ -67,13 +67,16 @@ function App() {
             // Could show a notification here
             console.log(location.state.authMessage);
         }
-        
-        // Check for Google login success in URL parameters
+          // Check for Google login success in URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('login') && urlParams.get('login') === 'success') {
             console.log('App detected Google login success from URL parameters');
-            // Force open the login modal to trigger the Google callback handler
-            setShowLoginModal(true);
+            
+            // Instead of showing the login modal, process the Google callback directly
+            const token = urlParams.get('token');
+            if (token) {
+                handleGoogleAuth(token);
+            }
         }
 
         // Add event listener for opening login modal after registration
@@ -107,7 +110,49 @@ function App() {
         setShowLoginModal(false);
         setShowRegisterModal(false);
         setShowForgotPasswordModal(false);
-    };    // Define the onLogin function
+    };    // Function to handle Google authentication without showing the login modal
+    const handleGoogleAuth = async (token) => {
+        try {
+            console.log('App: Processing Google authentication with token');
+            
+            // Store token in localStorage
+            localStorage.setItem('authToken', token);
+            
+            // Import API functions
+            const { getUserProfile } = await import('./api/user');
+            
+            // Get user profile data
+            const response = await getUserProfile();
+            
+            if (response && response.status === 200 && response.data && response.data.user) {
+                // Clean up URL parameters
+                window.history.replaceState({}, document.title, window.location.pathname);
+                
+                // Prepare login data
+                const loginData = {
+                    user: response.data.user,
+                    token: token
+                };
+                
+                // Use Auth context to log in
+                await login(loginData);
+                
+                // Dispatch custom event to update UI components
+                window.dispatchEvent(new CustomEvent('auth-state-changed', { 
+                    detail: { user: response.data.user, isAuthenticated: true }
+                }));
+                
+                // Force UI update
+                setForceUpdate(prev => prev + 1);
+            } else {
+                console.error('Failed to get user profile from token');
+            }
+        } catch (err) {
+            console.error("Google auth processing error:", err);
+        }
+    };
+
+    // Define the onLogin function for regular login
     const handleLogin = async (userData) => {
         try {
             console.log("App: Login successful, userData received:", userData);
