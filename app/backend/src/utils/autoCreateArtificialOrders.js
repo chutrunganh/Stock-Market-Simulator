@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getLatestStockPriceByStockIdService } from '../services/stockPriceCRUDService.js';
 import { getAllStockService } from '../services/stockCRUDService.js';
 // Constants
-const SERVER_URL = 'http://localhost:3000/api';
+const SERVER_URL = '/api';
 const ADMIN_JWT = 'your_admin_jwt_token_here'; //replace with admin token when signed up
 const INTERVAL_MS = 5000; //one order every 5 sec = one cycle
 const ORDERS_PER_CYCLE = 5; //num of orders per cycle 

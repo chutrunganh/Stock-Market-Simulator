@@ -19,7 +19,13 @@ router.get("/", (req, res) => {}); // Placeholder for homepage route
 
 // Traditional login and registration routes
 router.post("/register", validateUser, registerUser); // Register a new user
-router.post("/login", validateLogin, loginUser);  // User login
+// Debug middleware to log request body
+const logRequestBody = (req, res, next) => {
+  console.log('Login request body:', req.body);
+  next();
+};
+
+router.post("/login", logRequestBody, validateLogin, loginUser);  // User login
 
 // Google OAuth routes
 // when user click on "Login with Google" button in frontend, they will be forward to  uor backend endpoint /apiapi/auth/google

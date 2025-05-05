@@ -29,6 +29,8 @@ import orderRoutes from './routes/orderRoutes.js';
 import tradingSessionRoutes from './routes/tradingSessionRoutes.js';
 import stockRoutes from './routes/stockRoutes.js';
 
+;
+
 // --- Middlewares ---
 import errorHandling from './middlewares/errorHandlerMiddleware.js';
 
@@ -43,10 +45,21 @@ const port = process.env.BE_PORT || 3000;
 app.use(express.json()); // Parse JSON request bodies
 
 // --- CORS Configuration --
-// REMEBER TO CHANGE THE CROS ORIGIN BACK TO YOUR FRONTEND URL WHEN DEPLOYING, 
-// Idealy, defined the origin in the .env file and use it here.
+// Configure CORS with support for SSE
+app.use((req, res, next) => {  // Special handling for SSE endpoint
+  if (req.path === '/api/orders/orderBook/stream') {
+    res.setHeader('Access-Control-Allow-Origin', process.env.FE_URL);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Content-Type', 'text/event-stream');
+  }
+  next();
+});
+
+// Regular CORS configuration for other routes
 app.use(cors({
-  origin: process.env.FE_URL, // Allow all origins while testing
+  origin: process.env.FE_URL, // Allow frontend origin
   credentials: true, // Important for cookies to work with CORS
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -56,7 +69,7 @@ app.use(cors({
 // Add headers specifically for SSE connections
 app.use((req, res, next) => {
   // Check if the request is for SSE
-  if (req.path === '/api/orderBook/stream') {
+  if (req.path === '/api/orders/orderBook/stream') {
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('X-Accel-Buffering', 'no'); // Disable buffering for Nginx
     res.setHeader('Connection', 'keep-alive');
@@ -70,19 +83,13 @@ app.use(cookieParser()); // Add cookie-parser middleware
 const passportInstance = configurePassport();
 app.use(passport.initialize());
 
-// --- Google OAuth Routes ---
-// Define Google OAuth routes at the root level to match the callback URL in Google Cloud Console
-// Two routes will not have prefix /api as other routes since it is not our own API, but Google API
-// when user click on "Login with Google" button in frontend, they will be forward to  uor backend endpoint /api/auth/google
-// See userRoutes.js for more details
 
 // --- API Routes ---
-app.use('/api', userRoutes);
-app.use('/api', orderRoutes);
-app.use('/api/stocks', stockRoutes); // Plan to delete
-
-// Use trading session routes
-app.use('/api', tradingSessionRoutes);
+// Mount routes
+app.use('/api/auth', userRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/trading-session', tradingSessionRoutes);
+app.use('/api/stocks', stockRoutes)
 
 
 // --- Error Handling Middleware ---

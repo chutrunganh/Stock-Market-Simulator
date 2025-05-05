@@ -3,6 +3,11 @@ import { useAuth } from '../../context/AuthContext';
 import { getUserProfile } from '../../api/user';
 import './LoginForm.css';
 
+// Debug utility
+const logObject = (label, obj) => {
+  console.log(`${label}:`, JSON.stringify(obj));
+};
+
 function LoginForm({ onLogin, onRegisterClick, onForgotPasswordClick }) {
   const { login } = useAuth();  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -40,31 +45,51 @@ function LoginForm({ onLogin, onRegisterClick, onForgotPasswordClick }) {
   };
 
   handleGoogleCallback();
-}, [onLogin]);
-
-  const handleSubmit = async (e) => {
+}, [onLogin]);  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setIsLoading(true);    if (!identifier || !password) {
-      setError('Please enter both username/email and password');
+    setIsLoading(true);
+    
+    // Validate inputs
+    if (!identifier || !identifier.trim()) {
+      setError('Username or email is required');
+      setIsLoading(false);
+      return;
+    }
+    
+    if (!password || !password.trim()) {
+      setError('Password is required');
       setIsLoading(false);
       return;
     }
 
     try {
-      const userData = await login({ identifier, password });
+      // Debug log credentials before sending
+      logObject("Login credentials", { identifier: identifier.trim(), password: password.trim() });
+      
+      // Pass the credentials to the login function
+      const userData = await login({
+        identifier: identifier.trim(), 
+        password: password.trim()
+      });
+      
+      // Debug log the received user data
+      logObject("Login successful, user data", userData);
+      
+      // If login was successful, notify the parent component
       onLogin(userData);
     } catch (err) {
+      // Display the error message to the user
       setError(err.message || 'Login failed. Please check your credentials.');
       console.error('Login error:', err);
     } finally {
       setIsLoading(false);
     }
   };
-
   const handleGoogleLogin = () => {
     setIsLoading(true);
-    window.location.href = 'http://localhost:3000/api/auth/google';
+    // Use relative URL that will work in any environment
+    window.location.href = '/api/auth/google';
   };
 
   return (

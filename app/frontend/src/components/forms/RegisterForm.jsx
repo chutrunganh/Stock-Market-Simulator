@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import './RegisterForm.css';
+import { Eye, EyeOff, EyeOffIcon } from "lucide-react";
 
 /**
  * RegisterForm component
@@ -9,9 +10,9 @@ import './RegisterForm.css';
 function RegisterForm({ onClose }) {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [password, setPassword] = useState('');  const [confirmPassword, setConfirmPassword] = useState('');
   
+  const [error, setError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -42,16 +43,17 @@ function RegisterForm({ onClose }) {
     return isValid;
   };
 
-  const { register } = useAuth();
-
-  const handleSubmit = async (e) => {
+  const { register } = useAuth();  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-    try {      await register({ username, email, password });
+    setError('');
+      try {
+      await register({ username, email, password });
       setSuccessMessage('Registration successful!');
-      setIsRedirecting(true); // Set redirecting state to true
+      setError('');
+      setIsRedirecting(true);
       
       // Wait for 2 seconds to show the success message, then close register modal and open login
       setTimeout(() => {
@@ -59,17 +61,22 @@ function RegisterForm({ onClose }) {
         // After the register modal is closed, open the login modal
         document.dispatchEvent(new CustomEvent('openLoginModal'));
       }, 2000);
-    } catch (error) {
+    } catch (err) {
       setSuccessMessage('');
-      setPasswordError(error.message || 'Registration failed. Please try again.');
+      setError(err.message || 'Registration failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <form className="register-form" onSubmit={handleSubmit}>
-      <h2>Create Account</h2>
+    <form className="register-form" onSubmit={handleSubmit}>      <h2>Create Account</h2>
+      
+      {error && (
+        <div className="error-message">
+          {error}
+        </div>
+      )}
       
       {successMessage && (
         <div className="success-message">
@@ -127,7 +134,7 @@ function RegisterForm({ onClose }) {
             onClick={() => setShowPassword(!showPassword)}
             disabled={isSubmitting}
           >
-            {showPassword ? '👁️' : '👁️‍🗨️'}
+            {showPassword ? <Eye/> : <EyeOffIcon />}
           </button>
         </div>
         {passwordError && <p className="error-message">{passwordError}</p>}
@@ -152,7 +159,7 @@ function RegisterForm({ onClose }) {
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             disabled={isSubmitting}
           >
-            {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
+  
           </button>
         </div>
         {confirmPasswordError && <p className="error-message">{confirmPasswordError}</p>}

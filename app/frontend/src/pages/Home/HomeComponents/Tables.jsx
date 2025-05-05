@@ -181,9 +181,13 @@ function Tables() {
   const [orderBookData, setOrderBookData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  // Handle SSE connection and initial data loading
+    // Handle SSE connection and initial data loading
   useEffect(() => {
+    let eventSource = null;
+    let retryCount = 0;
+    const maxRetries = 3;
+    let retryTimeout = null;
+    
     // Load initial data
     const loadInitialData = async () => {
       try {
@@ -191,6 +195,7 @@ function Tables() {
         const data = await getOrderBookData();
         if (data && Array.isArray(data)) {
           setOrderBookData(data);
+          setError(null); // Clear any previous errors
         }
         setLoading(false);
       } catch (error) {
@@ -200,30 +205,70 @@ function Tables() {
       }
     };
     
-    loadInitialData();
-    
-    // Set up SSE connection for real-time updates
-    const eventSource = createOrderBookStream();
-    
-    eventSource.onmessage = (event) => {
-      try {
-        const { type, data } = JSON.parse(event.data);
-        
-        if ((type === 'initial' || type === 'update') && Array.isArray(data)) {
-          setOrderBookData(data);
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error('Error processing SSE message:', error);
+    // Initialize SSE connection
+    const initSSEConnection = () => {
+      // Make sure to close any existing connection
+      if (eventSource) {
+        eventSource.close();
       }
+      
+      // Create new connection
+      eventSource = createOrderBookStream();
+      
+      eventSource.onopen = () => {
+        console.log('SSE connection established');
+        retryCount = 0; // Reset retry count on successful connection
+        setError(null); // Clear any previous errors
+      };
+      
+      eventSource.onmessage = (event) => {
+        try {
+          const { type, data } = JSON.parse(event.data);
+          
+          if ((type === 'initial' || type === 'update') && Array.isArray(data)) {
+            setOrderBookData(data);
+            setLoading(false);
+          }
+        } catch (error) {
+          console.error('Error processing SSE message:', error);
+        }
+      };
+      
+      eventSource.onerror = (e) => {
+        console.error('SSE connection error:', e);
+        eventSource.close();
+        
+        // Only retry a limited number of times
+        if (retryCount < maxRetries) {
+          retryCount++;
+          const retryDelay = 2000 * retryCount; // Exponential backoff
+          console.log(`Retrying SSE connection in ${retryDelay}ms (attempt ${retryCount}/${maxRetries})`);
+          
+          // Try to load data via REST API while SSE is down
+          loadInitialData();
+          
+          // Wait and retry SSE connection
+          retryTimeout = setTimeout(initSSEConnection, retryDelay);
+        } else {
+          // After max retries, just keep the REST data and show error
+          setError('Real-time updates unavailable. Data may not be current.');
+        }
+      };
     };
     
-    eventSource.onerror = () => {
-      setError('Connection to server lost. Please refresh the page.');
-    };
+    // Start everything
+    loadInitialData();
+    initSSEConnection();
     
     // Clean up SSE connection when component unmounts
-    return () => eventSource.close();
+    return () => {
+      if (eventSource) {
+        eventSource.close();
+      }
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+      }
+    };
   }, []);
 
   // Pagination handlers
@@ -276,12 +321,35 @@ function Tables() {
       </Paper>
     );
   }
+  // Function to reset the component state and force a refresh
+  const handleRetry = () => {
+    setError(null);
+    setLoading(true);
+    // This will trigger the useEffect to run again
+    window.location.reload();
+  };
 
   if (error) {
     return (
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>
-          {error}
+        <div style={{ padding: '20px', textAlign: 'center' }}>
+          <div style={{ color: 'red', marginBottom: '15px' }}>
+            {error}
+          </div>
+          <button 
+            onClick={handleRetry}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#1976d2',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '14px'
+            }}
+          >
+            Retry Connection
+          </button>
         </div>
       </Paper>
     );

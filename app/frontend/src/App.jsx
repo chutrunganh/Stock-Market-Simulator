@@ -36,7 +36,10 @@ function App() {
     const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);    // Get auth context
     const { user, isAuthenticated, logout, login } = useAuth();
     const location = useLocation();
-    const navigate = useNavigate();// Check for auth message from redirects
+    const navigate = useNavigate();
+    
+    // Debug log for authentication state
+    console.log('App render - Auth state:', { user, isAuthenticated });// Check for auth message from redirects
     useEffect(() => {
         if (location.state?.authMessage) {
             // Could show a notification here
@@ -75,15 +78,13 @@ function App() {
         setShowRegisterModal(false);
         setShowForgotPasswordModal(false);
     };    // Define the onLogin function
-    const handleLogin = (userData) => {
-        if (userData.user && userData.token) {
-            // If we receive the {user, token} format (from Google login)
-            login(userData); // AuthContext's login will handle setting the user
-        } else {
-            // If we receive just the user data
-            login({ user: userData }); // Wrap it in the expected format
+    const handleLogin = async (userData) => {
+        try {
+            // userData should be the user object from login response
+            setShowLoginModal(false); // Close the login modal
+        } catch (err) {
+            console.error("Login error in App:", err);
         }
-        setShowLoginModal(false); // Close the login modal
     };
 
     return (

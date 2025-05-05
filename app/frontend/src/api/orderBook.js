@@ -1,4 +1,4 @@
-import apiClient from './apiClient';
+import apiClient, { createSSEConnection } from './apiClient';
 
 /**
  * Get order book data from the backend. This includes:
@@ -9,7 +9,7 @@ import apiClient from './apiClient';
  */
 export const getOrderBookData = async () => {
   try {
-    const response = await apiClient.get('/orderBook');
+    const response = await apiClient.get('/orders/orderBook');
     return response.data;
   } catch (error) {
     console.error('Error fetching order book data:', error);
@@ -22,6 +22,5 @@ export const getOrderBookData = async () => {
  * @returns {EventSource} The EventSource object for the SSE connection
  */
 export const createOrderBookStream = () => {
-  // Construct the URL manually since EventSource doesn't use axios
-  return new EventSource('http://localhost:3000/api/orderBook/stream');
+  return createSSEConnection('/orders/orderBook/stream');
 };

@@ -4,19 +4,22 @@
  * Every other componet if want to check the trading session status, import this file and use the context.
  */
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../api/apiClient';
 
 const TradingSessionContext = createContext();
 
-export function TradingSessionProvider({ children }) {
-    const [isTradingActive, setIsTradingActive] = useState(false);
+export function TradingSessionProvider({ children }) {    const [isTradingActive, setIsTradingActive] = useState(false);
+    const [error, setError] = useState(null);
 
     const checkTradingStatus = async () => {
         try {
-            const response = await axios.get('/api/tradingSession/status');
+            const response = await apiClient.get('/trading-session/status');
             setIsTradingActive(response.data.isActive);
+            setError(null);
         } catch (error) {
             console.error('Failed to fetch trading session status:', error);
+            setIsTradingActive(false); // Set to false on error
+            setError('Unable to check trading status');
         }
     };
 
@@ -24,23 +27,23 @@ export function TradingSessionProvider({ children }) {
         checkTradingStatus();
         const interval = setInterval(checkTradingStatus, 30000);
         return () => clearInterval(interval);
-    }, []);
-
-    const startTrading = async () => {
+    }, []);    const startTrading = async () => {
         try {
-            await axios.post('/api/tradingSession/startTrading');
-            setIsTradingActive(true);
+            await apiClient.post('/trading-session/start');
+            await checkTradingStatus(); // Refresh the status after starting
         } catch (error) {
             console.error('Failed to start trading session:', error);
+            setError('Failed to start trading session');
         }
     };
 
     const stopTrading = async () => {
         try {
-            await axios.post('/api/tradingSession/stopTrading');
-            setIsTradingActive(false);
+            await apiClient.post('/trading-session/stop');
+            await checkTradingStatus(); // Refresh the status after stopping
         } catch (error) {
             console.error('Failed to stop trading session:', error);
+            setError('Failed to stop trading session');
         }
     };
 

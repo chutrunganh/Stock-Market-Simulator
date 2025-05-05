@@ -6,11 +6,14 @@ import './Header.css';
 function Header({ onLoginClick, isLoggedIn, userEmail, onLogoutClick }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // Debug log to see authentication state
+  console.log('Header render - Auth state:', { isLoggedIn, userEmail });
+
   return (
     <header className="header">
       <h1>
         <Link to="/home" className="title">
-          <img src="logo.png" height="35" alt="Logo" /> Stock Market Simulator
+          <img src="logo.png" height="35" alt="Logo" /> Soict Stock Simulator
         </Link>
       </h1>
 
