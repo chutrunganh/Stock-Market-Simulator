@@ -20,12 +20,16 @@ import { getUserByIdService, findOrCreateGoogleUserService  } from '../services/
 
 // Configure Google OAuth 2.0 strategy
 const configurePassport = () => {
+  // Construct the full callback URL based on environment
+  const callbackURL = new URL(process.env.GOOGLE_CALLBACK_URL, process.env.BE_URL).toString();
+  console.log('Google OAuth callback URL:', callbackURL);
+  
   passport.use(
     new GoogleStrategy(
       {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: process.env.GOOGLE_CALLBACK_URL,
+        callbackURL: callbackURL,
         scope: ['profile', 'email']
       },      async (accessToken, refreshToken, profile, done) => {
         try {

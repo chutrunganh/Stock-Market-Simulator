@@ -115,18 +115,24 @@ const validateSellOrderQuantity = async (req, res, next) => {
         // Validate quantity
         if (typeof quantity !== 'number' || quantity <= 0 || !Number.isInteger(quantity)) {
              return res.status(400).json({ message: 'Invalid quantity: Quantity must be a positive integer.' });
-        }
+        }        // Get the portfolio for this user
+        const portfolioQuery = `
+            SELECT portfolio_id
+            FROM portfolios
+            WHERE user_id = $1`;
 
-        // Find the portfolio_id associated with the userId
-        const portfolioQuery = `SELECT portfolio_id FROM portfolios WHERE user_id = $1`;
         const portfolioResult = await pool.query(portfolioQuery, [userId]);
 
         if (portfolioResult.rows.length === 0) {
-            return res.status(404).json({ message: 'Portfolio not found for this user.' });
+            return res.status(404).json({
+                message: 'No portfolio found for this user.',
+                userId
+            });
         }
+
         const portfolioId = portfolioResult.rows[0].portfolio_id;
 
-        // Check current holdings using the correct portfolioId
+        // Check current holdings
         const holdingsQuery = `
             SELECT quantity
             FROM holdings
@@ -186,26 +192,30 @@ const validateBuyOrderBalance = async (req, res, next) => {
                 message: 'Price is required and must be a positive number for limit buy orders.',
                 received: { price }
             });
-        }
-
-        // Find the portfolio_id and cash_balance associated with the userId
-        const portfolioQuery = `SELECT portfolio_id, cash_balance FROM portfolios WHERE user_id = $1`;
-        const portfolioResult = await pool.query(portfolioQuery, [userId]);
-
-        if (portfolioResult.rows.length === 0) {
-            return res.status(404).json({ message: 'Portfolio not found for this user.' });
-        }
-
-        const portfolio = portfolioResult.rows[0];
-        const portfolioId = portfolio.portfolio_id; // Use the correct portfolioId
-        const currentBalance = portfolio.cash_balance;
+        }        // Calculate the total cost of the order
         const orderCost = quantity * price;
 
-        // Check current portfolio balance
-        if (currentBalance < orderCost) {
+        // Get the portfolio for this user
+        const portfolioQuery = `
+            SELECT portfolio_id, cash_balance
+            FROM portfolios
+            WHERE user_id = $1`;
+
+        const result = await pool.query(portfolioQuery, [userId]);
+
+        // Check if portfolio exists and has enough balance
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                message: 'No portfolio found for this user.',
+                userId
+            });
+        }
+
+        const portfolio = result.rows[0];
+        if (portfolio.cash_balance < orderCost) {
             return res.status(400).json({
                 message: 'Insufficient balance for buy order.',
-                available: currentBalance,
+                available: portfolio.cash_balance,
                 required: orderCost
             });
         }
@@ -216,6 +226,7 @@ const validateBuyOrderBalance = async (req, res, next) => {
         next(error); // Pass the error to the main error handler
     }
 };
+
 
 /**
  * Combined middleware that runs all order validations in sequence
@@ -246,6 +257,7 @@ const validateOrder = (req, res, next) => {
         });
     });
 };
+
 
 export {
     validateOrder

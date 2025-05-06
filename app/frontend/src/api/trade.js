@@ -36,7 +36,7 @@ export const getStockBySymbol = async (symbol) => {
 
 export const createOrder = async (orderData) => {
   try {
-    const response = await apiClient.post('/createOrder', orderData);
+    const response = await apiClient.post('/orders/createOrder', orderData);
     // Emit order created event for the app to respond to
     if (response.data.success !== false) { // Only emit if order actually created
       eventEmitter.emit('orderCreated', response.data);
@@ -55,7 +55,7 @@ export const createOrder = async (orderData) => {
  */
 export const cancelOrder = async (orderId) => {
   try {
-    const response = await apiClient.delete(`/cancelOrder/${orderId}`);
+    const response = await apiClient.delete(`/orders/cancelOrder/${orderId}`);
     return response.data;
   } catch (error) {
     console.error('Error canceling order:', error);

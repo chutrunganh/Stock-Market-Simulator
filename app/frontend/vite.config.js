@@ -10,7 +10,7 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: `http://localhost:${process.env.BE_PORT || 3000}`,
+        target: process.env.BE_URL,
         changeOrigin: true,
         secure: false,
         ws: true, // Enable WebSocket proxying

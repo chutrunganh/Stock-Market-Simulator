@@ -1,4 +1,5 @@
 import { OrderBook } from './orderMatchingService.js';
+import pool from '../config/dbConnect.js';
 
 // Initialize the OrderBook once at the module level so it can be shared across services
 // This ensures that all order CRUD operations use the same instance of OrderBook
@@ -8,15 +9,32 @@ const orderBook = OrderBook.getInstance();
 // Every time an order is created, it will be added to the order book then matched with existing orders
 export const createOrderService = async (orderData) => {
     const { userId, stockId, quantity, price, orderType } = orderData;
-    const order = {
-        id: Date.now().toString(), // Unique ID as string
-        portfolioId: userId, // Assuming userId maps to portfolioId
-        stockId,
-        volume: quantity,
-        price,
-        type: orderType, // "Order Buy", "Order Sell", "Market Buy", "Market Sell"
-        timestamp: Date.now(), // Timestamp for order arrangement incase of limit orders with same price
-    };
+    
+    // Get the actual portfolio ID for this user
+    try {
+        const portfolioQuery = `
+            SELECT portfolio_id
+            FROM portfolios
+            WHERE user_id = $1`;
+            
+        // Using the imported pool
+        const portfolioResult = await pool.query(portfolioQuery, [userId]);
+        
+        if (portfolioResult.rows.length === 0) {
+            throw new Error(`No portfolio found for user ID: ${userId}`);
+        }
+        
+        const portfolioId = portfolioResult.rows[0].portfolio_id;
+        
+        const order = {
+            id: Date.now().toString(), // Unique ID as string
+            portfolioId: portfolioId, // Using the correct portfolioId from the query
+            stockId,
+            volume: quantity,
+            price,
+            type: orderType, // "Order Buy", "Order Sell", "Market Buy", "Market Sell"
+            timestamp: Date.now(), // Timestamp for order arrangement incase of limit orders with same price
+        };
 
     console.log('Creating order with information:', order);
     
@@ -30,11 +48,15 @@ export const createOrderService = async (orderData) => {
         // For limit orders, add them to the queue for then matching
         orderBook.addOrderToQuene(order);
         orderBook.limitOrderMatching(order); // Perform matching for limit orders
-    }
-    // DEBUGGING: Display the order book after matching
+    }    // DEBUGGING: Display the order book after matching
     console.log('After matching, currently book:') 
     orderBook.displayOrderBook();
     return order;
+    
+    } catch (error) {
+        console.error('Error in createOrderService:', error);
+        throw error;
+    }
 };
 
 //this function is used to create an "artificial order" (giao dịch ảo)
