@@ -194,3 +194,16 @@ DELETE /api/cancelOrder/1744103796519
 
 
 
+
+### Get all stock prices for admin
+GET http://localhost:3000/api/admin/stockPrice
+Cookie: jwt={{admin_jwt}}
+
+### Get stock prices by stock id for user
+### This example will get all the stock prices of the stock with id 1
+### the user_jwt may be out-of-date, so be careful
+### another way is to login to get the newest jwt
+### this feature is for user anyway so only need to care if we are testing
+GET http://localhost:3000/api/stockPrice/1
+Authorization: Bearer {{user_jwt}}
+
