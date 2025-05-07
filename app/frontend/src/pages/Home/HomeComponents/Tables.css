@@ -9,12 +9,18 @@
 
 /* Hover effect for rows */
 .MuiTableRow-root:hover {
-  background-color: #eef5ff !important;
+  background-color: #fff9c4 !important;
+  cursor: pointer;
 }
 
 /* Header styling */
 .MuiTableHead-root .MuiTableRow-root {
   background-color: #e7eef6 !important;
+}
+
+.MuiTableHead-root .MuiTableCell-root {
+  font-weight: bold !important;
+  border-bottom: 2px solid #000000 !important;
 }
 
 /* Make price cells bold */
