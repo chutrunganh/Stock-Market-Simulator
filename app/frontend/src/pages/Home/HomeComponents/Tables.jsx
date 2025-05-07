@@ -87,6 +87,15 @@ const getCellTextColor = (columnId, value, floor, ceil, ref, match_prc, row) => 
     'match_prc': row.match_prc, 'match_vol': row.match_prc
   };
 
+  // For match price and volume, check if it's a recent match
+  if (columnId === 'match_prc' || columnId === 'match_vol') {
+    const isRecentMatch = row.match_timestamp && 
+      (new Date() - new Date(row.match_timestamp)) < 5000; // Highlight for 5 seconds
+    if (isRecentMatch) {
+      return COLORS.UP; // Highlight recent matches
+    }
+  }
+
   return priceMap[columnId] ? compareRefAndPrice(ref, priceMap[columnId], floor, ceil) : 'inherit';
 };
 
@@ -181,7 +190,9 @@ function Tables() {
   const [orderBookData, setOrderBookData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-    // Handle SSE connection and initial data loading
+  const [lastUpdateTime, setLastUpdateTime] = useState(null);
+
+  // Handle SSE connection and initial data loading
   useEffect(() => {
     let eventSource = null;
     let retryCount = 0;
@@ -195,7 +206,8 @@ function Tables() {
         const data = await getOrderBookData();
         if (data && Array.isArray(data)) {
           setOrderBookData(data);
-          setError(null); // Clear any previous errors
+          setLastUpdateTime(new Date());
+          setError(null);
         }
         setLoading(false);
       } catch (error) {
@@ -207,18 +219,16 @@ function Tables() {
     
     // Initialize SSE connection
     const initSSEConnection = () => {
-      // Make sure to close any existing connection
       if (eventSource) {
         eventSource.close();
       }
       
-      // Create new connection
       eventSource = createOrderBookStream();
       
       eventSource.onopen = () => {
         console.log('SSE connection established');
-        retryCount = 0; // Reset retry count on successful connection
-        setError(null); // Clear any previous errors
+        retryCount = 0;
+        setError(null);
       };
       
       eventSource.onmessage = (event) => {
@@ -226,7 +236,9 @@ function Tables() {
           const { type, data } = JSON.parse(event.data);
           
           if ((type === 'initial' || type === 'update') && Array.isArray(data)) {
+            // Update the data and timestamp
             setOrderBookData(data);
+            setLastUpdateTime(new Date());
             setLoading(false);
           }
         } catch (error) {
@@ -238,29 +250,22 @@ function Tables() {
         console.error('SSE connection error:', e);
         eventSource.close();
         
-        // Only retry a limited number of times
         if (retryCount < maxRetries) {
           retryCount++;
-          const retryDelay = 2000 * retryCount; // Exponential backoff
+          const retryDelay = 2000 * retryCount;
           console.log(`Retrying SSE connection in ${retryDelay}ms (attempt ${retryCount}/${maxRetries})`);
           
-          // Try to load data via REST API while SSE is down
           loadInitialData();
-          
-          // Wait and retry SSE connection
           retryTimeout = setTimeout(initSSEConnection, retryDelay);
         } else {
-          // After max retries, just keep the REST data and show error
           setError('Real-time updates unavailable. Data may not be current.');
         }
       };
     };
     
-    // Start everything
     loadInitialData();
     initSSEConnection();
     
-    // Clean up SSE connection when component unmounts
     return () => {
       if (eventSource) {
         eventSource.close();
@@ -292,24 +297,34 @@ function Tables() {
       const ceilPrice = Math.round(refPrice * 1.07 * 100) / 100;
       const floorPrice = Math.round(refPrice * 0.93 * 100) / 100;
 
-      return createData(
-        stockData.symbol,
-        refPrice,
-        ceilPrice,
-        floorPrice,
-        stockData.bid_prc1 || 0,
-        stockData.bid_vol1 || 0,
-        stockData.bid_prc2 || 0,
-        stockData.bid_vol2 || 0,
-        stockData.match_prc || 0,
-        stockData.match_vol || 0,
-        stockData.ask_prc1 || 0,
-        stockData.ask_vol1 || 0,
-        stockData.ask_prc2 || 0,
-        stockData.ask_vol2 || 0
-      );
+      // Ensure match data is properly formatted
+      const matchData = {
+        price: stockData.match_prc || 0,
+        volume: stockData.match_vol || 0,
+        timestamp: stockData.match_timestamp || null
+      };
+
+      return {
+        ...createData(
+          stockData.symbol,
+          refPrice,
+          ceilPrice,
+          floorPrice,
+          stockData.bid_prc1 || 0,
+          stockData.bid_vol1 || 0,
+          stockData.bid_prc2 || 0,
+          stockData.bid_vol2 || 0,
+          matchData.price,
+          matchData.volume,
+          stockData.ask_prc1 || 0,
+          stockData.ask_vol1 || 0,
+          stockData.ask_prc2 || 0,
+          stockData.ask_vol2 || 0
+        ),
+        match_timestamp: matchData.timestamp
+      };
     });
-  }, [orderBookData]);
+  }, [orderBookData, lastUpdateTime]);
 
   // Display loading state or error
   if (loading) {

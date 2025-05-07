@@ -1,4 +1,5 @@
 import { settleMatchedOrder } from './orderSettlementService.js';
+import { emitOrderBookUpdate } from '../controllers/orderBookController.js';
 
 // Order Matching Service
 // This service is responsible for matching buy and sell orders based on price and time priority.
@@ -114,49 +115,159 @@ export class OrderBook {
     }
   }
 
-  async limitOrderMatching() {
+  // Handle limit order matching
+  async limitOrderMatching(order) {
+    // Add the order to the appropriate queue
+    this.addOrderToQuene(order);
+
+    // Try to match the order immediately
+    if (order.type === "Limit Buy") {
+      while (this.limitSellOrderQueue.length > 0) {
+        const sellOrder = this.limitSellOrderQueue[0];
+        if (order.price >= sellOrder.price) {
+          const matchedQuantity = Math.min(order.volume, sellOrder.volume);
+          const matchedPrice = sellOrder.price;
+
+          // Update volumes
+          order.volume -= matchedQuantity;
+          sellOrder.volume -= matchedQuantity;
+
+          // Settle the matched order
+          await settleMatchedOrder({
+            buyerPortfolioId: order.portfolioId,
+            sellerPortfolioId: sellOrder.portfolioId,
+            stockId: order.stockId,
+            quantity: matchedQuantity,
+            price: matchedPrice,
+            matchType: 'limit'
+          });
+
+          // Store the transaction for display with ISO timestamp
+          this.recentTransactions[order.stockId] = {
+            price: matchedPrice,
+            volume: matchedQuantity,
+            timestamp: new Date().toISOString()
+          };
+
+          // Emit update with match data
+          await emitOrderBookUpdate({
+            stockId: order.stockId,
+            price: matchedPrice,
+            volume: matchedQuantity
+          });
+
+          // Remove completed sell order
+          if (sellOrder.volume === 0) {
+            this.limitSellOrderQueue.shift();
+          }
+
+          // If buy order is filled, remove it from queue
+          if (order.volume === 0) {
+            this.limitBuyOrderQueue = this.limitBuyOrderQueue.filter(o => o.id !== order.id);
+            break;
+          }
+        } else {
+          break;
+        }
+      }
+    } else if (order.type === "Limit Sell") {
+      while (this.limitBuyOrderQueue.length > 0) {
+        const buyOrder = this.limitBuyOrderQueue[0];
+        if (buyOrder.price >= order.price) {
+          const matchedQuantity = Math.min(order.volume, buyOrder.volume);
+          const matchedPrice = buyOrder.price;
+
+          // Update volumes
+          order.volume -= matchedQuantity;
+          buyOrder.volume -= matchedQuantity;
+
+          // Settle the matched order
+          await settleMatchedOrder({
+            buyerPortfolioId: buyOrder.portfolioId,
+            sellerPortfolioId: order.portfolioId,
+            stockId: order.stockId,
+            quantity: matchedQuantity,
+            price: matchedPrice,
+            matchType: 'limit'
+          });
+
+          // Store the transaction for display with ISO timestamp
+          this.recentTransactions[order.stockId] = {
+            price: matchedPrice,
+            volume: matchedQuantity,
+            timestamp: new Date().toISOString()
+          };
+
+          // Emit update with match data
+          await emitOrderBookUpdate({
+            stockId: order.stockId,
+            price: matchedPrice,
+            volume: matchedQuantity
+          });
+
+          // Remove completed buy order
+          if (buyOrder.volume === 0) {
+            this.limitBuyOrderQueue.shift();
+          }
+
+          // If sell order is filled, remove it from queue
+          if (order.volume === 0) {
+            this.limitSellOrderQueue = this.limitSellOrderQueue.filter(o => o.id !== order.id);
+            break;
+          }
+        } else {
+          break;
+        }
+      }
+    }
+  }
+
+  // Match orders
+  matchOrders() {
     while (this.limitBuyOrderQueue.length > 0 && this.limitSellOrderQueue.length > 0) {
-      const buyOrder = this.limitBuyOrderQueue[0]; // Highest price buy order
-      const sellOrder = this.limitSellOrderQueue[0]; // Lowest price sell order
+      const buyOrder = this.limitBuyOrderQueue[0];
+      const sellOrder = this.limitSellOrderQueue[0];
 
-      // Ensure the stock IDs match before attempting to match orders
-      // and check if the buy order price is greater than or equal to the sell order price
-      // This is a simplified matching logic; in a real-world scenario, you would also consider order types and other factors, polies
-      if (buyOrder.stockId === sellOrder.stockId && buyOrder.price >= sellOrder.price) {
-        const matchedQuantity = Math.min(buyOrder.volume, sellOrder.volume);
-        const matchedPrice = sellOrder.price;
+      if (buyOrder.price >= sellOrder.price) {
+        // Match found
+        const matchQuantity = Math.min(buyOrder.volume, sellOrder.volume);
+        const matchPrice = sellOrder.price;
 
-        // Update volumes
-        buyOrder.volume -= matchedQuantity;
-        sellOrder.volume -= matchedQuantity;
+        // Update order volumes
+        buyOrder.volume -= matchQuantity;
+        sellOrder.volume -= matchQuantity;
 
-        // Settle the matched order
-        await settleMatchedOrder({
-          buyerPortfolioId: buyOrder.portfolioId,
-          sellerPortfolioId: sellOrder.portfolioId,
-          stockId: buyOrder.stockId,
-          quantity: matchedQuantity,
-          price: matchedPrice,
-          matchType: 'limit'
-        });
+        // Remove filled orders
+        if (buyOrder.volume === 0) {
+          this.limitBuyOrderQueue.shift();
+        }
+        if (sellOrder.volume === 0) {
+          this.limitSellOrderQueue.shift();
+        }
 
-        // Store the transaction for display
+        // Record the match
         this.recentTransactions[buyOrder.stockId] = {
-          price: matchedPrice,
-          volume: matchedQuantity,
+          price: matchPrice,
+          volume: matchQuantity,
           timestamp: new Date()
         };
 
-        // Remove completed orders
-        if (buyOrder.volume === 0) this.limitBuyOrderQueue.shift();
-        if (sellOrder.volume === 0) this.limitSellOrderQueue.shift();
+        // Emit update with match data
+        emitOrderBookUpdate({
+          stockId: buyOrder.stockId,
+          price: matchPrice,
+          volume: matchQuantity
+        });
+
+        // Process the match (update holdings, etc.)
+        this.processMatch(buyOrder, sellOrder, matchQuantity, matchPrice);
       } else {
+        // No more matches possible
         break;
       }
     }
   }
 
-  
   // Remove orders from the queues (e.g., when they are canceled an order)
   // Only limit order can be canceled, market orders are executed immediatelyso they cannot be canceled
   removeOrderFromQuene(orderId) {

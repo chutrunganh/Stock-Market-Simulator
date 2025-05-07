@@ -42,13 +42,12 @@ export const createOrderService = async (orderData) => {
     // Incase it is a market order, execute it immediately
     if (order.type === 'Market Buy' || order.type === 'Market Sell') {
         orderBook.marketOrderMatching(order); // Perform matching for market orders
-  
-
     } else if (order.type === 'Limit Buy' || order.type === 'Limit Sell') {
-        // For limit orders, add them to the queue for then matching
-        orderBook.addOrderToQuene(order);
-        orderBook.limitOrderMatching(order); // Perform matching for limit orders
-    }    // DEBUGGING: Display the order book after matching
+        // For limit orders, add them to the queue and perform matching
+        orderBook.limitOrderMatching(order); // This will handle both adding to queue and matching
+    }    
+
+    // DEBUGGING: Display the order book after matching
     console.log('After matching, currently book:') 
     orderBook.displayOrderBook();
     return order;

@@ -57,13 +57,19 @@ export const orderBookSSE = (req, res) => {
 };
 
 // Function to emit updates to all connected clients
-export const emitOrderBookUpdate = async () => {
+export const emitOrderBookUpdate = async (matchData = null) => {
   try {
     const stocksResult = await getAllStocksWithLatestPricesService();
     const orderBook = OrderBook.getInstance();
     const buyOrders = orderBook.limitBuyOrderQueue || [];
     const sellOrders = orderBook.limitSellOrderQueue || [];
     const recentTransactions = orderBook.recentTransactions || {};
+    
+    // If matchData is provided, update the recentTransactions for the matched stock
+    if (matchData) {
+      const { stockId, price, volume } = matchData;
+      recentTransactions[stockId] = { price, volume, timestamp: new Date() };
+    }
     
     const processedData = processOrderBookData(stocksResult, buyOrders, sellOrders, recentTransactions);
     orderBookEmitter.emit('update', processedData);
@@ -125,7 +131,8 @@ const processOrderBookData = (stocks, buyOrders, sellOrders, recentTransactions)
       ask_prc2: stockSellOrders[1]?.price || 0,
       ask_vol2: stockSellOrders[1]?.volume || 0,
       match_prc: transaction?.price || 0,
-      match_vol: transaction?.volume || 0
+      match_vol: transaction?.volume || 0,
+      match_timestamp: transaction?.timestamp || null
     };
   });
 };
