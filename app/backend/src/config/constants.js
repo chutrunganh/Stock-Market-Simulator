@@ -3,6 +3,9 @@
  * @description This file contains constant values used throughout the application
  */
 
+// Defined number of hash rounds for bcrypt
+export const SALT_ROUNDS = 10;
+
 // Initial cash balance for new user portfolios
 export const INITIAL_CASH_BALANCE = 100000.00;
 

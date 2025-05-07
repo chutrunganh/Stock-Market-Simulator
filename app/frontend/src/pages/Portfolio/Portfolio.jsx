@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Box, Typography, Paper, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress } from '@mui/material';
-import axios from 'axios';
+import { getPortfolioDetails, getHoldings, getTransactions } from '../../api/portfolio';
 import './Portfolio.css';
 
 function Portfolio() {
@@ -25,8 +25,8 @@ function Portfolio() {
     const fetchPortfolioDetails = async () => {
         try {
             setLoading(prev => ({ ...prev, details: true }));
-            const response = await axios.get('/api/portfolio/details');
-            setPortfolioDetails(response.data.data);
+            const response = await getPortfolioDetails();
+            setPortfolioDetails(response.data);
             setError(null);
         } catch (err) {
             setError('Failed to load portfolio details, check your internet connection or re-login');
@@ -40,8 +40,8 @@ function Portfolio() {
         if (!showHoldings) {
             try {
                 setLoading(prev => ({ ...prev, holdings: true }));
-                const response = await axios.get('/api/portfolio/holdings');
-                setHoldings(response.data.data);
+                const response = await getHoldings();
+                setHoldings(response.data);
                 setError(null);
             } catch (err) {
                 setError('Failed to load holdings');
@@ -57,8 +57,8 @@ function Portfolio() {
         if (!showTransactions) {
             try {
                 setLoading(prev => ({ ...prev, transactions: true }));
-                const response = await axios.get('/api/portfolio/transactions');
-                setTransactions(response.data.data);
+                const response = await getTransactions();
+                setTransactions(response.data);
                 setError(null);
             } catch (err) {
                 setError('Failed to load transactions');

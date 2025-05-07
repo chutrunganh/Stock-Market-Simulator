@@ -1,12 +1,13 @@
-
 import { Link, NavLink } from 'react-router-dom';
 import React, { useState } from 'react';
 import userIcon from '../../assets/images/userIcon.png';
+import { useAuth } from '../../context/AuthContext';
 import './Header.css';
 
 function Header({ onLoginClick, isLoggedIn, userEmail, onLogoutClick }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [localState, setLocalState] = React.useState({ isLoggedIn, userEmail });
+  const { user } = useAuth();
 
   // Debug log to see authentication state
   console.log('Header render - Auth state:', { isLoggedIn, userEmail });
@@ -58,9 +59,11 @@ function Header({ onLoginClick, isLoggedIn, userEmail, onLogoutClick }) {
               <li tabIndex="0" onClick={() => console.log('Portfolio clicked')}>
                 <NavLink to="/portfolio" className="navbar__link">Portfolio</NavLink>
               </li>
-              <li tabIndex="0" onClick={() => console.log('Admin clicked')}>
-                <NavLink to="/admin" className="navbar__link">Admin</NavLink>
-              </li>
+              {user?.role === 'admin' && (
+                <li tabIndex="0" onClick={() => console.log('Admin clicked')}>
+                  <NavLink to="/admin" className="navbar__link">Admin</NavLink>
+                </li>
+              )}
             </>
           )}
         </ul>

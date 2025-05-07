@@ -5,14 +5,13 @@
  * When writing SQL queries, it's important to use $1, $2, etc. as placeholders for parameters to prevent SQL injection attacks.
 */
 import bcrypt from 'bcrypt';
-const SALT_ROUNDS = 10; // Cost factor for bcrypt
 import pool from '../config/dbConnect.js';
 import User from '../models/userModel.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import { createDefaultHoldingsForPortfolioService } from './holdingCRUDService.js';
 import { createPortfolioForUserService } from './portfolioCRUDService.js';
-import { INITIAL_CASH_BALANCE } from '../config/constants.js';
+import {SALT_ROUNDS } from '../config/constants.js';
 dotenv.config({ path: '../../.env' }); // Adjust based on relative depth
 
 

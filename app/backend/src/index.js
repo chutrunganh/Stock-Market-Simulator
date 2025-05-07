@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
+import bcrypt from 'bcrypt';
 
 // ====== Internal Dependencies ======
 
@@ -22,6 +23,7 @@ import createTransactionTable from './config/createTransactionTable.js';
 import createStockTable from './config/createStockTable.js';
 import createStockPriceTable from './config/createStockPriceTable.js';
 import createHoldingTable from './config/createHoldingTable.js';
+import { INITIAL_CASH_BALANCE, SALT_ROUNDS } from './config/constants.js';
 
 
 // --- Routes ---
@@ -36,8 +38,6 @@ import portfolioRoutes from './routes/portfolioRoutes.js';
 // --- Middlewares ---
 import errorHandling from './middlewares/errorHandlerMiddleware.js';
 
-// --- Controllers ---
-import { googleAuth, googleAuthCallback } from './controllers/userControllers.js';
 
 // ===== Initialize Express App ======
 const app = express();
@@ -119,9 +119,64 @@ const initializeDatabase = async () => {  try {
   }
 };
 
+/**
+ * Initialize Admin User
+ * 
+ * This function creates a default admin user with an empty portfolio.
+ * Important notes:
+ * 1. When using userCRUDService, it automatically creates:
+ *    - User record
+ *    - Associated portfolio
+ *    - Initial holdings
+ * 
+ * 2. For manual user creation (not using userCRUDService):
+ *    - Must manually create portfolio
+ *    - Must manually create initial holdings
+ *    - Otherwise, foreign key constraints will fail
+ */
+const initializeAdminUser = async () => {
+    try {
+        const adminEmail = process.env.ADMIN_EMAIL || 'admin@stockmarket.com';
+        const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+        const adminUsername = process.env.ADMIN_USERNAME || 'admin';
+        
+        // Hash the admin password using SALT_ROUNDS from constants
+        const hashedPassword = await bcrypt.hash(adminPassword, SALT_ROUNDS);
+        
+        // Check if admin user already exists
+        const checkAdmin = await pool.query(
+            'SELECT * FROM users WHERE email = $1',
+            [adminEmail]
+        );
+
+        if (checkAdmin.rows.length === 0) {
+            // Create admin user with hashed password
+            const adminResult = await pool.query(
+                'INSERT INTO users (email, password, username, role) VALUES ($1, $2, $3, $4) RETURNING id',
+                [adminEmail, hashedPassword, adminUsername, 'admin']
+            );
+            
+            const adminId = adminResult.rows[0].id;
+            
+            // Create admin portfolio
+            await pool.query(
+                'INSERT INTO portfolios (user_id, cash_balance) VALUES ($1, $2)',
+                [adminId, INITIAL_CASH_BALANCE] // Use INITIAL_CASH_BALANCE from constants
+            );
+            
+            log.info('Admin user initialized successfully');
+        } else {
+            log.info('Admin user already exists');
+        }
+    } catch (error) {
+        log.error('Failed to initialize admin user:', error);
+    }
+};
+
 // Start server after database initialization
 const startServer = async () => {
     await initializeDatabase();
+    await initializeAdminUser();
     
     app.listen(port, () => {
         log.info(`Server is running on port ${port}`);

@@ -9,7 +9,7 @@ import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import Header from './components/header/Header';
 import Modal from './components/Modal';
 import Footer from './components/footer/Footer';
-import ProtectedRoute from './components/ProtectedRoute';
+import RoleProtectedRoute from './components/RoleProtectedRoute';
 
 // Pages
 import Home from './pages/Home/Home';
@@ -204,26 +204,38 @@ function App() {
                 {/* Routes */}
                 <main className="main-content">
                     <Routes>
+                        {/* Public Routes (no requiredRole) */}
                         <Route path="/" element={<Home />} />
                         <Route path="/home" element={<Home />} />
-                        <Route path="/trade" element={<Trade />} />
+                        <Route path="/tutorial" element={<Tutorial />} />
+
+                        {/* Protected Routes (requires login) */}
+                        <Route 
+                            path="/trade" 
+                            element={
+                                <RoleProtectedRoute requiredRole="user">
+                                    <Trade />
+                                </RoleProtectedRoute>
+                            } 
+                        />
                         <Route 
                             path="/portfolio" 
                             element={
-                                <ProtectedRoute>
+                                <RoleProtectedRoute requiredRole="user">
                                     <Portfolio />
-                                </ProtectedRoute>
+                                </RoleProtectedRoute>
                             } 
                         />
+
+                        {/* Admin Routes (requires admin role) */}
                         <Route 
                             path="/admin" 
                             element={
-                                <ProtectedRoute>
+                                <RoleProtectedRoute requiredRole="admin">
                                     <AdminPage />
-                                </ProtectedRoute>
+                                </RoleProtectedRoute>
                             } 
                         />
-                        <Route path="/tutorial" element={<Tutorial />} />
                     </Routes>
                 </main>
                 
