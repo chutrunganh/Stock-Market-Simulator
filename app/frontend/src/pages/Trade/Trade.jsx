@@ -1,7 +1,7 @@
 import './Trade.css';
 import React, { useState, useEffect, useMemo } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { createOrder, getMostTradedStocks, getStockBySymbol } from '../api/trade';
+import { useAuth } from '../../context/AuthContext';
+import { createOrder, getMostTradedStocks, getStockBySymbol } from '../../api/trade';
 
 
 

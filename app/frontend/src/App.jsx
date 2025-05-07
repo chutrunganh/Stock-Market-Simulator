@@ -13,9 +13,10 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 // Pages
 import Home from './pages/Home/Home';
-import Trade from './pages/Trade';
-import Portfolio from './pages/Portfolio';
-import Tutorial from './pages/Tutorial';
+import Trade from './pages/Trade/Trade';
+import Portfolio from './pages/Portfolio/Portfolio';
+import Tutorial from './pages/Tutorial/Tutorial';
+import AdminPage from './pages/Admin/Admin';
 
 // Forms
 import LoginForm from './components/forms/LoginForm';
@@ -211,6 +212,14 @@ function App() {
                             element={
                                 <ProtectedRoute>
                                     <Portfolio />
+                                </ProtectedRoute>
+                            } 
+                        />
+                        <Route 
+                            path="/admin" 
+                            element={
+                                <ProtectedRoute>
+                                    <AdminPage />
                                 </ProtectedRoute>
                             } 
                         />
