@@ -22,6 +22,9 @@ import createTransactionTable from './config/createTransactionTable.js';
 import createStockTable from './config/createStockTable.js';
 import createStockPriceTable from './config/createStockPriceTable.js';
 import createHoldingTable from './config/createHoldingTable.js';
+import {getStockBySymbolService} from './services/stockService.js';
+import {getStockPricesByStockIdService} from './services/stockPriceService.js';
+import stockPriceRoutes from './routes/stockPriceRoutes.js';
 
 // --- Routes ---
 import userRoutes from './routes/userRoutes.js';
@@ -97,6 +100,8 @@ app.use('/api/portfolio', portfolioRoutes);
 // --- Error Handling Middleware ---
 // This should be the last middleware in the stack
 // It will catch any errors that occur in the routes or other middlewares
+// Routes
+
 app.use(errorHandling);
 
 // --- Initialize All Database Tables ---
