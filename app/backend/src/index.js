@@ -22,9 +22,7 @@ import createTransactionTable from './config/createTransactionTable.js';
 import createStockTable from './config/createStockTable.js';
 import createStockPriceTable from './config/createStockPriceTable.js';
 import createHoldingTable from './config/createHoldingTable.js';
-import {getStockBySymbolService} from './services/stockService.js';
-import {getStockPricesByStockIdService} from './services/stockPriceService.js';
-import stockPriceRoutes from './routes/stockPriceRoutes.js';
+
 
 // --- Routes ---
 import userRoutes from './routes/userRoutes.js';
