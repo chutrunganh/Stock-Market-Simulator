@@ -42,3 +42,5 @@ It will require you to enter the stock symbol, such as AAPL. If the stock is alr
 The value range will be for 30 days by default, you can modified it yourself by enter the specific start date and end date.
 
 If the stock does not exist in the database, it will add the stock and the prices.
+
+//
