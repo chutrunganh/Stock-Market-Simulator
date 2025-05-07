@@ -6,17 +6,53 @@
 
 // --- Logging ---
 import log from '../utils/loggerUtil.js';
+import { recordSessionPricesService } from './stockPriceCRUDService.js';
+import { OrderBook } from './orderMatchingService.js';
+import { emitOrderBookUpdate } from '../controllers/orderBookController.js';
+import pool from '../config/dbConnect.js';
 
 let isTradingSessionActive = true; // By default when the server starts, the trading session is active
 
-export const activateTradingSession = () => {
-    isTradingSessionActive = true;
-    log.info('Trading session started.');
+export const activateTradingSession = async () => {
+    try {
+        // Clear the orderbook when starting a new session
+        const orderBook = OrderBook.getInstance();
+        orderBook.clearOrderBook();
+        
+        isTradingSessionActive = true;
+        log.info('Trading session started with fresh orderbook.');
+        
+        // Emit update to refresh the UI with latest prices
+        await emitOrderBookUpdate();
+    } catch (error) {
+        log.error('Error starting trading session:', error);
+        throw error;
+    }
 };
 
-export const deactivateTradingSession = () => {
-    isTradingSessionActive = false;
-    log.info('Trading session stopped.');
+export const deactivateTradingSession = async () => {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        // Record session prices
+        await recordSessionPricesService(client);
+
+        // Clear the in-memory orderbook
+        const orderBook = OrderBook.getInstance();
+        orderBook.clearOrderBook();
+
+        isTradingSessionActive = false;
+        log.info('Trading session stopped, prices recorded, and orderbook cleared.');
+
+        await client.query('COMMIT');
+    } catch (error) {
+        await client.query('ROLLBACK');
+        log.error('Error in deactivating trading session:', error);
+        throw error;
+    } finally {
+        client.release();
+    }
 };
 
 export const isTradingSessionActiveStatus = () => {

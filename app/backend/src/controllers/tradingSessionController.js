@@ -19,10 +19,10 @@ export const startTradingSession = (req, res) => {
     }
 };
 
-export const stopTradingSession = (req, res) => {
+export const stopTradingSession = async (req, res) => {
     try {
-        deactivateTradingSession();
-        res.status(200).json({ success: true, message: 'Trading session stopped.' });
+        await deactivateTradingSession();
+        res.status(200).json({ success: true, message: 'Trading session stopped and prices recorded.' });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Failed to stop trading session.', error: error.message });
     }

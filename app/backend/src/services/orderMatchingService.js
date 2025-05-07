@@ -23,6 +23,12 @@ export class OrderBook {
     return OrderBook.instance;
   }
 
+  clearOrderBook() {
+    this.limitBuyOrderQueue = [];
+    this.limitSellOrderQueue = [];
+    this.recentTransactions = {};
+  }
+
   // --- Market Order Matching ---
   // Match market orders with the best available limit orders
   async marketOrderMatching(order) {
@@ -158,94 +164,93 @@ export class OrderBook {
     this.limitSellOrderQueue = this.limitSellOrderQueue.filter(order => order.id !== orderId);
   }
 
+  // Display the order book in a properly aligned tabular format with full borders
+  displayOrderBook() {
+    // Group orders by stockId
+    const stockGroups = {};
 
-    // Display the order book in a properly aligned tabular format with full borders
-    displayOrderBook() {
-      // Group orders by stockId
-      const stockGroups = {};
-
-      // Helper function to aggregate orders by price
-      // For example, if there are two limit orders: order 1 price 10.00 volume 100 and order 2 price 10.00 volume 50,
-      // then the table should be updated to show one entry price 10.00 150 instead of two entries 10.00 100 10.00 50 
-      const aggregateOrders = (orders, isBuyOrder) => {
-        const aggregated = {};
-        orders.forEach(order => {
-          const price = order.price;
-          if (!aggregated[price]) {
-            aggregated[price] = { price, volume: 0 };
-          }
-          aggregated[price].volume += order.volume;
-        });
-        // Sort buy orders high to low, sell orders low to high
-        return Object.values(aggregated).sort((a, b) => 
-          isBuyOrder ? b.price - a.price : a.price - b.price
-        );
-      };
-
-      // Process buy orders
-      this.limitBuyOrderQueue.forEach(order => {
-        if (!stockGroups[order.stockId]) {
-          stockGroups[order.stockId] = {
-            bids: [],
-            asks: []
-          };
+    // Helper function to aggregate orders by price
+    // For example, if there are two limit orders: order 1 price 10.00 volume 100 and order 2 price 10.00 volume 50,
+    // then the table should be updated to show one entry price 10.00 150 instead of two entries 10.00 100 10.00 50 
+    const aggregateOrders = (orders, isBuyOrder) => {
+      const aggregated = {};
+      orders.forEach(order => {
+        const price = order.price;
+        if (!aggregated[price]) {
+          aggregated[price] = { price, volume: 0 };
         }
-        stockGroups[order.stockId].bids = aggregateOrders(
-          this.limitBuyOrderQueue.filter(o => o.stockId === order.stockId),
-          true
-        );
+        aggregated[price].volume += order.volume;
       });
+      // Sort buy orders high to low, sell orders low to high
+      return Object.values(aggregated).sort((a, b) => 
+        isBuyOrder ? b.price - a.price : a.price - b.price
+      );
+    };
 
-      // Process sell orders
-      this.limitSellOrderQueue.forEach(order => {
-        if (!stockGroups[order.stockId]) {
-          stockGroups[order.stockId] = {
-            bids: [],
-            asks: []
-          };
-        }
-        stockGroups[order.stockId].asks = aggregateOrders(
-          this.limitSellOrderQueue.filter(o => o.stockId === order.stockId),
-          false
-        );
-      });
+    // Process buy orders
+    this.limitBuyOrderQueue.forEach(order => {
+      if (!stockGroups[order.stockId]) {
+        stockGroups[order.stockId] = {
+          bids: [],
+          asks: []
+        };
+      }
+      stockGroups[order.stockId].bids = aggregateOrders(
+        this.limitBuyOrderQueue.filter(o => o.stockId === order.stockId),
+        true
+      );
+    });
 
-      // Display the order book for each stock
-      console.log('\n');
-      console.log('╔════════════╦═══════════════════════════════════════╦════════════════════╦═══════════════════════════════════════╗');
-      console.log('║ Stock ID   ║                   Bid                 ║       Matched      ║               Ask                     ║');
-      console.log('║            ╠═══════════╦═══════╦═══════════╦═══════╬═══════════╦════════╬═══════════╦═══════╬═══════════╦═══════╣');
-      console.log('║            ║   Prc 2   ║ Vol 2 ║   Prc 1   ║ Vol 1 ║    Prc    ║  Vol   ║   Prc 1   ║ Vol 1 ║   Prc 2   ║ Vol 2 ║');
-      console.log('╠════════════╬═══════════╬═══════╬═══════════╬═══════╬═══════════╬════════╬═══════════╬═══════╬═══════════╬═══════╣');
+    // Process sell orders
+    this.limitSellOrderQueue.forEach(order => {
+      if (!stockGroups[order.stockId]) {
+        stockGroups[order.stockId] = {
+          bids: [],
+          asks: []
+        };
+      }
+      stockGroups[order.stockId].asks = aggregateOrders(
+        this.limitSellOrderQueue.filter(o => o.stockId === order.stockId),
+        false
+      );
+    });
 
-      Object.keys(stockGroups).forEach(stockId => {
-        const group = stockGroups[stockId];
-        const topBids = group.bids.slice(0, 2);
-        const topAsks = group.asks.slice(0, 2);
-        
-        let matchedVolume = null;
-        let matchedPrice = null;
-        
-        if (this.recentTransactions[stockId]) {
-          matchedPrice = this.recentTransactions[stockId].price;
-          matchedVolume = this.recentTransactions[stockId].volume;
-        }
+    // Display the order book for each stock
+    console.log('\n');
+    console.log('╔════════════╦═══════════════════════════════════════╦════════════════════╦═══════════════════════════════════════╗');
+    console.log('║ Stock ID   ║                   Bid                 ║       Matched      ║               Ask                     ║');
+    console.log('║            ╠═══════════╦═══════╦═══════════╦═══════╬═══════════╦════════╬═══════════╦═══════╬═══════════╦═══════╣');
+    console.log('║            ║   Prc 2   ║ Vol 2 ║   Prc 1   ║ Vol 1 ║    Prc    ║  Vol   ║   Prc 1   ║ Vol 1 ║   Prc 2   ║ Vol 2 ║');
+    console.log('╠════════════╬═══════════╬═══════╬═══════════╬═══════╬═══════════╬════════╬═══════════╬═══════╬═══════════╬═══════╣');
 
-        console.log(
-          `║ ${stockId.padEnd(10)} ║ ${
-            topBids[1] ? topBids[1].price.toFixed(2).padStart(9) : '         '} ║ ${
-            topBids[1] ? topBids[1].volume.toString().padStart(5) : '     '} ║ ${
-            topBids[0] ? topBids[0].price.toFixed(2).padStart(9) : '         '} ║ ${
-            topBids[0] ? topBids[0].volume.toString().padStart(5) : '     '} ║ ${
-            matchedPrice ? matchedPrice.toFixed(2).padStart(9) : '         '} ║ ${
-            matchedVolume ? matchedVolume.toString().padStart(6) : '      '} ║ ${
-            topAsks[0] ? topAsks[0].price.toFixed(2).padStart(9) : '         '} ║ ${
-            topAsks[0] ? topAsks[0].volume.toString().padStart(5) : '     '} ║ ${
-            topAsks[1] ? topAsks[1].price.toFixed(2).padStart(9) : '         '} ║ ${
-            topAsks[1] ? topAsks[1].volume.toString().padStart(5) : '     '} ║`
-        );
-      });
+    Object.keys(stockGroups).forEach(stockId => {
+      const group = stockGroups[stockId];
+      const topBids = group.bids.slice(0, 2);
+      const topAsks = group.asks.slice(0, 2);
+      
+      let matchedVolume = null;
+      let matchedPrice = null;
+      
+      if (this.recentTransactions[stockId]) {
+        matchedPrice = this.recentTransactions[stockId].price;
+        matchedVolume = this.recentTransactions[stockId].volume;
+      }
 
-      console.log('╚════════════╩═══════════╩═══════╩═══════════╩═══════╩═══════════╩════════╩═══════════╩═══════╩═══════════╩═══════╝\n');
-    }
+      console.log(
+        `║ ${stockId.padEnd(10)} ║ ${
+          topBids[1] ? topBids[1].price.toFixed(2).padStart(9) : '         '} ║ ${
+          topBids[1] ? topBids[1].volume.toString().padStart(5) : '     '} ║ ${
+          topBids[0] ? topBids[0].price.toFixed(2).padStart(9) : '         '} ║ ${
+          topBids[0] ? topBids[0].volume.toString().padStart(5) : '     '} ║ ${
+          matchedPrice ? matchedPrice.toFixed(2).padStart(9) : '         '} ║ ${
+          matchedVolume ? matchedVolume.toString().padStart(6) : '      '} ║ ${
+          topAsks[0] ? topAsks[0].price.toFixed(2).padStart(9) : '         '} ║ ${
+          topAsks[0] ? topAsks[0].volume.toString().padStart(5) : '     '} ║ ${
+          topAsks[1] ? topAsks[1].price.toFixed(2).padStart(9) : '         '} ║ ${
+          topAsks[1] ? topAsks[1].volume.toString().padStart(5) : '     '} ║`
+      );
+    });
+
+    console.log('╚════════════╩═══════════╩═══════╩═══════════╩═══════╩═══════════╩════════╩═══════════╩═══════╩═══════════╩═══════╝\n');
   }
+}

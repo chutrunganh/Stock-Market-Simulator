@@ -3,7 +3,7 @@ import { getTradingSessionStatus } from '../../../api/sessionTrading';
 import './TradingStatus.css';
 
 function TradingStatus() {
-  const [isActive, setIsActive] = useState(false);
+  const [isActive, setIsActive] = useState(null);
   const [error, setError] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -42,6 +42,23 @@ function TradingStatus() {
       hour12: false
     });
   };
+
+  if (isActive === null) {
+    return (
+      <div className="trading-status">
+        <div className="trading-status-header">
+          <h3>Trading Session Status</h3>
+          <div className="digital-clock">
+            {formatTime(currentTime)}
+          </div>
+        </div>
+        <div className="status-indicator loading">
+          <span className="status-dot"></span>
+          <span className="status-text">Loading trading status...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="trading-status">
