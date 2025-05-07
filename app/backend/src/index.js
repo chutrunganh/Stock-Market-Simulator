@@ -93,15 +93,13 @@ app.use('/api', userRoutes); // Changed from '/api/auth' to '/api' to match fron
 app.use('/api/orders', orderRoutes);
 app.use('/api/trading-session', tradingSessionRoutes);
 app.use('/api/stocks', stockRoutes)
-
+app.use('/api', stockPriceRoutes);
 
 // --- Error Handling Middleware ---
 // This should be the last middleware in the stack
 // It will catch any errors that occur in the routes or other middlewares
 // Routes
-app.use('/api', userRoutes);
-app.use('/api', stockPriceRoutes);
-// Error handling middleware
+
 app.use(errorHandling);
 
 // --- Initialize All Database Tables ---
