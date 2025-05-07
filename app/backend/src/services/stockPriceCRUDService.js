@@ -18,27 +18,34 @@ export const createStockPriceService = async (stockpriceData) => {
     }
 };
 
-// Get latest stock prices with additional stock information
-export const getLatestStockPriceByStockIdService = async (stockId = null) => {
+// Get latest stock price for a specific stock
+export const getLatestStockPriceByStockIdService = async (stockId) => {
     try {
-        const query = stockId
-            ? 'SELECT s.stock_id, s.symbol, s.company_name, sp.close_price as reference_price, sp.date as price_date FROM stocks s LEFT JOIN stockprices sp ON s.stock_id = sp.stock_id WHERE s.stock_id = $1 ORDER BY sp.date DESC LIMIT 1'
-            : 'SELECT s.stock_id, s.symbol, s.company_name, sp.close_price as reference_price, sp.date as price_date FROM stocks s LEFT JOIN stockprices sp ON s.stock_id = sp.stock_id ORDER BY s.symbol, sp.date DESC';
+        const query = 'SELECT close_price as reference_price, date as price_date FROM stockprices WHERE stock_id = $1 ORDER BY date DESC LIMIT 1';
+        const result = await pool.query(query, [stockId]);
 
-        const params = stockId ? [stockId] : [];
-        const result = await pool.query(query, params);
-
-        if (stockId && !result.rows[0]) {
+        if (!result.rows[0]) {
             throw new Error('This stock does not have any price history');
         }
 
-        return stockId ? result.rows[0] : result.rows;
+        return result.rows[0];
     } catch (error) {
         throw error;
     }
 };
 
-//no update and delete
+// Get all stocks with their latest prices
+export const getAllStocksWithLatestPricesService = async () => {
+    try {
+        const query = 'SELECT s.stock_id, s.symbol, s.company_name, sp.close_price as reference_price, sp.date as price_date FROM stocks s LEFT JOIN stockprices sp ON s.stock_id = sp.stock_id ORDER BY s.symbol, sp.date DESC';
+        const result = await pool.query(query);
+        return result.rows;
+    } catch (error) {
+        throw error;
+    }
+};
+
+//no delete needed
 //because the stock price has foreign constraints to stocks table
 //so if the stock is deleted, its stock price history will be deleted as well
-//also the stock price is fixed, it should not be updated
+

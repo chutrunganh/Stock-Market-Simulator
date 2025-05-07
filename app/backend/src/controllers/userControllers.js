@@ -10,7 +10,7 @@
  */
 import dotenv from 'dotenv';
 dotenv.config({ path: '../../.env' }); // Adjust based on relative depth
-import { createUserService, getAllUsersService, getUserByIdService, updateUserService, deleteUserService} from '../services/userCRUDService.js';
+import { createUserService, getUserByIdService, updateUserService} from '../services/userCRUDService.js';
 import { loginUserService } from '../services/userAuthService.js';
 import passport from 'passport';
 

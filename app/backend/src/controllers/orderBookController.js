@@ -4,7 +4,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { getLatestStockPriceByStockIdService } from '../services/stockPriceCRUDService.js';
+import { getAllStocksWithLatestPricesService } from '../services/stockPriceCRUDService.js';
 import { OrderBook } from '../services/orderMatchingService.js';
 
 const sseClients = new Set();
@@ -22,7 +22,7 @@ export const orderBookSSE = (req, res) => {
   // Send initial data
   const sendInitialData = async () => {
     try {
-      const stocksResult = await getLatestStockPriceByStockIdService();
+      const stocksResult = await getAllStocksWithLatestPricesService();
       const orderBook = OrderBook.getInstance();
       const buyOrders = orderBook.limitBuyOrderQueue || [];
       const sellOrders = orderBook.limitSellOrderQueue || [];
@@ -59,7 +59,7 @@ export const orderBookSSE = (req, res) => {
 // Function to emit updates to all connected clients
 export const emitOrderBookUpdate = async () => {
   try {
-    const stocksResult = await getLatestStockPriceByStockIdService();
+    const stocksResult = await getAllStocksWithLatestPricesService();
     const orderBook = OrderBook.getInstance();
     const buyOrders = orderBook.limitBuyOrderQueue || [];
     const sellOrders = orderBook.limitSellOrderQueue || [];
@@ -75,7 +75,7 @@ export const emitOrderBookUpdate = async () => {
 // Controller to get the order book data
 export const getOrderBook = async (req, res) => {
   try {
-    const stocksResult = await getLatestStockPriceByStockIdService();
+    const stocksResult = await getAllStocksWithLatestPricesService();
     const orderBook = OrderBook.getInstance();
     
     const buyOrders = orderBook.limitBuyOrderQueue || [];

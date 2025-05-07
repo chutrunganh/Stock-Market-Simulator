@@ -197,18 +197,6 @@ export const findOrCreateGoogleUserService = async (userData) => {
 };
 
 
-// This function retrieves all users from the database
-export const getAllUsersService = async () => {
-  try {
-    const result = await pool.query('SELECT id, username, email, role, created_at FROM users');
-    return result.rows;
-  } catch (error) {
-    throw new Error(`Error getting users: ${error.message}`);
-  }
-};
-
-
-
 /**
  *  * This function retrieves a user by their ID from the database. It returns the user object without sensitive data like password.
  * If the user is not found, it throws an error.
@@ -303,27 +291,4 @@ export const updateUserService = async (id, userData) => {
 };
 
 
-/**
- * * This function deletes a user from the database by their ID. It returns the deleted user object without sensitive data like password.
- * 
- * @param {*} id - the id of the user to be deleted
- * @returns - the deleted user object without sensitive data
- * 
- */
-export const deleteUserService = async (id) => {
-  try {
-    const result = await pool.query(
-      'DELETE FROM users WHERE id = $1 RETURNING id, username, email, role, created_at',
-      [id]
-    );
-    
-    if (!result.rows[0]) {
-      throw new Error('User not found');
-    }
-    
-    return User.getSafeUser(result.rows[0]);
-  } catch (error) {
-    throw error;
-  }
-};
 

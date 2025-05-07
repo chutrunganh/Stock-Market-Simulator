@@ -59,9 +59,5 @@ router.post("/logout", authMiddleware, (req, res) => {}); // Placeholder for use
 
 // 3. Protected routes (authentication required) + Authorization (admin role required)
 router.get("/admin/dashboard", authMiddleware, authorizeRole('admin'), (req, res) => {}); // Placeholder for admin dashboard route
-router.put("/admin/user/:id", validateUserUpdate, authMiddleware, authorizeRole('admin'), updateUser); // Update an user account based on a ID
-router.get("/admin/users", authMiddleware, authorizeRole('admin'), getAllUsers); // List all users
-router.get("/admin/user/:id", authMiddleware, authorizeRole('admin'),  getUserById); // View a user account based on a ID
-router.delete("/admin/user/:id", authMiddleware, authorizeRole('admin'), deleteUser); // Delete a user account based on a ID
 
 export default router;
