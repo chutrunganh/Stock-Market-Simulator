@@ -8,22 +8,19 @@
 import log from '../utils/loggerUtil.js';
 import { recordSessionPricesService } from './stockPriceCRUDService.js';
 import { OrderBook } from './orderMatchingService.js';
-import { emitOrderBookUpdate } from '../controllers/orderBookController.js';
 import pool from '../config/dbConnect.js';
 
 let isTradingSessionActive = true; // By default when the server starts, the trading session is active
 
 export const activateTradingSession = async () => {
     try {
-        // Clear the orderbook when starting a new session
-        const orderBook = OrderBook.getInstance();
-        orderBook.clearOrderBook();
+ 
         
         isTradingSessionActive = true;
         log.info('Trading session started with fresh orderbook.');
         
         // Emit update to refresh the UI with latest prices
-        await emitOrderBookUpdate();
+        // await emitOrderBookUpdate();
     } catch (error) {
         log.error('Error starting trading session:', error);
         throw error;
@@ -38,12 +35,12 @@ export const deactivateTradingSession = async () => {
         // Record session prices
         await recordSessionPricesService(client);
 
-        // Clear the in-memory orderbook
+        // Clear the orderbook when starting a new session
         const orderBook = OrderBook.getInstance();
         orderBook.clearOrderBook();
 
         isTradingSessionActive = false;
-        log.info('Trading session stopped, prices recorded, and orderbook cleared.');
+        log.info('Trading session stopped and prices recorded.');
 
         await client.query('COMMIT');
     } catch (error) {
