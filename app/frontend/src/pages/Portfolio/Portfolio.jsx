@@ -1,143 +1,225 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import  './Portfolio.css';
-
-
-
+import { Box, Typography, Paper, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress } from '@mui/material';
+import axios from 'axios';
+import './Portfolio.css';
 
 function Portfolio() {
-    
-    
+    const [portfolioDetails, setPortfolioDetails] = useState(null);
+    const [holdings, setHoldings] = useState([]);
+    const [transactions, setTransactions] = useState([]);
+    const [loading, setLoading] = useState({
+        details: true,
+        holdings: false,
+        transactions: false
+    });
+    const [error, setError] = useState(null);
+    const [showHoldings, setShowHoldings] = useState(false);
+    const [showTransactions, setShowTransactions] = useState(false);
 
+    // Fetch portfolio details on component mount
+    useEffect(() => {
+        fetchPortfolioDetails();
+    }, []);
 
-    return(
-        <div className="portfolio-container">
-            <div className="portfolio-content">
-                <h1>Portfolio</h1>
-                <p>Your portfolio details will be displayed here.</p>
-                {/* <Link to="/trade" className="trade-link">Go to Trade</Link> */}
-                
-                <div className='grid-container'>
-                    <div className = 'overview'>
-                        <p>OVERVIEW</p>
-                        <div className='white-container'>
-                            <p>ACCOUNT VALUE</p>
-                            <p className='big-number'>${/*Account value of the portfolio */}100,000.00</p>
-                            <div className='smaller-grid'>
-                                <div classname = 'left'>
-                                    <p>TODAY'S CHANGE</p>
-                                    <p className='big-number2'>$90</p>
-                                </div>
+    const fetchPortfolioDetails = async () => {
+        try {
+            setLoading(prev => ({ ...prev, details: true }));
+            const response = await axios.get('/api/portfolio/details');
+            setPortfolioDetails(response.data.data);
+            setError(null);
+        } catch (err) {
+            setError('Failed to load portfolio details');
+            console.error('Error fetching portfolio details:', err);
+        } finally {
+            setLoading(prev => ({ ...prev, details: false }));
+        }
+    };
 
-                                <div className='right'>
-                                    <p>ANNUAL RETURN</p>
-                                    <p className='big-number2 green'>0%</p>
-                                </div> 
-                            </div>
-                            
+    const fetchHoldings = async () => {
+        if (!showHoldings) {
+            try {
+                setLoading(prev => ({ ...prev, holdings: true }));
+                const response = await axios.get('/api/portfolio/holdings');
+                setHoldings(response.data.data);
+                setError(null);
+            } catch (err) {
+                setError('Failed to load holdings');
+                console.error('Error fetching holdings:', err);
+            } finally {
+                setLoading(prev => ({ ...prev, holdings: false }));
+            }
+        }
+        setShowHoldings(!showHoldings);
+    };
 
-                            <div className='smaller-grid'>
-                                <div classname = 'left'>
-                                    <p>BUYING'S POWER</p>
-                                    <p className='big-number2'>$90</p>
-                                </div>
+    const fetchTransactions = async () => {
+        if (!showTransactions) {
+            try {
+                setLoading(prev => ({ ...prev, transactions: true }));
+                const response = await axios.get('/api/portfolio/transactions');
+                setTransactions(response.data.data);
+                setError(null);
+            } catch (err) {
+                setError('Failed to load transactions');
+                console.error('Error fetching transactions:', err);
+            } finally {
+                setLoading(prev => ({ ...prev, transactions: false }));
+            }
+        }
+        setShowTransactions(!showTransactions);
+    };
 
-                                <div className='right'>
-                                    <p>CASH</p>
-                                    <p className='big-number2'>$90.5</p>
-                                </div> 
-                            </div>
-                        </div>
-                    </div>
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD'
+        }).format(amount);
+    };
 
-                    <div className='game-info'>
-                        <p>GAME INFO</p>
-                        <div className='white-container'>
-                            <div className='smaller-grid'>
-                                <div className='left'>
-                                    <p>CURRENT RANK</p>
-                                    <p className = 'big-number'>{/* Rank of the user (portfolio) */}1</p>
-                                </div>
-
-                                <div className='right centered-div big-number3'>
-                                    <p>of {/* number of users */}2 Players</p>
-                                </div>
-                            </div> 
-                            <div style={{marginTop: '70px'}}>                              
-                                <p>TOP PLAYER</p>
-                                <div className='smaller-grid'>
-                                    <a className='big-number3' href = "">ml7ru3</a>
-                                    <a className='big-number3 centered-div'>${/*cash_balance of that user */}100,000,000.00</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className='holdings'>
-                        <p>HOLDINGS</p>
-                        <div className='topnav'>
-                            <a class = 'active' href = "">STOCKS & ETFS</a>
-                            <a href = "">OPTIONS</a>
-                            <a href = "">SHORTS</a>
-                            <div className='market'>✅ Market is open. Closes in 1hr, 30m</div>
-
-                        </div>
-                        
-                        <div className='white-container'>
-                            <div className='block'>
-                                <p>TOTAL VALUE</p>
-                                <p className='big-number3'>$1040.78</p>
-                            </div>
-
-                            <div className='block'>
-                                <p>TODAY'S CHANGE</p>
-                                <p className='big-number3 red'>-$6.20</p>
-                            </div>
-
-                            <div className='block'>
-                                <p>TOTAL GAIN/LOSS</p>
-                                <p className='big-number3 green'>$34.50</p>
-                            </div>
-
-                            <div style = {{marginTop: '15px'}}>
-                                <table id = "holdings-table">
-                                    <colgroup>
-                                        <col></col>
-                                        <col className='even-collumn'></col>
-                                        <col></col>
-                                        <col className='even-collumn'></col>
-                                    </colgroup>
-
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Name</th>
-                                        <th>Quantity</th>
-                                        <th>Average Cost</th>
-                                    </tr>
-
-                                    <tr>
-                                        <td>1</td>
-                                        <td>NVDA</td> 
-                                        <td>10</td>
-                                        <td>$10000</td>
-                                    </tr>
-
-                                    <tr>
-                                        <td>2</td>
-                                        <td>TSLA</td>
-                                        <td>5</td>
-                                        <td>$5000</td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
+    if (loading.details) {
+        return (
+            <div className="portfolio">
+                <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+                    <CircularProgress />
+                </Box>
             </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="portfolio">
+                <Box p={3}>
+                    <Typography color="error">{error}</Typography>
+                </Box>
+            </div>
+        );
+    }
+
+    return (
+        <div className="portfolio">
+            {/* Portfolio Summary Section */}
+            <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+                <Typography variant="h5" gutterBottom>Portfolio Summary</Typography>
+                <Grid container spacing={3}>
+                    <Grid item xs={12} md={6}>
+                        <Typography variant="subtitle1">Available Balance</Typography>
+                        <Typography variant="h4" color="primary">
+                            {formatCurrency(portfolioDetails?.cash_balance || 0)}
+                        </Typography>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                        <Typography variant="subtitle1">Total Holdings Value</Typography>
+                        <Typography variant="h4" color="primary">
+                            {formatCurrency(portfolioDetails?.total_value || 0)}
+                        </Typography>
+                    </Grid>
+                </Grid>
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
+                    * Estimated values are for reference only and do not constitute investment advice
+                </Typography>
+            </Paper>
+
+            {/* Holdings Section */}
+            <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+                <Typography 
+                    variant="h6" 
+                    onClick={fetchHoldings}
+                    sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                >
+                    Portfolio Holdings {showHoldings ? '▼' : '▶'}
+                </Typography>
+                {showHoldings && (
+                    <Box mt={2}>
+                        {loading.holdings ? (
+                            <Box display="flex" justifyContent="center" p={3}>
+                                <CircularProgress />
+                            </Box>
+                        ) : (
+                            <TableContainer>
+                                <Table>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>Symbol</TableCell>
+                                            <TableCell>Company</TableCell>
+                                            <TableCell align="right">Quantity</TableCell>
+                                            <TableCell align="right">Avg. Price</TableCell>
+                                            <TableCell align="right">Current Price</TableCell>
+                                            <TableCell align="right">Total Value</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {holdings.map((holding) => (
+                                            <TableRow key={holding.holding_id}>
+                                                <TableCell>{holding.symbol}</TableCell>
+                                                <TableCell>{holding.company_name}</TableCell>
+                                                <TableCell align="right">{holding.quantity}</TableCell>
+                                                <TableCell align="right">{formatCurrency(holding.average_price)}</TableCell>
+                                                <TableCell align="right">{formatCurrency(holding.current_price)}</TableCell>
+                                                <TableCell align="right">{formatCurrency(holding.total_value)}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        )}
+                    </Box>
+                )}
+            </Paper>
+
+            {/* Transactions Section */}
+            <Paper elevation={3} sx={{ p: 3 }}>
+                <Typography 
+                    variant="h6" 
+                    onClick={fetchTransactions}
+                    sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                >
+                    Transaction History {showTransactions ? '▼' : '▶'}
+                </Typography>
+                {showTransactions && (
+                    <Box mt={2}>
+                        {loading.transactions ? (
+                            <Box display="flex" justifyContent="center" p={3}>
+                                <CircularProgress />
+                            </Box>
+                        ) : (
+                            <TableContainer>
+                                <Table>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>Date</TableCell>
+                                            <TableCell>Symbol</TableCell>
+                                            <TableCell>Type</TableCell>
+                                            <TableCell align="right">Quantity</TableCell>
+                                            <TableCell align="right">Price</TableCell>
+                                            <TableCell align="right">Total</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {transactions.map((transaction) => (
+                                            <TableRow key={transaction.transaction_id}>
+                                                <TableCell>
+                                                    {new Date(transaction.transaction_date).toLocaleString()}
+                                                </TableCell>
+                                                <TableCell>{transaction.symbol}</TableCell>
+                                                <TableCell>{transaction.transaction_type}</TableCell>
+                                                <TableCell align="right">{transaction.quantity}</TableCell>
+                                                <TableCell align="right">{formatCurrency(transaction.price)}</TableCell>
+                                                <TableCell align="right">
+                                                    {formatCurrency(transaction.quantity * transaction.price)}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        )}
+                    </Box>
+                )}
+            </Paper>
         </div>
     );
-    
 }
 
 export default Portfolio;

@@ -28,6 +28,7 @@ import userRoutes from './routes/userRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import tradingSessionRoutes from './routes/tradingSessionRoutes.js';
 import stockRoutes from './routes/stockRoutes.js';
+import portfolioRoutes from './routes/portfolioRoutes.js';
 
 ;
 
@@ -89,7 +90,8 @@ app.use(passport.initialize());
 app.use('/api', userRoutes); // Changed from '/api/auth' to '/api' to match frontend paths
 app.use('/api/orders', orderRoutes);
 app.use('/api/trading-session', tradingSessionRoutes);
-app.use('/api/stocks', stockRoutes)
+app.use('/api/stocks', stockRoutes);
+app.use('/api/portfolio', portfolioRoutes);
 
 
 // --- Error Handling Middleware ---

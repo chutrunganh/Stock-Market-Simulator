@@ -73,3 +73,62 @@ export const updatePortfolioService = async (portfolio_id, portfolioData) => {
         throw error;
     }
 };
+
+// Get portfolio holdings with current stock prices
+export const getPortfolioHoldingsService = async (userId) => {
+    try {
+        const query = `
+            SELECT 
+                h.holding_id,
+                h.stock_id,
+                s.symbol,
+                s.company_name,
+                h.quantity,
+                h.average_price,
+                sp.close_price as current_price,
+                (h.quantity * sp.close_price) as total_value
+            FROM holdings h
+            JOIN stocks s ON h.stock_id = s.stock_id
+            JOIN portfolios p ON h.portfolio_id = p.portfolio_id
+            LEFT JOIN LATERAL (
+                SELECT close_price 
+                FROM stockprices 
+                WHERE stock_id = h.stock_id 
+                ORDER BY date DESC 
+                LIMIT 1
+            ) sp ON true
+            WHERE p.user_id = $1
+            ORDER BY s.symbol`;
+        
+        const result = await pool.query(query, [userId]);
+        return result.rows;
+    } catch (error) {
+        throw error;
+    }
+};
+
+// Get portfolio transactions
+export const getPortfolioTransactionsService = async (userId) => {
+    try {
+        const query = `
+            SELECT 
+                t.transaction_id,
+                t.stock_id,
+                s.symbol,
+                s.company_name,
+                t.transaction_type,
+                t.quantity,
+                t.price,
+                t.transaction_date
+            FROM transactions t
+            JOIN stocks s ON t.stock_id = s.stock_id
+            JOIN portfolios p ON t.portfolio_id = p.portfolio_id
+            WHERE p.user_id = $1
+            ORDER BY t.transaction_date DESC`;
+        
+        const result = await pool.query(query, [userId]);
+        return result.rows;
+    } catch (error) {
+        throw error;
+    }
+};
