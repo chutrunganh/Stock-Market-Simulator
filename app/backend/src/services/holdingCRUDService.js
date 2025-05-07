@@ -1,11 +1,9 @@
 import pool from '../config/dbConnect.js';
 import Holdings from '../models/holdingModel.js';
+import { DEFAULT_HOLDING_QUANTITY, DEFAULT_HOLDING_COST } from '../config/constants.js';
 
 // Service to create default holdings for a new portfolio
 export const createDefaultHoldingsForPortfolioService = async (portfolioId, client) => {
-    const defaultQuantity = 10; // Default number of shares for each stock
-    const defaultAverageCost = 0; // Default cost (given for free initially)
-
     try {
         // Get all stock IDs from the stocks table
         const stocksResult = await client.query('SELECT stock_id FROM stocks'); // Corrected column name
@@ -22,10 +20,10 @@ export const createDefaultHoldingsForPortfolioService = async (portfolioId, clie
         stockIds.forEach((stockId, index) => {
             const baseIndex = index * 4;
             valuePlaceholders.push(`($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${baseIndex + 4})`);
-            values.push(portfolioId, stockId, defaultQuantity, defaultAverageCost); // Use defaultAverageCost variable, but insert into average_price column
+            values.push(portfolioId, stockId, DEFAULT_HOLDING_QUANTITY, DEFAULT_HOLDING_COST);
         });
 
-        const queryText = `INSERT INTO holdings (portfolio_id, stock_id, quantity, average_price) VALUES ${valuePlaceholders.join(', ')}`; // Corrected column name to average_price
+        const queryText = `INSERT INTO holdings (portfolio_id, stock_id, quantity, average_price) VALUES ${valuePlaceholders.join(', ')}`;
 
         console.log(`Creating default holdings for portfolio ${portfolioId} for ${stockIds.length} stocks.`);
         await client.query(queryText, values);

@@ -2,8 +2,26 @@ import './Trade.css';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { createOrder, getMostTradedStocks, getStockBySymbol } from '../../api/trade';
+import { Autocomplete, TextField } from '@mui/material';
 
-
+// Predefined stock data
+const STOCK_OPTIONS = [
+    { symbol: 'VCB', name: 'Commercial Bank For Foreign Trade Of Vietnam (Vietcombank)' },
+    { symbol: 'BID', name: 'Commercial Bank For Investment And Development Of Vietnam (BIDV)' },
+    { symbol: 'VHM', name: 'Vinhomes' },
+    { symbol: 'CTG', name: 'Vietnam Joint Stock Commercial Bank for Industry and Trade (VietinBank)' },
+    { symbol: 'GAS', name: 'PetroVietnam Gas Joint Stock Corporation' },
+    { symbol: 'AAPL', name: 'Apple Inc.' },
+    { symbol: 'GOOGL', name: 'Google Inc.' },
+    { symbol: 'MSFT', name: 'Microsoft Corporation' },
+    { symbol: 'AMZN', name: 'Amazon.com Inc.' },
+    { symbol: 'TSLA', name: 'Tesla Inc.' },
+    { symbol: 'META', name: 'Meta Platforms Inc.' },
+    { symbol: 'NVDA', name: 'NVIDIA Corporation' },
+    { symbol: 'BRK.A', name: 'Berkshire Hathaway Inc.' },
+    { symbol: 'JPM', name: 'JPMorgan Chase & Co.' },
+    { symbol: 'V', name: 'Visa Inc.' }
+];
 
 const MiniLineChart = ({ data, width = 150, height = 50, strokeColor = '#007bff' }) => {
     if (!data || data.length < 2) {
@@ -216,20 +234,7 @@ function Trade(props) {
                 Welcome to the Trade page! Here you can look up stock symbols, place buy or sell orders using different order types, and manage your trades within the simulation. Monitor the most traded stocks below.
             </p>
 
-            <div className="account-summary-bar">
-                <div className="summary-item">
-                    <div className="item-title">Account Value</div>
-                    <div className="item-value">$100,000.00</div>
-                </div>
-                <div className="summary-item">
-                    <div className="item-title">Buying Power</div>
-                    <div className="item-value">$100,000.00</div>
-                </div>
-                <div className="summary-item">
-                    <div className="item-title">Cash</div>
-                    <div className="item-value">$100,000.00</div>
-                </div>
-            </div>
+        
 
             <MostTradedStocks />
 
@@ -237,12 +242,36 @@ function Trade(props) {
                 <div className="form-section">
                     <label htmlFor="symbol-lookup" className="form-label">Symbol</label>
                     <div className="input-with-icon">
-                        <input
-                            type="text"
-                            id="symbol-lookup"
-                            className="form-input"                            placeholder="Look up Symbol Name"
-                            value={symbol}
-                            onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+                        <Autocomplete
+                            value={STOCK_OPTIONS.find(option => option.symbol === symbol) || null}
+                            onChange={(event, newValue) => {
+                                setSymbol(newValue ? newValue.symbol : '');
+                            }}
+                            options={STOCK_OPTIONS}
+                            getOptionLabel={(option) => {
+                                if (!option) return '';
+                                return typeof option === 'string' ? option : option.symbol;
+                            }}
+                            renderOption={(props, option) => {
+                                const { key, ...otherProps } = props;
+                                return (
+                                    <li key={option.symbol} {...otherProps}>
+                                        <strong>{option.symbol}</strong>
+                                        <small style={{ marginLeft: '8px', color: '#666' }}>
+                                            {option.name}
+                                        </small>
+                                    </li>
+                                );
+                            }}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Stock Symbol"
+                                    variant="outlined"
+                                    fullWidth
+                                    required
+                                />
+                            )}
                         />
                     </div>
                 </div>

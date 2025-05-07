@@ -6,14 +6,14 @@
  */
 import pool from './dbConnect.js';
 import log from '../utils/loggerUtil.js';
+import { INITIAL_CASH_BALANCE } from './constants.js';
 
 const createPortfolioTable = async () => {
     const queryText = `
     CREATE TABLE IF NOT EXISTS "portfolios"(
         portfolio_id SERIAL PRIMARY KEY,
         user_id INT NOT NULL,
-        cash_balance DECIMAL(15,2) DEFAULT 100000.00,
-        total_value DECIMAL(15,2) DEFAULT 100000.00,
+        cash_balance DECIMAL(15,2) DEFAULT ${INITIAL_CASH_BALANCE},
         creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

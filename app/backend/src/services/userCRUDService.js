@@ -10,7 +10,9 @@ import pool from '../config/dbConnect.js';
 import User from '../models/userModel.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
-import { createDefaultHoldingsForPortfolioService } from './holdingCRUDService.js'; // Import the new service
+import { createDefaultHoldingsForPortfolioService } from './holdingCRUDService.js';
+import { createPortfolioForUserService } from './portfolioCRUDService.js';
+import { INITIAL_CASH_BALANCE } from '../config/constants.js';
 dotenv.config({ path: '../../.env' }); // Adjust based on relative depth
 
 
@@ -71,13 +73,7 @@ export const createUserService = async (userData) => {
         const userId = userResult.rows[0].id;
       
       // Create a default portfolio for the new user and get its ID
-      const initialCashBalance = 10000000;
-      const portfolioResult = await client.query(
-        'INSERT INTO portfolios (user_id, cash_balance, total_value) VALUES ($1, $2, $3) RETURNING portfolio_id',
-        [userId, initialCashBalance, initialCashBalance]
-      );
-      
-      const portfolioId = portfolioResult.rows[0].portfolio_id;
+      const portfolioId = await createPortfolioForUserService(userId, client);
       
       // Now create default holdings with the actual portfolio ID
       await createDefaultHoldingsForPortfolioService(portfolioId, client);
@@ -151,13 +147,7 @@ export const findOrCreateGoogleUserService = async (userData) => {
           isNewUser = true;
           
           // Create a portfolio for the new user with initial balance
-          const initialCashBalance = 10000000;
-          const portfolioResult = await client.query(
-            'INSERT INTO portfolios (user_id, cash_balance, total_value) VALUES ($1, $2, $3) RETURNING portfolio_id',
-            [user.id, initialCashBalance, initialCashBalance]
-          );
-          
-          const portfolioId = portfolioResult.rows[0].portfolio_id;
+          const portfolioId = await createPortfolioForUserService(user.id, client);
           
           // Create default holdings for the new portfolio
           await createDefaultHoldingsForPortfolioService(portfolioId, client);

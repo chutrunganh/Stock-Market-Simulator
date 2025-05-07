@@ -302,3 +302,27 @@ text-overflow: ellipsis; overflow: hidden;
 .input-with-side-action input {
   padding-right: 10px; /* Ensure space for potential side actions */
 }
+
+.input-with-icon .MuiAutocomplete-root {
+    width: 100%;
+}
+
+.input-with-icon .MuiTextField-root {
+    width: 100%;
+}
+
+.input-with-icon .MuiAutocomplete-input {
+    padding: 8px 12px;
+}
+
+.input-with-icon .MuiAutocomplete-option {
+    padding: 8px 12px;
+}
+
+.input-with-icon .MuiAutocomplete-option strong {
+    color: #1976d2;
+}
+
+.input-with-icon .MuiAutocomplete-option small {
+    color: #666;
+}
