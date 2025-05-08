@@ -194,6 +194,20 @@ function Tables() {
   const [error, setError] = useState(null);
   const [lastUpdateTime, setLastUpdateTime] = useState(null);
   const [notification, setNotification] = useState(null);
+  const [lastProcessedTimestamp, setLastProcessedTimestamp] = useState(null);
+
+  // Helper function to check if a notification has been shown
+  const hasNotificationBeenShown = (stockSymbol, timestamp) => {
+    const shownNotifications = JSON.parse(localStorage.getItem('shownNotifications') || '{}');
+    return shownNotifications[stockSymbol] === timestamp;
+  };
+
+  // Helper function to mark a notification as shown
+  const markNotificationAsShown = (stockSymbol, timestamp) => {
+    const shownNotifications = JSON.parse(localStorage.getItem('shownNotifications') || '{}');
+    shownNotifications[stockSymbol] = timestamp;
+    localStorage.setItem('shownNotifications', JSON.stringify(shownNotifications));
+  };
 
   // Handle SSE connection and initial data loading
   useEffect(() => {
@@ -242,18 +256,45 @@ function Tables() {
             // Check for new matches and show notifications
             data.forEach(stock => {
               if (stock.match_notification) {
-                const currentUserId = localStorage.getItem('userId'); // Get current user's ID
-                if (currentUserId) {
-                  if (stock.match_notification.buyerUserId === currentUserId) {
+                const currentUserId = localStorage.getItem('userId');
+                const matchTimestamp = stock.match_notification.timestamp;
+                
+                // Only show notification if it hasn't been shown before
+                if (!hasNotificationBeenShown(stock.symbol, matchTimestamp)) {
+                  console.log('New match notification received:', {
+                    stock: stock.symbol,
+                    notification: stock.match_notification,
+                    currentUserId,
+                    buyerUserId: stock.match_notification.buyerUserId,
+                    sellerUserId: stock.match_notification.sellerUserId,
+                    matchTimestamp
+                  });
+                  
+                  if (!currentUserId) {
+                    console.log('No current user ID found in localStorage');
+                    return;
+                  }
+
+                  // Check if the current user is either the buyer or seller
+                  const isBuyer = stock.match_notification.buyerUserId === currentUserId;
+                  const isSeller = stock.match_notification.sellerUserId === currentUserId;
+
+                  console.log('User role in match:', { isBuyer, isSeller, currentUserId });
+
+                  if (isBuyer) {
+                    console.log('Showing buy notification for user:', currentUserId);
                     setNotification({
                       type: 'success',
                       message: `Your buy order for ${stock.symbol} was matched! Price: ${stock.match_notification.price}, Volume: ${stock.match_notification.volume}`
                     });
-                  } else if (stock.match_notification.sellerUserId === currentUserId) {
+                    markNotificationAsShown(stock.symbol, matchTimestamp);
+                  } else if (isSeller) {
+                    console.log('Showing sell notification for user:', currentUserId);
                     setNotification({
                       type: 'success',
                       message: `Your sell order for ${stock.symbol} was matched! Price: ${stock.match_notification.price}, Volume: ${stock.match_notification.volume}`
                     });
+                    markNotificationAsShown(stock.symbol, matchTimestamp);
                   }
                 }
               }

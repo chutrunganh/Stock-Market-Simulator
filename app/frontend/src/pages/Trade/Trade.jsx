@@ -156,41 +156,45 @@ function Trade(props) {
     
     
     
-    const handleSubmit = async () => {
+    const handleSubmit = async (e) => {
+        e.preventDefault();
         setLoading(true);
-        setSuccessMessage('');
         setErrorMessage('');
-        
+        setSuccessMessage('');
+
         try {
             // Check if user is authenticated
-            if (!user || !user.id) {
+            const userId = localStorage.getItem('userId');
+            if (!userId) {
                 throw new Error('You must be logged in to place an order');
             }
-            
+            console.log('Creating order with user ID:', userId);
+
             // First get the stock details to get the stock ID
             const stockDetails = await getStockBySymbol(symbol.toUpperCase());
             if (!stockDetails || !stockDetails.id) {
                 throw new Error(`Could not find stock with symbol ${symbol}`);
             }
-            
+
             const orderData = {
-                userId: user.id,
+                userId,
                 stockId: stockDetails.id,
                 quantity: parseInt(quantity),
                 price: orderType === 'limit' ? parseFloat(limitPrice) : null,
                 orderType: `${orderType.charAt(0).toUpperCase() + orderType.slice(1)} ${action.charAt(0).toUpperCase() + action.slice(1)}`
             };
+
+            console.log('Order data:', orderData);
+            const response = await createOrder(orderData);
             
-            const result = await createOrder(orderData);
-            
-            if (!result) {
+            if (!response) {
                 setErrorMessage('Order placement failed with no response');
                 return;
             }
             
-            if (result.status === 201 || result.success === true) {
+            if (response.status === 201 || response.success === true) {
                 // Success case - set success message
-                const successMsg = result.message || 'Order placed successfully';
+                const successMsg = response.message || 'Order placed successfully';
                 setSuccessMessage(`${successMsg} - Stock: ${symbol}, Quantity: ${quantity}, Price: ${orderType === 'limit' ? `$${limitPrice}` : 'Market Price'}`);
                 
                 // Reset form only if order was placed
@@ -201,7 +205,7 @@ function Trade(props) {
                 setTimeout(() => setSuccessMessage(''), 5000);
             } else {
                 // Failure case (like trading closed)
-                setErrorMessage(result.message || 'Order placement failed with no error message');
+                setErrorMessage(response.message || 'Order placement failed with no error message');
             }
         } catch (error) {
             console.error('Order placement error:', error);

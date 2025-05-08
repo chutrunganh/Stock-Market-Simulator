@@ -53,6 +53,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('authToken');
+    localStorage.removeItem('userId'); // Remove user ID
     setUser(null);
   };
   // Login function
@@ -83,6 +84,8 @@ export const AuthProvider = ({ children }) => {
       
       // Store auth data and update state
       localStorage.setItem('authToken', authToken);
+      console.log('Storing user ID in localStorage:', userData.id);
+      localStorage.setItem('userId', userData.id); // Store user ID
       
       // Update user state immediately 
       console.log('AuthContext: Setting user data immediately after login:', userData);
@@ -92,9 +95,6 @@ export const AuthProvider = ({ children }) => {
       window.dispatchEvent(new CustomEvent('auth-state-changed', { 
         detail: { user: userData, isAuthenticated: true }
       }));
-      
-      // No need to verify the token again as we just received it
-      // This was causing the UI not to update properly
       
       return userData;
     } catch (err) {

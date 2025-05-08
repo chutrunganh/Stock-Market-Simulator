@@ -165,7 +165,9 @@ export class OrderBook {
           await emitOrderBookUpdate({
             stockId: order.stockId,
             price: matchedPrice,
-            volume: matchedQuantity
+            volume: matchedQuantity,
+            buyerUserId: order.userId,
+            sellerUserId: sellOrder.userId
           });
 
           // Remove completed sell order
@@ -218,7 +220,9 @@ export class OrderBook {
           await emitOrderBookUpdate({
             stockId: order.stockId,
             price: matchedPrice,
-            volume: matchedQuantity
+            volume: matchedQuantity,
+            buyerUserId: buyOrder.userId,
+            sellerUserId: order.userId
           });
 
           // Remove completed buy order
@@ -274,7 +278,9 @@ export class OrderBook {
         emitOrderBookUpdate({
           stockId: buyOrder.stockId,
           price: matchPrice,
-          volume: matchQuantity
+          volume: matchQuantity,
+          buyerUserId: buyOrder.userId,
+          sellerUserId: sellOrder.userId
         });
 
         // Process the match (update holdings, etc.)

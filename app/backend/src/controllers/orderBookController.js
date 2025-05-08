@@ -67,8 +67,14 @@ export const emitOrderBookUpdate = async (matchData = null) => {
     
     // If matchData is provided, update the recentTransactions for the matched stock
     if (matchData) {
-      const { stockId, price, volume } = matchData;
-      recentTransactions[stockId] = { price, volume, timestamp: new Date() };
+      const { stockId, price, volume, buyerUserId, sellerUserId } = matchData;
+      recentTransactions[stockId] = { 
+        price, 
+        volume, 
+        timestamp: new Date(),
+        buyerUserId,
+        sellerUserId
+      };
     }
     
     const processedData = processOrderBookData(stocksResult, buyOrders, sellOrders, recentTransactions);

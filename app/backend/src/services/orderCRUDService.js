@@ -29,6 +29,7 @@ export const createOrderService = async (orderData) => {
         const order = {
             id: Date.now().toString(), // Unique ID as string
             portfolioId: portfolioId, // Using the correct portfolioId from the query
+            userId: userId, // Add userId to the order object
             stockId,
             volume: quantity,
             price,
