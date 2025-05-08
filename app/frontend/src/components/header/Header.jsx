@@ -43,7 +43,8 @@ function Header({ onLoginClick, isLoggedIn, userEmail, onLogoutClick }) {
         <Link to="/home" className="title">
           <img src="logo.png" height="35" alt="Logo" /> Soict Stock
         </Link>
-      </h1>      <nav className="nav-header">
+      </h1>
+      <nav className="nav-header">
         <ul>
           <li tabIndex="0" onClick={() => console.log('Home clicked')}>
             <NavLink to="/home" className="navbar__link">Home</NavLink>

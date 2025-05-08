@@ -7,6 +7,7 @@ import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
 // Components
 import Header from './components/header/Header';
+import AnnouncementBanner from './components/header/AnnouncementBanner';
 import Modal from './components/Modal';
 import Footer from './components/footer/Footer';
 import RoleProtectedRoute from './components/RoleProtectedRoute';
@@ -183,6 +184,7 @@ function App() {
                         navigate('/home');
                     }}
                 />
+                <AnnouncementBanner />
                 
                 {/* Authentication Modals */}
                 <Modal isOpen={showLoginModal} onClose={handleCloseAllModals}>
