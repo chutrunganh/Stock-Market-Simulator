@@ -81,6 +81,37 @@
     font-size: 0.9rem;
 }
 
+.bank-support-notice {
+    color: #e0e0e0;
+    font-size: 0.8rem;
+    text-align: center;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    border: 1px solid rgba(240, 185, 11, 0.3);
+    box-shadow: 0 0 10px rgba(240, 185, 11, 0.1);
+}
+
+.bank-support-notice::before {
+    content: "Currently, only VPBank, ACB, VietinBank, MBBank, BIDV, MSB, TPBank, OCB are supported.";
+    display: inline-block;
+    animation: scrollBanner 20s linear infinite;
+    padding-left: 100%;
+}
+
+@keyframes scrollBanner {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
 .payment-instructions {
     margin: 1rem 0;
 }
@@ -117,10 +148,24 @@
     border-radius: 4px;
     color: #f0b90b;
     font-size: 0.9rem;
+    position: relative;
+    overflow: hidden;
 }
 
 .transaction-input::placeholder {
     color: #666;
+    animation: scrollText 15s linear infinite;
+    white-space: nowrap;
+    display: block;
+}
+
+@keyframes scrollText {
+    0% {
+        transform: translateX(100%);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
 }
 
 .verify-button {

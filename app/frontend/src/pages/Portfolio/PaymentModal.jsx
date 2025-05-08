@@ -74,6 +74,7 @@ function PaymentModal({ isOpen, onClose, onPaymentSuccess }) {
                                 className="qr-code"
                             />
                             <p className="bank-info">MB Bank - Account: VQRQACJBQ9436</p>
+                            <p className="bank-support-notice"></p>
                         </div>
                     </div>
 
@@ -90,7 +91,7 @@ function PaymentModal({ isOpen, onClose, onPaymentSuccess }) {
                         <div className="payment-instructions">
                             <h3>How to pay:</h3>
                             <ol>
-                                <li>Open your MBBank app</li>
+                                <li>Open your banking app</li>
                                 <li>Scan the QR code</li>
                                 <li>Enter the amount you want to transfer</li>
                                 <li>Complete the transfer</li>
