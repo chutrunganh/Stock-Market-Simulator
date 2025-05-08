@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Box, Typography, Paper, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress } from '@mui/material';
+import { Box, Typography, Paper, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress, Button } from '@mui/material';
 import { getPortfolioDetails, getHoldings, getTransactions } from '../../api/portfolio';
+import PaymentModal from '../../components/PaymentModal';
 import './Portfolio.css';
 
 function Portfolio() {
@@ -16,6 +17,7 @@ function Portfolio() {
     const [error, setError] = useState(null);
     const [showHoldings, setShowHoldings] = useState(false);
     const [showTransactions, setShowTransactions] = useState(false);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
 
     // Fetch portfolio details on component mount
     useEffect(() => {
@@ -114,6 +116,14 @@ function Portfolio() {
                                 <Typography variant="h4" sx={{ color: 'success.main' }}>
                                     {formatCurrency(portfolioDetails?.cash_balance || 0)}
                                 </Typography>
+                                <Button 
+                                    variant="contained" 
+                                    color="primary" 
+                                    onClick={() => setShowPaymentModal(true)}
+                                    sx={{ mt: 1 }}
+                                >
+                                    Add Funds
+                                </Button>
                             </Grid>
                             <Grid item xs={12} md={6}>
                                 <Typography variant="subtitle1">Total Holdings Value</Typography>
@@ -220,6 +230,12 @@ function Portfolio() {
                     )}
                 </Paper>
             </div>
+
+            {/* Payment Modal */}
+            <PaymentModal 
+                isOpen={showPaymentModal} 
+                onClose={() => setShowPaymentModal(false)} 
+            />
         </div>
     );
 }

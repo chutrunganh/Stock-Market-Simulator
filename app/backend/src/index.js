@@ -24,6 +24,7 @@ import createStockTable from './config/createStockTable.js';
 import createStockPriceTable from './config/createStockPriceTable.js';
 import createHoldingTable from './config/createHoldingTable.js';
 import { INITIAL_CASH_BALANCE, SALT_ROUNDS } from './config/constants.js';
+import createPaymentTransactionsTable from './config/createPaymentTransactionsTable.js';
 
 
 // --- Routes ---
@@ -32,6 +33,7 @@ import orderRoutes from './routes/orderRoutes.js';
 import tradingSessionRoutes from './routes/tradingSessionRoutes.js';
 import stockRoutes from './routes/stockRoutes.js';
 import portfolioRoutes from './routes/portfolioRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 
 ;
 
@@ -93,6 +95,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/trading-session', tradingSessionRoutes);
 app.use('/api/stocks', stockRoutes);
 app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/payments', paymentRoutes);
 
 
 // --- Error Handling Middleware ---
@@ -111,6 +114,7 @@ const initializeDatabase = async () => {  try {
     await createStockPriceTable();   // StockPrices depend on stocks
     await createTransactionTable();  // Transactions depend on stocks and portfolios
     await createHoldingTable();      // Holdings depend on stocks and portfolios
+    await createPaymentTransactionsTable();
     
     log.info('All tables initialized successfully!');
   } catch (error) {
