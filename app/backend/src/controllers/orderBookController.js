@@ -132,7 +132,14 @@ const processOrderBookData = (stocks, buyOrders, sellOrders, recentTransactions)
       ask_vol2: stockSellOrders[1]?.volume || 0,
       match_prc: transaction?.price || 0,
       match_vol: transaction?.volume || 0,
-      match_timestamp: transaction?.timestamp || null
+      match_timestamp: transaction?.timestamp || null,
+      match_notification: transaction ? {
+        price: transaction.price,
+        volume: transaction.volume,
+        timestamp: transaction.timestamp,
+        buyerUserId: transaction.buyerUserId,
+        sellerUserId: transaction.sellerUserId
+      } : null
     };
   });
 };

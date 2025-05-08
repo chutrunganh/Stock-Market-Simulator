@@ -51,14 +51,18 @@ export class OrderBook {
           stockId: order.stockId,
           quantity: matchedQuantity,
           price: matchedPrice,
-          matchType: 'market'
+          matchType: 'market',
+          buyerUserId: order.userId,
+          sellerUserId: sellOrder.userId
         });
 
         // Store the transaction for display
         this.recentTransactions[order.stockId] = {
           price: matchedPrice,
           volume: matchedQuantity,
-          timestamp: new Date()
+          timestamp: new Date(),
+          buyerUserId: order.userId,
+          sellerUserId: sellOrder.userId
         };
 
         // Remove completed sell order
@@ -85,14 +89,18 @@ export class OrderBook {
           stockId: order.stockId,
           quantity: matchedQuantity,
           price: matchedPrice,
-          matchType: 'market'
+          matchType: 'market',
+          buyerUserId: buyOrder.userId,
+          sellerUserId: order.userId
         });
 
         // Store the transaction for display
         this.recentTransactions[order.stockId] = {
           price: matchedPrice,
           volume: matchedQuantity,
-          timestamp: new Date()
+          timestamp: new Date(),
+          buyerUserId: buyOrder.userId,
+          sellerUserId: order.userId
         };
 
         // Remove completed buy order
@@ -139,14 +147,18 @@ export class OrderBook {
             stockId: order.stockId,
             quantity: matchedQuantity,
             price: matchedPrice,
-            matchType: 'limit'
+            matchType: 'limit',
+            buyerUserId: order.userId,
+            sellerUserId: sellOrder.userId
           });
 
           // Store the transaction for display with ISO timestamp
           this.recentTransactions[order.stockId] = {
             price: matchedPrice,
             volume: matchedQuantity,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            buyerUserId: order.userId,
+            sellerUserId: sellOrder.userId
           };
 
           // Emit update with match data
@@ -188,14 +200,18 @@ export class OrderBook {
             stockId: order.stockId,
             quantity: matchedQuantity,
             price: matchedPrice,
-            matchType: 'limit'
+            matchType: 'limit',
+            buyerUserId: buyOrder.userId,
+            sellerUserId: order.userId
           });
 
           // Store the transaction for display with ISO timestamp
           this.recentTransactions[order.stockId] = {
             price: matchedPrice,
             volume: matchedQuantity,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            buyerUserId: buyOrder.userId,
+            sellerUserId: order.userId
           };
 
           // Emit update with match data
@@ -249,7 +265,9 @@ export class OrderBook {
         this.recentTransactions[buyOrder.stockId] = {
           price: matchPrice,
           volume: matchQuantity,
-          timestamp: new Date()
+          timestamp: new Date(),
+          buyerUserId: buyOrder.userId,
+          sellerUserId: sellOrder.userId
         };
 
         // Emit update with match data

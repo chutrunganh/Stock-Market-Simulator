@@ -9,7 +9,9 @@ import {
   TableHead, 
   TablePagination, 
   TableRow,
-  CircularProgress 
+  CircularProgress,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import { getOrderBookData, createOrderBookStream } from '../../../api/orderBook';
 
@@ -191,6 +193,7 @@ function Tables() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastUpdateTime, setLastUpdateTime] = useState(null);
+  const [notification, setNotification] = useState(null);
 
   // Handle SSE connection and initial data loading
   useEffect(() => {
@@ -236,6 +239,26 @@ function Tables() {
           const { type, data } = JSON.parse(event.data);
           
           if ((type === 'initial' || type === 'update') && Array.isArray(data)) {
+            // Check for new matches and show notifications
+            data.forEach(stock => {
+              if (stock.match_notification) {
+                const currentUserId = localStorage.getItem('userId'); // Get current user's ID
+                if (currentUserId) {
+                  if (stock.match_notification.buyerUserId === currentUserId) {
+                    setNotification({
+                      type: 'success',
+                      message: `Your buy order for ${stock.symbol} was matched! Price: ${stock.match_notification.price}, Volume: ${stock.match_notification.volume}`
+                    });
+                  } else if (stock.match_notification.sellerUserId === currentUserId) {
+                    setNotification({
+                      type: 'success',
+                      message: `Your sell order for ${stock.symbol} was matched! Price: ${stock.match_notification.price}, Volume: ${stock.match_notification.volume}`
+                    });
+                  }
+                }
+              }
+            });
+
             // Update the data and timestamp
             setOrderBookData(data);
             setLastUpdateTime(new Date());
@@ -275,6 +298,11 @@ function Tables() {
       }
     };
   }, []);
+
+  // Handle notification close
+  const handleNotificationClose = () => {
+    setNotification(null);
+  };
 
   // Pagination handlers
   const handleChangePage = (event, newPage) => {
@@ -409,6 +437,20 @@ function Tables() {
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
+      <Snackbar
+        open={!!notification}
+        autoHideDuration={6000}
+        onClose={handleNotificationClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleNotificationClose} 
+          severity={notification?.type || 'info'}
+          sx={{ width: '100%' }}
+        >
+          {notification?.message}
+        </Alert>
+      </Snackbar>
     </Paper>
   );
 }
