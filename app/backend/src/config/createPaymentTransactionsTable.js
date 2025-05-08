@@ -3,11 +3,16 @@ import log from '../utils/loggerUtil.js';
 
 const createPaymentTransactionsTable = async () => {
     try {
+        // Development mode - drop table if exists
+        if (process.env.NODE_ENV === 'development') {
+            await pool.query('DROP TABLE IF EXISTS payment_transactions CASCADE');
+        }
+
         await pool.query(`
             CREATE TABLE IF NOT EXISTS payment_transactions (
                 id SERIAL PRIMARY KEY,
-                user_id INTEGER NOT NULL REFERENCES users(id),
-                transaction_id VARCHAR(255) NOT NULL UNIQUE,
+                portfolio_id INTEGER NOT NULL REFERENCES portfolios(portfolio_id),
+                reference_number VARCHAR(255) NOT NULL UNIQUE,
                 vnd_amount DECIMAL(15,2) NOT NULL,
                 virtual_amount DECIMAL(15,2) NOT NULL,
                 status VARCHAR(50) NOT NULL DEFAULT 'completed',

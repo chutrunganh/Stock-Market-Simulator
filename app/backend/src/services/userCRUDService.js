@@ -161,7 +161,8 @@ export const findOrCreateGoogleUserService = async (userData) => {
         id: user.id,
         username: user.username,
         email: user.email,
-        role: user.role
+        role: user.role,
+        portfolio_id: user.portfolio_id
       };
       
       const token = jwt.sign(

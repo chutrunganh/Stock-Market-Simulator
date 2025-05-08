@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Box, Typography, Paper, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress, Button } from '@mui/material';
 import { getPortfolioDetails, getHoldings, getTransactions } from '../../api/portfolio';
-import PaymentModal from '../../components/PaymentModal';
+import PaymentModal from './PaymentModal';
 import './Portfolio.css';
 
 function Portfolio() {
@@ -79,6 +79,10 @@ function Portfolio() {
             minimumFractionDigits: 0,
             maximumFractionDigits: 0
         }).format(amount);
+    };
+
+    const handlePaymentSuccess = (updatedPortfolioData) => {
+        setPortfolioDetails(updatedPortfolioData);
     };
 
     if (loading.details) {
@@ -234,7 +238,8 @@ function Portfolio() {
             {/* Payment Modal */}
             <PaymentModal 
                 isOpen={showPaymentModal} 
-                onClose={() => setShowPaymentModal(false)} 
+                onClose={() => setShowPaymentModal(false)}
+                onPaymentSuccess={handlePaymentSuccess}
             />
         </div>
     );

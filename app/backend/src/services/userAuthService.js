@@ -16,9 +16,12 @@ dotenv.config({ path: '../../.env' }); // Adjust based on relative depth
  */
 export const loginUserService = async (identifier, password) => {
   try {
-    // Fetch the user by email or username
+    // Fetch the user by email or username, including their portfolio_id
     const result = await pool.query(
-      'SELECT id, username, email, password, role FROM users WHERE email = $1 OR username = $1',
+      `SELECT u.id, u.username, u.email, u.password, u.role, p.portfolio_id 
+       FROM users u 
+       LEFT JOIN portfolios p ON u.id = p.user_id 
+       WHERE u.email = $1 OR u.username = $1`,
       [identifier]
     );
 
@@ -43,7 +46,8 @@ export const loginUserService = async (identifier, password) => {
       id: user.id,
       username: user.username,
       email: user.email,
-      role: user.role
+      role: user.role,
+      portfolio_id: user.portfolio_id
     };
 
     // Create JWT token with user info and secret key from environment variables

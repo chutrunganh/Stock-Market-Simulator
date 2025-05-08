@@ -207,3 +207,10 @@ Cookie: jwt={{admin_jwt}}
 GET http://localhost:3000/api/stockPrice/1
 Authorization: Bearer {{user_jwt}}
 
+### Test for Sepay API
+GET https://my.sepay.vn/userapi/transactions/details/12462218
+Authorization: Bearer N3RTU0OUNCLNHVJBEX9CJMIW4OSM4MQ1KLHFYYVV56UBLH5WXODPPA2FSKGELZT9
+
+### Test for Sepay API
+GET https://my.sepay.vn/userapi/transactions/list?reference_number=FT25128764304800
+Authorization: Bearer N3RTU0OUNCLNHVJBEX9CJMIW4OSM4MQ1KLHFYYVV56UBLH5WXODPPA2FSKGELZT9
