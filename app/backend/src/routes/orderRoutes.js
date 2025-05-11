@@ -1,9 +1,9 @@
 import express from 'express';
-import { createOrder, cancelOrder } from '../controllers/orderController.js';
+import { createOrder, cancelOrder, createArtificialOrder } from '../controllers/orderController.js';
 import { getOrderBook, orderBookSSE } from '../controllers/orderBookController.js';
 import authMiddleware from '../middlewares/authenticationMiddleware.js';
 import isTradingSessionMiddleware from '../middlewares/tradingSessionMiddleware.js';
-import {validateOrder} from '../middlewares/orderMiddleware.js'
+import {validateOrder, validateLimitOrderPrice} from '../middlewares/orderMiddleware.js'
 const router = express.Router();
 
 // Route to create a new order - applies middleware in sequence
@@ -12,7 +12,7 @@ router.post('/createOrder',
     isTradingSessionMiddleware,
     validateOrder,
     createOrder);
-
+router.post('/createArtiOrder', isTradingSessionMiddleware, validateLimitOrderPrice, createArtificialOrder);
 // GET route to fetch the order book data
 router.get('/orderBook', getOrderBook);
 

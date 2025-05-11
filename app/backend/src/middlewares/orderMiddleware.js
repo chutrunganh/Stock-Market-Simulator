@@ -85,7 +85,6 @@ const validateLimitOrderPrice = async (req, res, next) => {
         next(error);
     }
 };
-
 /**
  * Middleware to validate if a portfolio has enough stocks for a sell order
  * Applies to both market sell and limit sell orders
@@ -93,6 +92,12 @@ const validateLimitOrderPrice = async (req, res, next) => {
 const validateSellOrderQuantity = async (req, res, next) => {
     try {
         const { stockId, quantity, orderType, userId } = req.body;
+
+        // Skip validation for artificial orders - check if this is an artificial order request
+        const requestPath = req.path;
+        if (requestPath === '/createArtiOrder') {
+            return next();
+        }
 
         // Validate required fields
         if (!stockId || !quantity || !orderType || !userId) {
@@ -162,6 +167,12 @@ const validateSellOrderQuantity = async (req, res, next) => {
 const validateBuyOrderBalance = async (req, res, next) => {
     try {
         const { stockId, quantity, price, orderType, userId } = req.body;
+
+        // Skip validation for artificial orders - check if this is an artificial order request
+        const requestPath = req.path;
+        if (requestPath === '/createArtiOrder') {
+            return next();
+        }
 
          // Validate required fields
         if (!stockId || !quantity || !orderType || !userId) {
@@ -260,5 +271,6 @@ const validateOrder = (req, res, next) => {
 
 
 export {
-    validateOrder
+    validateOrder,
+    validateLimitOrderPrice
 };

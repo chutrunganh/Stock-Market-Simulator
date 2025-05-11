@@ -73,7 +73,7 @@ export const createArtificialOrderService = async (orderData) => {
         timestamp: Date.now(),
     };
 
-    console.log('Admin creating artificial order:', order);
+    //console.log('Admin creating artificial order:', order);
 
     // Add the order to the order book
     if (order.type === 'Market Buy' || order.type === 'Market Sell') {
