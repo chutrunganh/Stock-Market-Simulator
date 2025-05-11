@@ -1,5 +1,5 @@
 import express from 'express';
-import { createOrder, cancelOrder } from '../controllers/orderController.js';
+import { createOrder, cancelOrder , createArtificialOrder} from '../controllers/orderController.js';
 import { getOrderBook, orderBookSSE } from '../controllers/orderBookController.js';
 import authMiddleware from '../middlewares/authenticationMiddleware.js';
 import isTradingSessionMiddleware from '../middlewares/tradingSessionMiddleware.js';
@@ -13,7 +13,9 @@ router.post('/createOrder',
 
 // GET route to fetch the order book data
 router.get('/orderBook', getOrderBook);
-
+router.post('/createArtiOrder',
+    isTradingSessionMiddleware,
+    createArtificialOrder);
 // SSE endpoint for real-time order book updates
 router.get('/orderBook/stream', orderBookSSE);
 
