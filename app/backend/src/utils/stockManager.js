@@ -3,7 +3,7 @@ import { exec } from 'child_process';
 import readline from 'readline';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createStockService, getStockBySymbolService } from '../services/stockService.js';
+import { createStockService, getStockBySymbolService } from '../services/stockCRUDService.js';
 import { dirname } from 'path';
 
 // Setup path resolution for ES modules
@@ -110,7 +110,8 @@ async function fetchPriceData(symbol, startDate, endDate, updateInfo) {
   try {
     // Since we're in src/utils and stock_fetcher.py is in the same directory
     const pythonScriptPath = path.join(__dirname, 'stock_fetcher.py');
-    let command = `python ${pythonScriptPath} ${symbol}`;
+    // Quote the Python script path to handle spaces
+    let command = `python "${pythonScriptPath}" ${symbol}`;
     
     if (startDate) {
       command += ` --start ${startDate}`;
