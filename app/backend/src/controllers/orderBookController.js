@@ -19,6 +19,11 @@ export const orderBookSSE = (req, res) => {
     'Connection': 'keep-alive'
   });
 
+  // Send heartbeat to keep connection alive
+  const heartbeat = setInterval(() => {
+    res.write(`data: ${JSON.stringify({ type: 'heartbeat', timestamp: new Date().toISOString() })}\n\n`);
+  }, 30000); // Send heartbeat every 30 seconds
+
   // Send initial data
   const sendInitialData = async () => {
     try {
@@ -30,6 +35,7 @@ export const orderBookSSE = (req, res) => {
       
       const processedData = processOrderBookData(stocksResult, buyOrders, sellOrders, recentTransactions);
       res.write(`data: ${JSON.stringify({ type: 'initial', data: processedData })}\n\n`);
+      console.log(`[SSE] Initial data sent to new client. ${sseClients.size+1} total clients`);
     } catch (error) {
       console.error('Error sending initial data:', error);
     }
@@ -37,7 +43,15 @@ export const orderBookSSE = (req, res) => {
 
   // Function to send updates to this client
   const sendUpdate = (update) => {
-    res.write(`data: ${JSON.stringify({ type: 'update', data: update })}\n\n`);
+    try {
+      res.write(`data: ${JSON.stringify({ type: 'update', data: update })}\n\n`);
+    } catch (error) {
+      console.error('[SSE] Error sending update to client:', error);
+      // Remove client if we can't send to it
+      sseClients.delete(res);
+      orderBookEmitter.removeListener('update', sendUpdate);
+      if (heartbeat) clearInterval(heartbeat);
+    }
   };
 
   // Add this client to our Set of active clients
@@ -51,8 +65,10 @@ export const orderBookSSE = (req, res) => {
 
   // Handle client disconnect
   req.on('close', () => {
+    console.log('[SSE] Client disconnected');
     sseClients.delete(res);
     orderBookEmitter.removeListener('update', sendUpdate);
+    clearInterval(heartbeat);
   });
 };
 
@@ -75,10 +91,28 @@ export const emitOrderBookUpdate = async (matchData = null) => {
         buyerUserId,
         sellerUserId
       };
+      
+      // Log that a match happened and we're broadcasting it
+      console.log(`[SSE] Broadcasting match event for stock ${stockId}: ${price} x ${volume}`);
     }
     
     const processedData = processOrderBookData(stocksResult, buyOrders, sellOrders, recentTransactions);
-    orderBookEmitter.emit('update', processedData);
+    
+    // Check the number of connected clients and log it
+    console.log(`[SSE] Broadcasting update to ${sseClients.size} connected clients`);
+    
+    // Force the broadcast as a high-priority update if there was a match
+    if (matchData) {
+      orderBookEmitter.emit('update', processedData);
+      
+      // Add a small delay and send another update to ensure all clients receive it
+      setTimeout(() => {
+        orderBookEmitter.emit('update', processedData);
+        console.log(`[SSE] Sent follow-up broadcast for match event`);
+      }, 300);
+    } else {
+      orderBookEmitter.emit('update', processedData);
+    }
   } catch (error) {
     console.error('Error emitting order book update:', error);
   }
@@ -111,14 +145,38 @@ const processOrderBookData = (stocks, buyOrders, sellOrders, recentTransactions)
 
   // Process data for each stock
   return stocks.map(stock => {
-    // Filter orders for this stock
-    const stockBuyOrders = buyOrders
-      .filter(order => order.stockId === stock.stock_id)
-      .sort((a, b) => b.price - a.price);
+    // Helper function to aggregate and get top 2 orders
+    const getTopAggregatedOrders = (orders, isBuyOrder) => {
+      const aggregated = {};
+      orders.forEach(order => {
+        if (!order.price) return;
+        const price = Number(order.price);
+        const volume = Number(order.volume);
+        if (!aggregated[price]) {
+          aggregated[price] = 0;
+        }
+        aggregated[price] += volume;
+      });
+
+      const sorted = Object.entries(aggregated)
+        .map(([price, volume]) => ({ price: Number(price), volume }))
+        .sort((a, b) => isBuyOrder ? b.price - a.price : a.price - b.price);
+
+      return {
+        prc1: sorted[0]?.price || 0,
+        vol1: sorted[0]?.volume || 0,
+        prc2: sorted[1]?.price || 0,
+        vol2: sorted[1]?.volume || 0,
+      };
+    };
+
+    // Filter and aggregate bid orders for this stock
+    const stockBuyOrders = buyOrders.filter(order => order.stockId === stock.stock_id);
+    const topBids = getTopAggregatedOrders(stockBuyOrders, true);
       
-    const stockSellOrders = sellOrders
-      .filter(order => order.stockId === stock.stock_id)
-      .sort((a, b) => a.price - b.price);
+    // Filter and aggregate ask orders for this stock
+    const stockSellOrders = sellOrders.filter(order => order.stockId === stock.stock_id);
+    const topAsks = getTopAggregatedOrders(stockSellOrders, false);
 
     // Get recent transaction for this stock
     const transaction = recentTransactions[stock.stock_id];
@@ -128,14 +186,14 @@ const processOrderBookData = (stocks, buyOrders, sellOrders, recentTransactions)
       symbol: stock.symbol,
       company_name: stock.company_name,
       ref: stock.reference_price || 0,
-      bid_prc1: stockBuyOrders[0]?.price || 0,
-      bid_vol1: stockBuyOrders[0]?.volume || 0,
-      bid_prc2: stockBuyOrders[1]?.price || 0,
-      bid_vol2: stockBuyOrders[1]?.volume || 0,
-      ask_prc1: stockSellOrders[0]?.price || 0,
-      ask_vol1: stockSellOrders[0]?.volume || 0,
-      ask_prc2: stockSellOrders[1]?.price || 0,
-      ask_vol2: stockSellOrders[1]?.volume || 0,
+      bid_prc1: topBids.prc1,
+      bid_vol1: topBids.vol1,
+      bid_prc2: topBids.prc2,
+      bid_vol2: topBids.vol2,
+      ask_prc1: topAsks.prc1,
+      ask_vol1: topAsks.vol1,
+      ask_prc2: topAsks.prc2,
+      ask_vol2: topAsks.vol2,
       match_prc: transaction?.price || 0,
       match_vol: transaction?.volume || 0,
       match_timestamp: transaction?.timestamp || null,

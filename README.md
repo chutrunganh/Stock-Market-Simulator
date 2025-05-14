@@ -3,6 +3,7 @@
 > - localhost nếu chạy backend trên máy local (tức dùng postgres.exe hoặc docker-compose chỉ để chạy db). Lúc này cần chú ý thêm comment phần service backend và frontend trong docker-compose đi, chỉ để 2 service của db là postgres và pgadmin thôi. Mật khẩu db là admin nếu chạy bằng docker-compose. Ai chạy bằng postgres.exe thì tự thay đổi mật khẩu trong file .env cho phù hợp.
 > - postgres nếu chạy backend trong docker-compose. Khi này chỉ cần docker-compose up là mọi thứ tự chạy, không cần cd app/backend, cd app/frontend, yarn start nữa.
 
+ 
 
 # For frontend Dev
 

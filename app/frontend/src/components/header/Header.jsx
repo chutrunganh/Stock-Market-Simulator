@@ -88,7 +88,6 @@ function Header({ onLoginClick, isLoggedIn, userEmail, onLogoutClick }) {
               </span>              <span className="user-email">{userEmail || localState.userEmail}</span>
             </div>
             <div className={`dropdown-menu ${menuOpen ? 'show' : ''}`}>
-              <button className="dropdown-item" onClick={() => console.log('Profile clicked')}>Profile</button>
               <button className="logout-button" onClick={onLogoutClick}>Logout</button>
             </div>
           </div>
