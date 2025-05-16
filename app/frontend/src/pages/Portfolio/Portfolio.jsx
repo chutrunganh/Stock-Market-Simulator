@@ -4,6 +4,7 @@ import { Box, Typography, Paper, Grid, Table, TableBody, TableCell, TableContain
 import { getPortfolioDetails, getHoldings, getTransactions } from '../../api/portfolio';
 import PaymentModal from './PaymentModal';
 import './Portfolio.css';
+import { PieChart } from '@mui/x-charts/PieChart'
 
 function Portfolio() {
     const [portfolioDetails, setPortfolioDetails] = useState(null);
@@ -16,12 +17,15 @@ function Portfolio() {
     });
     const [error, setError] = useState(null);
     const [showHoldings, setShowHoldings] = useState(false);
+    const [showCharts, setShowCharts] = useState(false);
     const [showTransactions, setShowTransactions] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [highlightedSlice, setHighlightedSlice] = useState(null);
 
     // Fetch portfolio details on component mount
     useEffect(() => {
         fetchPortfolioDetails();
+        fetchHoldings();
     }, []);
 
     const fetchPortfolioDetails = async () => {
@@ -109,41 +113,88 @@ function Portfolio() {
         <div className="portfolio">
             <div className="portfolio-container">
                 {/* Portfolio Summary Section */}
-                <Paper elevation={3} className="portfolio-section">
-                    <div className="section-header">
-                        <Typography variant="h5">Portfolio Summary</Typography>
-                    </div>
-                    <Box mt={2}>
-                        <Grid container spacing={3}>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="subtitle1">Available Balance</Typography>
-                                <Typography variant="h4" sx={{ color: 'success.main' }}>
-                                    {formatCurrency(portfolioDetails?.cash_balance || 0)}
-                                </Typography>
-                                <Button 
-                                    variant="contained" 
-                                    color="primary" 
-                                    onClick={() => setShowPaymentModal(true)}
-                                    sx={{ mt: 1 }}
-                                >
-                                    Add Funds
-                                </Button>
+                <div className = 'grid-container'>
+                    <Paper elevation={3} className = 'grid-section'>
+                        <div className="section-header">
+                            <Typography variant="h5">Portfolio Summary</Typography>
+                        </div>
+                        <Box mt={2}>
+                            <Grid container spacing={3}>
+                                <Grid item xs={12} md={6}>
+                                    <Typography variant="subtitle1">Available Balance</Typography>
+                                    <Typography variant="h4" sx={{ color: 'success.main' }}>
+                                        {formatCurrency(portfolioDetails?.cash_balance || 0)}
+                                    </Typography>
+                                    <Button 
+                                        variant="contained" 
+                                        color="primary" 
+                                        onClick={() => setShowPaymentModal(true)}
+                                        sx={{ mt: 1 }}
+                                    >
+                                        Add Funds
+                                    </Button>
+                                </Grid>
+                                <Grid item xs={12} md={6}>
+                                    <Typography variant="subtitle1">Total Holdings Value</Typography>
+                                    <Typography variant="h4" sx={{ color: 'success.main' }}>
+                                        {formatCurrency(portfolioDetails?.total_value || 0)}
+                                    </Typography>
+                                </Grid>
                             </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="subtitle1">Total Holdings Value</Typography>
-                                <Typography variant="h4" sx={{ color: 'success.main' }}>
-                                    {formatCurrency(portfolioDetails?.total_value || 0)}
-                                </Typography>
-                            </Grid>
-                        </Grid>
-                        <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
-                            * Estimated values are for reference only and do not constitute investment advice
-                        </Typography>
-                    </Box>
-                </Paper>
+                            <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
+                                * Estimated values are for reference only and do not constitute investment advice
+                            </Typography>
+                        </Box>
+                    </Paper>
 
+
+                    {/*Chart Section in Portfolio Summary*/}
+                    <Paper className='grid-section'>
+                        <div className='section-header'>
+                            <Typography variant='h5'> Chart Display</Typography>
+                        </div>
+                        <PieChart
+                            series={[
+                                {
+                                    arcLabel: (item) => `${((item.value / portfolioDetails.total_value) * 100).toFixed(1)}%`,
+                                    arcLabelMinAngle: 20,
+                                    arcLabelRadius: '60%',
+                                    highlightScope: { fade: 'global', highlight: 'item' },
+                                    faded: { innerRadius: 30, additionalRadius: -30, color: 'gray' },
+                                    data: holdings.length > 0
+                                        ? (() => {
+                                            const total = holdings.reduce((sum, h) => sum + h.holding_value, 0);
+                                            return holdings.map((holding, idx) => ({
+                                                id: holding.holding_id || idx,
+                                                value: holding.holding_value,
+                                                label: holding.symbol,
+                                            }));
+                                        })()
+                                        : [
+                                            { id: 1, value: 1, label: 'No Holdings', arcLabel: '' }
+                                        ],
+                                }
+                            ]}
+                            slotProps={{
+                                legend:{
+                                    direction: 'horizontal',
+                                    position: {
+                                        horizontal: 'center',
+                                        vertical: 'middle'
+                                    }
+                                }
+                            }}
+                            width={500}
+                            height={300}
+                            onItemClick={(_, item) => setHighlightedSlice(item.dataIndex)}
+                            highlighted={highlightedSlice}
+                        />  
+                    </Paper>
+                </div>
                 {/* Holdings Section */}
                 <Paper elevation={3} className="portfolio-section">
+
+                    {/*Holdings Sections in Holdings*/}
                     <div className="section-header" onClick={fetchHoldings}>
                         <Typography variant="h6">
                             Holdings {showHoldings ? '▼' : '▶'}

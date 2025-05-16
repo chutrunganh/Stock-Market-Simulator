@@ -13,11 +13,25 @@
     margin: 0 auto;
 }
 
+.grid-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+
+    display: grid;
+    grid-template-columns: 2.2fr 3fr;    
+    gap: 10px;
+}
 .portfolio-section {
     width: 100%;
     margin-bottom: 20px;
     padding: 20px;
     min-height: 100px; /* Ensure minimum height even when collapsed */
+}
+
+.grid-section{
+    padding:20px;
+    margin-bottom: 20px;
 }
 
 .section-header {
@@ -50,3 +64,11 @@
 }
 
 /* Add any additional custom styles here */
+.title {
+    font-size: 2rem;
+    font-weight: bold;
+    text-align: center;
+    margin: 24px 0 16px 0;
+    display: block;
+    font: black;
+}
