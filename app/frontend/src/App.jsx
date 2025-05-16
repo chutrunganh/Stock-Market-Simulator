@@ -10,6 +10,7 @@ import Header from './components/header/Header';
 import Modal from './components/Modal';
 import Footer from './components/footer/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
+import SideBanner from './components/SideBanner';
 
 // Pages
 import Home from './pages/Home/Home';
@@ -37,6 +38,8 @@ function App() {
     // Get auth context
     const { user, isAuthenticated, logout, login } = useAuth();
     const location = useLocation();    // Check for auth message from redirects
+    const [showBanners, setShowBanners] = useState(true);
+
     useEffect(() => {
         if (location.state?.authMessage) {
             // Could show a notification here
@@ -54,6 +57,11 @@ function App() {
             document.removeEventListener('openLoginModal', openLoginHandler);
         };
     }, [location]);
+
+    // Kiểm tra path để quyết định có hiển thị banner hay không
+    useEffect(() => {
+        setShowBanners(location.pathname === '/' || location.pathname === '/home');
+    }, [location.pathname]);
 
     // Modal handlers
     const handleOpenLoginModal = () => {
@@ -112,23 +120,30 @@ function App() {
                 <ForgotPasswordForm onClose={handleCloseAllModals} />
             </Modal>
             
-            {/* Routes */}
-            <main className="main-content">
-                <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/home" element={<Home />} />
-                    <Route path="/trade" element={<Trade />} />
-                    <Route 
-                        path="/portfolio" 
-                        element={
-                            <ProtectedRoute>
-                                <Portfolio />
-                            </ProtectedRoute>
-                        } 
-                    />
-                    <Route path="/tutorial" element={<Tutorial />} />
-                </Routes>
-            </main>
+            {/* New container structure */}
+            <div className="main-container">
+                {/* Chỉ hiển thị banner khi showBanners = true */}
+                {showBanners && <SideBanner position="left" />}
+                
+                <main className={`main-content ${!showBanners ? 'full-width' : ''}`}>
+                    <Routes>
+                        <Route path="/" element={<Home />} />
+                        <Route path="/home" element={<Home />} />
+                        <Route path="/trade" element={<Trade />} />
+                        <Route 
+                            path="/portfolio" 
+                            element={
+                                <ProtectedRoute>
+                                    <Portfolio />
+                                </ProtectedRoute>
+                            } 
+                        />
+                        <Route path="/tutorial" element={<Tutorial />} />
+                    </Routes>
+                </main>
+                
+                {showBanners && <SideBanner position="right" />}
+            </div>
             
             <Footer />  
         </div>
