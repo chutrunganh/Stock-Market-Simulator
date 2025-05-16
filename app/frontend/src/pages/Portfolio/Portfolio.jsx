@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Box, Typography, Paper, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress, Button, ToggleButtonGroup, ToggleButton } from '@mui/material';
 import { getPortfolioDetails, getHoldings, getTransactions } from '../../api/portfolio';
-import PaymentModal from './PaymentModal';
+import PaymentModal from './PortfolioComponents/PaymentModal';
 import PortfolioPieChart from './PortfolioComponents/PortfolioPieChart';
 import './Portfolio.css';
 
@@ -57,7 +57,7 @@ function Portfolio() {
                 setLoading(prev => ({ ...prev, holdings: false }));
             }
         }
-        setShowHoldings(!showHoldings);
+        setShowHoldings(prev => !prev);
     };
 
     const fetchTransactions = async () => {
@@ -92,7 +92,10 @@ function Portfolio() {
 
     // Add function to group holdings by industry
     const getIndustryData = () => {
+        console.log('Holdings in Portfolio:', holdings);
+        
         const industryGroups = holdings.reduce((groups, holding) => {
+            console.log('Processing holding:', holding);
             const industry = holding.industry || 'Other';
             if (!groups[industry]) {
                 groups[industry] = 0;
@@ -101,11 +104,15 @@ function Portfolio() {
             return groups;
         }, {});
 
-        return Object.entries(industryGroups).map(([industry, value], idx) => ({
-            id: idx,
-            value: value,
-            label: industry,
-        }));
+        console.log('Industry groups in Portfolio:', industryGroups);
+
+        return Object.entries(industryGroups)
+            .sort((a, b) => b[1] - a[1]) // Sort by value in descending order
+            .map(([industry, value], idx) => ({
+                id: idx,
+                value: value,
+                label: industry,
+            }));
     };
 
     // Get chart data based on current view
@@ -115,11 +122,13 @@ function Portfolio() {
         }
 
         if (chartView === 'symbol') {
-            return holdings.map((holding, idx) => ({
-                id: holding.holding_id || idx,
-                value: holding.holding_value,
-                label: holding.symbol,
-            }));
+            return holdings
+                .sort((a, b) => b.holding_value - a.holding_value)
+                .map((holding, idx) => ({
+                    id: holding.holding_id || idx,
+                    value: holding.holding_value,
+                    label: holding.symbol,
+                }));
         } else {
             return getIndustryData();
         }

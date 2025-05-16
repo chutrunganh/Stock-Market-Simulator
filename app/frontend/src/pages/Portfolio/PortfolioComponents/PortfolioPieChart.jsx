@@ -1,7 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { PieChart } from '@mui/x-charts/PieChart';
 import { Typography, ToggleButtonGroup, ToggleButton } from '@mui/material';
 import './PortfolioPieChart.css';
+
+// Industry colors mapping
+const INDUSTRY_COLORS = {
+    'Technology': '#4285f4',      // Google Blue
+    'Financials': '#34a853',     // Google Green
+    'Real Estate': '#fbbc05',    // Google Yellow
+    'Energy': '#ea4335',         // Google Red
+    'Consumer Discretionary': '#9467bd', // Purple
+    'Automotive': '#ff7043',     // Deep Orange
+    'Semiconductors': '#00acc1', // Cyan
+    'Other': '#7f7f7f'          // Gray
+};
 
 const PortfolioPieChart = ({ 
     holdings, 
@@ -11,22 +23,48 @@ const PortfolioPieChart = ({
     highlightedSlice, 
     onSliceClick 
 }) => {
+    useEffect(() => {
+        console.log('Current holdings:', holdings);
+        console.log('Total value:', totalValue);
+    }, [holdings, totalValue]);
     // Function to group holdings by industry
     const getIndustryData = () => {
+        console.log('Processing holdings for pie chart:', holdings);
+        
+        // First, log all unique industries
+        const uniqueIndustries = [...new Set(holdings.map(h => h.industry))];
+        console.log('Unique industries found:', uniqueIndustries);
+
         const industryGroups = holdings.reduce((groups, holding) => {
             const industry = holding.industry || 'Other';
             if (!groups[industry]) {
                 groups[industry] = 0;
             }
-            groups[industry] += holding.holding_value;
+            // Convert string to number and ensure it's a valid number
+            const value = parseFloat(holding.holding_value) || 0;
+            groups[industry] = (groups[industry] || 0) + value;
+            console.log(`Adding ${holding.symbol} (${industry}): ${value} to total: ${groups[industry]}`);
             return groups;
         }, {});
 
-        return Object.entries(industryGroups).map(([industry, value], idx) => ({
-            id: idx,
-            value: value,
-            label: industry,
-        }));
+        console.log('Industry groups before processing:', industryGroups);
+
+        const sortedData = Object.entries(industryGroups)
+            .filter(([_, value]) => value > 0) // Only include industries with positive values
+            .sort((a, b) => b[1] - a[1]) // Sort by value in descending order
+            .map(([industry, value], idx) => {
+                const percentage = ((value / totalValue) * 100).toFixed(1);
+                console.log(`Creating pie slice for ${industry}: ${value} (${percentage}%)`);
+                return {
+                    id: idx,
+                    value: value,
+                    label: `${industry} (${percentage}%)`,
+                    color: INDUSTRY_COLORS[industry] || INDUSTRY_COLORS.Other
+                };
+            });
+
+        console.log('Final sorted industry data:', sortedData);
+        return sortedData;
     };
 
     // Get chart data based on current view
@@ -36,15 +74,21 @@ const PortfolioPieChart = ({
         }
 
         if (chartView === 'symbol') {
-            return holdings.map((holding, idx) => ({
-                id: holding.holding_id || idx,
-                value: holding.holding_value,
-                label: holding.symbol,
-            }));
+            return holdings
+                .sort((a, b) => b.holding_value - a.holding_value)
+                .map((holding, idx) => ({
+                    id: holding.holding_id || idx,
+                    value: holding.holding_value,
+                    label: holding.symbol,
+                    color: INDUSTRY_COLORS[holding.industry] || INDUSTRY_COLORS.Other
+                }));
         } else {
             return getIndustryData();
         }
     };
+
+    const chartData = getChartData();
+    console.log('Final chart data:', chartData);
 
     return (
         <div className="portfolio-pie-chart">
@@ -76,7 +120,7 @@ const PortfolioPieChart = ({
                         endAngle: 270,
                         highlightScope: { fade: 'global', highlight: 'item' },
                         faded: { innerRadius: 70, additionalRadius: -30, color: 'gray' },
-                        data: getChartData(),
+                        data: chartData,
                     }
                 ]}
                 slotProps={{
