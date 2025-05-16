@@ -34,8 +34,7 @@ import tradingSessionRoutes from './routes/tradingSessionRoutes.js';
 import stockRoutes from './routes/stockRoutes.js';
 import portfolioRoutes from './routes/portfolioRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
-
-;
+import adminRoutes from './routes/adminRoutes.js';
 
 // --- Middlewares ---
 import errorHandling from './middlewares/errorHandlerMiddleware.js';
@@ -96,6 +95,7 @@ app.use('/api/trading-session', tradingSessionRoutes);
 app.use('/api/stocks', stockRoutes);
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/admin', adminRoutes);
 
 
 // --- Error Handling Middleware ---
