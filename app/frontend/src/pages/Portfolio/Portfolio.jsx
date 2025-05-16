@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Box, Typography, Paper, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress, Button } from '@mui/material';
+import { Box, Typography, Paper, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress, Button, ToggleButtonGroup, ToggleButton } from '@mui/material';
 import { getPortfolioDetails, getHoldings, getTransactions } from '../../api/portfolio';
 import PaymentModal from './PaymentModal';
+import PortfolioPieChart from './PortfolioComponents/PortfolioPieChart';
 import './Portfolio.css';
-import { PieChart } from '@mui/x-charts/PieChart'
 
 function Portfolio() {
     const [portfolioDetails, setPortfolioDetails] = useState(null);
@@ -21,6 +21,7 @@ function Portfolio() {
     const [showTransactions, setShowTransactions] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [highlightedSlice, setHighlightedSlice] = useState(null);
+    const [chartView, setChartView] = useState('symbol');
 
     // Fetch portfolio details on component mount
     useEffect(() => {
@@ -89,6 +90,41 @@ function Portfolio() {
         setPortfolioDetails(updatedPortfolioData);
     };
 
+    // Add function to group holdings by industry
+    const getIndustryData = () => {
+        const industryGroups = holdings.reduce((groups, holding) => {
+            const industry = holding.industry || 'Other';
+            if (!groups[industry]) {
+                groups[industry] = 0;
+            }
+            groups[industry] += holding.holding_value;
+            return groups;
+        }, {});
+
+        return Object.entries(industryGroups).map(([industry, value], idx) => ({
+            id: idx,
+            value: value,
+            label: industry,
+        }));
+    };
+
+    // Get chart data based on current view
+    const getChartData = () => {
+        if (holdings.length === 0) {
+            return [{ id: 1, value: 1, label: 'No Holdings', arcLabel: '' }];
+        }
+
+        if (chartView === 'symbol') {
+            return holdings.map((holding, idx) => ({
+                id: holding.holding_id || idx,
+                value: holding.holding_value,
+                label: holding.symbol,
+            }));
+        } else {
+            return getIndustryData();
+        }
+    };
+
     if (loading.details) {
         return (
             <div className="portfolio">
@@ -150,45 +186,14 @@ function Portfolio() {
 
                     {/*Chart Section in Portfolio Summary*/}
                     <Paper className='grid-section'>
-                        <div className='section-header'>
-                            <Typography variant='h5'> Chart Display</Typography>
-                        </div>
-                        <PieChart
-                            series={[
-                                {
-                                    arcLabel: (item) => `${((item.value / portfolioDetails.total_value) * 100).toFixed(1)}%`,
-                                    arcLabelMinAngle: 20,
-                                    arcLabelRadius: '60%',
-                                    highlightScope: { fade: 'global', highlight: 'item' },
-                                    faded: { innerRadius: 30, additionalRadius: -30, color: 'gray' },
-                                    data: holdings.length > 0
-                                        ? (() => {
-                                            const total = holdings.reduce((sum, h) => sum + h.holding_value, 0);
-                                            return holdings.map((holding, idx) => ({
-                                                id: holding.holding_id || idx,
-                                                value: holding.holding_value,
-                                                label: holding.symbol,
-                                            }));
-                                        })()
-                                        : [
-                                            { id: 1, value: 1, label: 'No Holdings', arcLabel: '' }
-                                        ],
-                                }
-                            ]}
-                            slotProps={{
-                                legend:{
-                                    direction: 'horizontal',
-                                    position: {
-                                        horizontal: 'center',
-                                        vertical: 'middle'
-                                    }
-                                }
-                            }}
-                            width={500}
-                            height={300}
-                            onItemClick={(_, item) => setHighlightedSlice(item.dataIndex)}
-                            highlighted={highlightedSlice}
-                        />  
+                        <PortfolioPieChart 
+                            holdings={holdings}
+                            totalValue={portfolioDetails?.total_value || 0}
+                            chartView={chartView}
+                            onChartViewChange={setChartView}
+                            highlightedSlice={highlightedSlice}
+                            onSliceClick={setHighlightedSlice}
+                        />
                     </Paper>
                 </div>
                 {/* Holdings Section */}
