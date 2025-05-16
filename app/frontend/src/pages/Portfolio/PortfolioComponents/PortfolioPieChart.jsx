@@ -67,24 +67,76 @@ const PortfolioPieChart = ({
         return sortedData;
     };
 
+    // Define a threshold for small slices
+    const SMALL_SLICE_THRESHOLD = 3; // 5% threshold
+
+    // Function to aggregate small slices into 'Other'
+    const aggregateSmallSlices = (data) => {
+        console.log('Aggregating slices, input data:', data);
+        console.log('Total value:', totalValue);
+        
+        let otherValue = 0;
+        let otherSymbols = [];
+        
+        const filteredData = data.filter(item => {
+            const percentage = (item.value / totalValue) * 100;
+            console.log(`Checking ${item.label}: ${percentage}%`);
+            
+            if (percentage < SMALL_SLICE_THRESHOLD) {
+                otherValue += parseFloat(item.value);
+                otherSymbols.push(item.label);
+                console.log(`Adding ${item.label} to Other, current Other total: ${otherValue}`);
+                return false;
+            }
+            return true;
+        });
+
+        if (otherValue > 0) {
+            const otherPercentage = (otherValue / totalValue) * 100;
+            const otherLabel = chartView === 'symbol' 
+                ? `Others (${otherSymbols.length} stocks, ${otherPercentage.toFixed(1)}%)`
+                : `Other (${otherPercentage.toFixed(1)}%)`;
+            
+            console.log('Adding Other slice:', {
+                value: otherValue,
+                percentage: otherPercentage,
+                symbols: otherSymbols
+            });
+            
+            filteredData.push({
+                id: 'other',
+                value: otherValue,
+                label: otherLabel,
+                color: INDUSTRY_COLORS.Other,
+                originalSymbols: otherSymbols // Store original symbols for reference
+            });
+        }
+
+        console.log('Final aggregated data:', filteredData);
+        return filteredData;
+    };
+
     // Get chart data based on current view
     const getChartData = () => {
         if (holdings.length === 0) {
             return [{ id: 1, value: 1, label: 'No Holdings', arcLabel: '' }];
         }
 
+        let data;
         if (chartView === 'symbol') {
-            return holdings
+            data = holdings
                 .sort((a, b) => b.holding_value - a.holding_value)
                 .map((holding, idx) => ({
                     id: holding.holding_id || idx,
-                    value: holding.holding_value,
-                    label: holding.symbol,
+                    value: parseFloat(holding.holding_value),
+                    label: `${holding.symbol} (${((holding.holding_value / totalValue) * 100).toFixed(1)}%)`,
                     color: INDUSTRY_COLORS[holding.industry] || INDUSTRY_COLORS.Other
                 }));
         } else {
-            return getIndustryData();
+            data = getIndustryData();
         }
+
+        return aggregateSmallSlices(data);
     };
 
     const chartData = getChartData();
