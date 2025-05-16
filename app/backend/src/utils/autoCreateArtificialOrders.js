@@ -1,10 +1,9 @@
 import axios from 'axios';
-import { getLatestStockPriceByStockIdService, getAllStocksWithLatestPricesService } from '../services/stockPriceCRUDService.js';
-import { getAllStockService } from '../services/stockCRUDService.js';
+import { getAllStocksWithLatestPricesService } from '../services/stockPriceCRUDService.js';
 
 // Constants
 const SERVER_URL = 'http://localhost:3000/api/orders';
-const ADMIN_JWT = 'your_admin_jwt_token_here'; //replace with admin token when signed up
+const ADMIN_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwidXNlcm5hbWUiOiJjaHV0cnVuZzIxMCIsImVtYWlsIjoiY2h1dHJ1bmcyMTBAZ21haWwuY29tIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3NDczMjU0NjEsImV4cCI6MTc0NzQxMTg2MX0.UKq_L90pERYYJOiqzp7BX3bLubOa5PdyQmdP9djBHzY'; //replace with admin token when signed up
 const INTERVAL_MS = 5000; //one order every 5 sec = one cycle
 const ORDERS_PER_CYCLE = 500; //num of orders per cycle 
 const BASE_TREND = 'neutral'; // 'buy-dominant', 'sell-dominant', 'neutral'
@@ -59,8 +58,7 @@ const MARKET_EVENTS = {
 
 // Track active market events and their durations
 let activeEvents = [];
-// Current trend based on events or default
-let currentTrend = BASE_TREND;
+
 // Track consecutive down movements for stocks
 let consecutiveDownMoves = {};
 
@@ -276,7 +274,7 @@ const generateArtificialOrder = (stocks) => {
         stockId: randomStock.stock_id,
         quantity,
         price: orderType.includes('Limit') ? modifiedPrice : undefined,
-        orderType,
+        orderType
     };
 
     return order;
