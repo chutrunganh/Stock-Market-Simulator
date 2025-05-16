@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo, useMemo } from 'react';
+import React, { useState, useEffect, memo, useMemo, useRef } from 'react';
 import './Tables.css';
 import { 
   Paper, 
@@ -143,6 +143,35 @@ const OrderBookTableHeader = () => (
 
 // Memoized row component for performance
 const OrderBookTableRow = memo(({ row, columns }) => {
+  // Track previous values for flashing effect
+  const prevValuesRef = useRef({});
+  const [flashingCells, setFlashingCells] = useState({});
+
+  useEffect(() => {
+    const newFlashingCells = {};
+    
+    // Check which price cells have changed
+    const priceColumns = ['bid_prc1', 'bid_prc2', 'match_prc', 'ask_prc1', 'ask_prc2'];
+    priceColumns.forEach(column => {
+      if (prevValuesRef.current[column] !== undefined && 
+          prevValuesRef.current[column] !== row[column]) {
+        newFlashingCells[column] = true;
+      }
+    });
+
+    // Update flashing cells
+    if (Object.keys(newFlashingCells).length > 0) {
+      setFlashingCells(newFlashingCells);
+      // Clear flash after animation
+      setTimeout(() => {
+        setFlashingCells({});
+      }, 1000);
+    }
+
+    // Update previous values
+    prevValuesRef.current = { ...row };
+  }, [row]);
+
   return (
     <TableRow hover tabIndex={-1}>
       {columns.map(({ id, align, format }) => {
@@ -157,6 +186,9 @@ const OrderBookTableRow = memo(({ row, columns }) => {
           ? '3px solid #000'
           : '1px solid #ccc';
 
+        // Add flash-cell class when the cell is flashing
+        const className = `${isMatchColumn ? 'match-column' : ''} ${flashingCells[id] ? 'flash-cell' : ''}`;
+
         return (
           <TableCell
             key={id}
@@ -164,7 +196,7 @@ const OrderBookTableRow = memo(({ row, columns }) => {
             data-price-cell={isPriceCell ? "true" : "false"}
             data-volume-cell={isVolumeCell ? "true" : "false"}
             data-match-price={isMatchPrice ? "true" : "false"}
-            className={isMatchColumn ? 'match-column' : ''}
+            className={className}
             sx={{
               fontWeight: isSymbolColumn ? 'bold' : 'normal',
               color: getCellTextColor(id, value, row.floor, row.ceil, row.ref, row.match_prc, row),
