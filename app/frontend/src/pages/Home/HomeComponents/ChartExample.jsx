@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-// import { createChart } from 'lightweight-charts';
+
 import './ChartExample.css';
 import ReactApexChart from 'react-apexcharts';
 import candleStickIcon from '../../../assets/images/candle-stick.png';
