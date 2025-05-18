@@ -40,9 +40,9 @@ function Header({ onLoginClick, isLoggedIn, userEmail, onLogoutClick }) {
   return (
     <header className="header">
       <h1>
-        <Link to="/home" className="title">
+        <NavLink to="/home" className="title">
           <img src="logo.png" height="35" alt="Logo" /> Soict Stock
-        </Link>
+        </NavLink>
       </h1>
       <nav className="nav-header">
         <ul>

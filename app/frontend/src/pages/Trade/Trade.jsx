@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { createOrder, getMostTradedStocks, getStockBySymbol } from '../../api/trade';
 import { Autocomplete, TextField } from '@mui/material';
+import ReactApexChart from 'react-apexcharts';
 
 // Predefined stock data
 const STOCK_OPTIONS = [
@@ -27,21 +28,43 @@ const MiniLineChart = ({ data, width = 150, height = 50, strokeColor = '#007bff'
     if (!data || data.length < 2) {
         return <div style={{ height: `${height}px`, width: `${width}px`, border: '1px dashed #ccc', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccc' }}>No data</div>;
     }
-    const padding = 5;
-    const chartWidth = width - 2 * padding;
-    const chartHeight = height - 2 * padding;
-    const maxVal = Math.max(...data);
-    const minVal = Math.min(...data);
-    const range = maxVal - minVal === 0 ? 1 : maxVal - minVal;
-    const points = data.map((value, index) => {
-        const x = padding + (index / (data.length - 1)) * chartWidth;
-        const y = padding + chartHeight - ((value - minVal) / range) * chartHeight;
-        return `${x},${y}`;
-    }).join(' ');
+    const options = {
+        chart: {
+            type: 'line',
+            sparkline: { enabled: true },
+            toolbar: { show: false },
+        },
+        stroke: {
+            curve: 'smooth',
+            width: 2,
+            colors: [strokeColor],
+        },
+        tooltip: {
+            enabled: false,
+        },
+        markers: {
+            size: 0,
+        },
+        grid: {
+            show: false,
+        },
+        xaxis: {
+            labels: { show: false },
+            axisBorder: { show: false },
+            axisTicks: { show: false },
+        },
+        yaxis: {
+            show: false,
+        },
+    };
+    const series = [
+        {
+            name: 'Price',
+            data: data,
+        },
+    ];
     return (
-        <svg width={width} height={height} style={{ display: 'block' }}>
-            <polyline fill="none" stroke={strokeColor} strokeWidth="1.5" points={points} />
-        </svg>
+        <ReactApexChart options={options} series={series} type="line" width={width} height={height} />
     );
 };
 

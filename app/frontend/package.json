@@ -25,10 +25,13 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/material": "^7.0.2",
+    "apexcharts": "^4.7.0",
     "axios": "^1.8.4",
     "dotenv": "^16.5.0",
+    "lightweight-charts": "^5.0.6",
     "lucide-react": "^0.507.0",
     "react": "18.3.0",
+    "react-apexcharts": "^1.7.0",
     "react-dom": "18.3.0",
     "react-router-dom": "6.22.0"
   }
