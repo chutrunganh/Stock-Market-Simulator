@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getAllStocksWithLatestPricesService } from '../services/stockPriceCRUDService.js';
 import {createNoise2D} from 'simplex-noise';
 
-// Initialize with a seed (optional, but good for reproducibility)
+
 const perlinInstance = createNoise2D();
 // Constants
 const SERVER_URL = 'http://localhost:3000/api/orders';
@@ -11,7 +11,6 @@ const INTERVAL_MS = 5000; //one order every 5 sec = one cycle
 const ORDERS_PER_CYCLE = 1; //num of orders per cycle 
 const BASE_TREND = 'neutral'; // 'buy-dominant', 'sell-dominant', 'neutral'
 const DEFAULT_BUY_RATIO = 0.6; 
-// Somewhere accessible, perhaps at the top level or within startCreatingArtificialOrders
 let perlinTime = 0;
 const PERLIN_TIME_STEP = 0.01; // Controls how "fast" the noise changes
 
@@ -274,12 +273,14 @@ const generateArtificialOrder = (
     modifiedPrice = parseFloat(modifiedPrice.toFixed(2)); //
     
     const marketChance = 0.2; // 20% market orders
-    const rand = Math.random(); //
+    const randOrderCategory = Math.random(); //
 
-    if (rand < marketChance) { //
-        orderType = Math.random() > orderParameters.buyRatio ? 'Market Sell' : 'Market Buy'; //
-    } else {
-        orderType = Math.random() < orderParameters.buyRatio ? 'Limit Buy' : 'Limit Sell'; //
+    if (randOrderCategory < marketChance) { // It's a Market Order
+        // Market orders still influenced by the dynamic buyRatio
+        orderType = Math.random() > orderParameters.buyRatio ? 'Market Sell' : 'Market Buy';
+    } else { // It's a Limit Order
+        // For Limit orders, ensure a 50/50 balance between Buy and Sell
+        orderType = Math.random() < 0.5 ? 'Limit Buy' : 'Limit Sell';
     }
     
     const order = {
