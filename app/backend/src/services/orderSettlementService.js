@@ -20,7 +20,9 @@ export const settleMatchedOrder = async (matchedOrder) => {
     } = matchedOrder;
 
     const client = await pool.connect();
-    
+    //define the balance of both side first
+    let buyerNewBalance = 'N/A (Artificial)'; 
+    let sellerNewBalance = 'N/A (Artificial)';
     try {
         await client.query('BEGIN'); // Start transaction
         // Calculate total transaction value (rounded to 2 decimal places)
@@ -41,14 +43,14 @@ export const settleMatchedOrder = async (matchedOrder) => {
         // Deduct money from buyer
         if (buyerPortfolioId !== null) {
             const buyerPortfolio = await client.query('SELECT cash_balance FROM portfolios WHERE portfolio_id = $1', [buyerPortfolioId]);
-            const buyerNewBalance = Number((parseFloat(buyerPortfolio.rows[0].cash_balance) - totalValue).toFixed(2));
+            buyerNewBalance = Number((parseFloat(buyerPortfolio.rows[0].cash_balance) - totalValue).toFixed(2));
             await updatePortfolioService(buyerPortfolioId, { cash_balance: buyerNewBalance });
         }
         
         // Add money to seller
         if (sellerPortfolioId !== null) {
             const sellerPortfolio = await client.query('SELECT cash_balance FROM portfolios WHERE portfolio_id = $1', [sellerPortfolioId]);
-            const sellerNewBalance = Number((parseFloat(sellerPortfolio.rows[0].cash_balance) + totalValue).toFixed(2));
+            sellerNewBalance = Number((parseFloat(sellerPortfolio.rows[0].cash_balance) + totalValue).toFixed(2));
             await updatePortfolioService(sellerPortfolioId, { cash_balance: sellerNewBalance });
         }
 
@@ -85,8 +87,8 @@ export const settleMatchedOrder = async (matchedOrder) => {
                 quantity,
                 price,
                 totalValue,
-                buyerNewBalance: buyerPortfolioId ? buyerNewBalance : 'N/A (Artificial)',
-                sellerNewBalance: sellerPortfolioId ? sellerNewBalance : 'N/A (Artificial)'
+                buyerNewBalance: buyerPortfolioId,
+                sellerNewBalance: sellerPortfolioId 
             }
         };
 

@@ -15,14 +15,15 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import dotenv from 'dotenv';
 dotenv.config({ path: '../../.env' }); // Adjust based on relative depth
-import { getUserByIdService, findOrCreateGoogleUserService  } from '../services/userCRUDService.js';
-
+import { getUserByIdService } from '../services/userCRUDService.js';
+import { findOrCreateGoogleUserService } from '../services/security/userAuthService.js';
+import log from '../utils/loggerUtil.js';
 
 // Configure Google OAuth 2.0 strategy
 const configurePassport = () => {
   // Construct the full callback URL based on environment
   const callbackURL = new URL(process.env.GOOGLE_CALLBACK_URL, process.env.BE_URL).toString();
-  console.log('Google OAuth callback URL:', callbackURL);
+  log.warn(`Google OAuth callback URL: ${callbackURL}`);
   
   passport.use(
     new GoogleStrategy(
@@ -31,7 +32,10 @@ const configurePassport = () => {
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         callbackURL: callbackURL,
         scope: ['profile', 'email']
-      },      async (accessToken, refreshToken, profile, done) => {
+              // NO NOT REMOVE accessToken and refreshToken as they are required by GoogleStrategy, although
+              // the editor may warn that:'refreshToken' is declared but its value is never read. Add an 
+              // underscore to the parameter name to suppress the warning, DO NOT REMOVE IT.
+      },      async (_accessToken, _refreshToken, profile, done) => {
         try {
           // Extract user information from Google profile
           const email = profile.emails[0].value;

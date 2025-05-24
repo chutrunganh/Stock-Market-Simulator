@@ -1,16 +1,19 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
 import Tables from './HomeComponents/Tables';
 import CardGraph from './HomeComponents/CardGraph';
 import TradingStatus from './HomeComponents/TradingStatus';
+import Chart from './HomeComponents/Chart';
 import './Home.css';
 
-function Home(props) {
-    return(
+function Home() {
+    const [selectedStock, setSelectedStock] = useState(null);
+
+    return (
         <div className="home">
             <CardGraph />
             <TradingStatus />
-            <Tables />
+            <Tables onStockSelect={setSelectedStock} selectedSymbol={selectedStock?.Symbol} />
+            <Chart selectedStock={selectedStock} />
         </div>
     );
 }

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Box, Typography, Paper, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress, Button, ToggleButtonGroup, ToggleButton } from '@mui/material';
+import { Box, Typography, Paper, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress, Button} from '@mui/material';
 import { getPortfolioDetails, getHoldings, getTransactions } from '../../api/portfolio';
 import PaymentModal from './PortfolioComponents/PaymentModal';
 import PortfolioPieChart from './PortfolioComponents/PortfolioPieChart';
@@ -17,7 +16,6 @@ function Portfolio() {
     });
     const [error, setError] = useState(null);
     const [showHoldings, setShowHoldings] = useState(false);
-    const [showCharts, setShowCharts] = useState(false);
     const [showTransactions, setShowTransactions] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [highlightedSlice, setHighlightedSlice] = useState(null);
@@ -65,6 +63,11 @@ function Portfolio() {
             try {
                 setLoading(prev => ({ ...prev, transactions: true }));
                 const response = await getTransactions();
+                console.log('Transactions response:', response.data.map(t => ({
+                    id: t.transaction_id,
+                    date: t.transaction_date,
+                    parsed: new Date(t.transaction_date)
+                })));
                 setTransactions(response.data);
                 setError(null);
             } catch (err) {
@@ -90,49 +93,6 @@ function Portfolio() {
         setPortfolioDetails(updatedPortfolioData);
     };
 
-    // Add function to group holdings by industry
-    const getIndustryData = () => {
-        console.log('Holdings in Portfolio:', holdings);
-        
-        const industryGroups = holdings.reduce((groups, holding) => {
-            console.log('Processing holding:', holding);
-            const industry = holding.industry || 'Other';
-            if (!groups[industry]) {
-                groups[industry] = 0;
-            }
-            groups[industry] += holding.holding_value;
-            return groups;
-        }, {});
-
-        console.log('Industry groups in Portfolio:', industryGroups);
-
-        return Object.entries(industryGroups)
-            .sort((a, b) => b[1] - a[1]) // Sort by value in descending order
-            .map(([industry, value], idx) => ({
-                id: idx,
-                value: value,
-                label: industry,
-            }));
-    };
-
-    // Get chart data based on current view
-    const getChartData = () => {
-        if (holdings.length === 0) {
-            return [{ id: 1, value: 1, label: 'No Holdings', arcLabel: '' }];
-        }
-
-        if (chartView === 'symbol') {
-            return holdings
-                .sort((a, b) => b.holding_value - a.holding_value)
-                .map((holding, idx) => ({
-                    id: holding.holding_id || idx,
-                    value: holding.holding_value,
-                    label: holding.symbol,
-                }));
-        } else {
-            return getIndustryData();
-        }
-    };
 
     if (loading.details) {
         return (
@@ -268,25 +228,52 @@ function Portfolio() {
                                     <Table>
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell>Date</TableCell>
-                                                <TableCell>Symbol</TableCell>
-                                                <TableCell>Type</TableCell>
-                                                <TableCell align="right">Quantity</TableCell>
-                                                <TableCell align="right">Price</TableCell>
-                                                <TableCell align="right">Total</TableCell>
+                                                <TableCell className="transaction-date-column">Date</TableCell>
+                                                <TableCell className="transaction-symbol-column">Symbol</TableCell>
+                                                <TableCell className="transaction-type-column">Type</TableCell>
+                                                <TableCell className="transaction-quantity-column" align="right">Quantity</TableCell>
+                                                <TableCell className="transaction-price-column" align="right">Price</TableCell>
+                                                <TableCell className="transaction-total-column" align="right">Total</TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
                                             {transactions.map((transaction) => (
                                                 <TableRow key={transaction.transaction_id}>
-                                                    <TableCell>
-                                                        {new Date(transaction.transaction_date).toLocaleString()}
+                                                    <TableCell className="transaction-date-column">
+                                                        {(() => {
+                                                            const rawDate = transaction.transaction_date;
+                                                            console.log('Raw date:', rawDate, 'Type:', typeof rawDate);
+                                                            
+                                                            if (!rawDate) return 'N/A';
+                                                            
+                                                            // If it's a string, use it directly
+                                                            if (typeof rawDate === 'string') {
+                                                                try {
+                                                                    const date = new Date(rawDate);
+                                                                    if (!isNaN(date.getTime())) {
+                                                                        return date.toLocaleString('en-US', {
+                                                                            year: 'numeric',
+                                                                            month: 'short',
+                                                                            day: 'numeric',
+                                                                            hour: 'numeric',
+                                                                            minute: 'numeric',
+                                                                            hour12: true
+                                                                        });
+                                                                    }
+                                                                } catch (e) {
+                                                                    console.error('Error parsing date string:', rawDate, e);
+                                                                }
+                                                            }
+                                                            
+                                                            console.error('Invalid date value:', rawDate);
+                                                            return 'Invalid date';
+                                                        })()}
                                                     </TableCell>
-                                                    <TableCell>{transaction.symbol}</TableCell>
-                                                    <TableCell>{transaction.transaction_type}</TableCell>
-                                                    <TableCell align="right">{transaction.quantity}</TableCell>
-                                                    <TableCell align="right">{formatCurrency(transaction.price)}</TableCell>
-                                                    <TableCell align="right">
+                                                    <TableCell className="transaction-symbol-column">{transaction.symbol}</TableCell>
+                                                    <TableCell className="transaction-type-column">{transaction.transaction_type}</TableCell>
+                                                    <TableCell className="transaction-quantity-column" align="right">{transaction.quantity}</TableCell>
+                                                    <TableCell className="transaction-price-column" align="right">{formatCurrency(transaction.price)}</TableCell>
+                                                    <TableCell className="transaction-total-column" align="right">
                                                         {formatCurrency(transaction.quantity * transaction.price)}
                                                     </TableCell>
                                                 </TableRow>

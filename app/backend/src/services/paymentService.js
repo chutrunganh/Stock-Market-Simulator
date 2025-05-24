@@ -2,12 +2,15 @@ import pool from '../config/dbConnect.js';
 import axios from 'axios';
 import log from '../utils/loggerUtil.js';
 
+// Seem like the dot env file can be loaded automatically without importing it ?
 const SEPAY_API_TOKEN = process.env.SEPAY_API_TOKEN;
 const SEPAY_API_URL = process.env.SEPAY_BASE_API_URL;
 
 export const verifyPayment = async (referenceNumber, portfolioId) => {
     const client = await pool.connect();
     try {
+        log.info('SEPAY_API_TOKEN', SEPAY_API_TOKEN);
+        log.info('SEPAY_API_URL', SEPAY_API_URL);
         await client.query('BEGIN');
 
         // Log initial state

@@ -28,6 +28,7 @@
 .form-group label {
     display: block;
     margin-bottom: 5px;
+    color: #f0b90b;
 }
 
 .form-group input {
@@ -100,4 +101,11 @@
 
 .form-footer a:hover {
     text-decoration: underline;
+}
+
+.turnstile-container {
+    width: 100%;
+    min-width: 300px; /* Turnstile's minimum */
+    margin-bottom: 15px;
+    display: block;
 }

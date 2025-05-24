@@ -1,25 +1,28 @@
 import express from 'express';
-import { createOrder, cancelOrder, createArtificialOrder } from '../controllers/orderController.js';
+import { createOrder, cancelOrder } from '../controllers/orderController.js';
 import { getOrderBook, orderBookSSE } from '../controllers/orderBookController.js';
 import authMiddleware from '../middlewares/authenticationMiddleware.js';
 import isTradingSessionMiddleware from '../middlewares/tradingSessionMiddleware.js';
-import {validateOrder, validateLimitOrderPrice} from '../middlewares/orderMiddleware.js'
+import { validateOrder } from '../middlewares/orderMiddleware.js';
+
 const router = express.Router();
 
-// Route to create a new order - applies middleware in sequence
+// Create order - any authenticated user can create orders
 router.post('/createOrder', 
     authMiddleware,
     isTradingSessionMiddleware,
     validateOrder,
-    createOrder);
-router.post('/createArtiOrder', isTradingSessionMiddleware, validateLimitOrderPrice, createArtificialOrder);
-// GET route to fetch the order book data
-router.get('/orderBook', getOrderBook);
+    createOrder
+);
 
-// SSE endpoint for real-time order book updates
+// Public routes - anyone can view order book
+router.get('/orderBook', getOrderBook);
 router.get('/orderBook/stream', orderBookSSE);
 
-// Route to cancel a specific order by ID
-router.delete('/cancelOrder/:orderId', cancelOrder);
+// Cancel order - authenticated users can cancel their own orders
+router.delete('/cancelOrder/:orderId', 
+    authMiddleware,
+    cancelOrder
+);
 
 export default router;

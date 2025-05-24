@@ -3,7 +3,7 @@ import log from '../utils/loggerUtil.js';
 import pool from '../config/dbConnect.js';
 
 // Verify payment and update user's balance
-export const verifyPaymentController = async (req, res, next) => {
+export const verifyPaymentController = async (req, res, _next) => {
     const { referenceNumber } = req.body;
     const portfolioId = req.user.portfolio_id;
 
@@ -46,7 +46,18 @@ export const verifyPaymentController = async (req, res, next) => {
         });
     } catch (error) {
         log.error('Payment verification error:', error);
-        next(error);
+        // Custom user-friendly error messages
+        let userMessage = 'An error occurred during payment verification. Please try again.';
+        if (error.message === 'No transaction found with this reference number' || error.message === 'No incoming payment found with this reference number') {
+            userMessage = 'Transaction not found or expired. Please check your reference number and try again.';
+        } else if (error.message === 'This payment has already been processed') {
+            userMessage = 'This payment has already been processed. Please use a new transaction.';
+        }
+        res.status(400).json({
+            success: false,
+            message: userMessage,
+            error: error.message
+        });
     }
 };
 

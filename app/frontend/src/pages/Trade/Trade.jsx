@@ -101,7 +101,7 @@ const MostTradedStocks = () => {
                 const stocksData = await getMostTradedStocks();
                 setStocks(stocksData);
                 setLoading(false);
-            } catch (err) {
+            } catch {
                 setError('Failed to load stocks data');
                 setLoading(false);
             }
@@ -113,11 +113,20 @@ const MostTradedStocks = () => {
     return (
         <div className="most-traded-section">
             <h2 className="most-traded-title">MOST TRADED STOCKS</h2>
-            <div className="stock-cards-container">
-                {stocks.map(stock => (
-                    <StockCard key={stock.ticker} stock={stock} />
-                ))}
-            </div>
+            {loading ? (
+                <div className="loading-container">
+                    <div className="loading-spinner"></div>
+                    <p>Loading most traded stocks...</p>
+                </div>
+            ) : error ? (
+                <div className="error-message">{error}</div>
+            ) : (
+                <div className="stock-cards-container">
+                    {stocks.map(stock => (
+                        <StockCard key={stock.ticker} stock={stock} />
+                    ))}
+                </div>
+            )}
         </div>
     );
 };
@@ -131,7 +140,7 @@ const InfoIcon = ({ title }) => (
     </span>
 );
 
-function Trade(props) {
+function Trade() {
     const [symbol, setSymbol] = useState('');
     const [action, setAction] = useState('buy');
     const [quantity, setQuantity] = useState(0);
@@ -163,21 +172,22 @@ function Trade(props) {
         setSuccessMessage('');
 
         try {
-            // Check if user is authenticated
-            const userId = localStorage.getItem('userId');
-            if (!userId) {
-                throw new Error('You must be logged in to place an order');
-            }
-            console.log('Creating order with user ID:', userId);
-
-            // First get the stock details to get the stock ID
+            // Check if user is authenticated using the auth context
+            if (!user || !user.id) {
+                setErrorMessage('You must be logged in to place an order');
+                setLoading(false);
+                return;
+            }            // First get the stock details to get the stock ID
             const stockDetails = await getStockBySymbol(symbol.toUpperCase());
             if (!stockDetails || !stockDetails.id) {
-                throw new Error(`Could not find stock with symbol ${symbol}`);
+                setErrorMessage(`Could not find stock with symbol ${symbol}`);
+                setLoading(false);
+                return;
             }
 
+            // Note: userId is no longer sent in request body for security (IDOR prevention)
+            // The backend extracts userId from the JWT token instead
             const orderData = {
-                userId,
                 stockId: stockDetails.id,
                 quantity: parseInt(quantity),
                 price: orderType === 'limit' ? parseFloat(limitPrice) : null,
@@ -209,7 +219,7 @@ function Trade(props) {
             }
         } catch (error) {
             console.error('Order placement error:', error);
-            let errorMsg = 'Failed to place order';
+            let errorMsg;
             
             if (error.response) {
                 errorMsg = error.response.data?.message || `Server error: ${error.response.status}`;
@@ -257,7 +267,7 @@ function Trade(props) {
                                 return typeof option === 'string' ? option : option.symbol;
                             }}
                             renderOption={(props, option) => {
-                                const { key, ...otherProps } = props;
+                                const { _key, ...otherProps } = props;
                                 return (
                                     <li key={option.symbol} {...otherProps}>
                                         <strong>{option.symbol}</strong>

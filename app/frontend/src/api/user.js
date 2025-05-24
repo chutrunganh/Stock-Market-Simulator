@@ -12,14 +12,22 @@ export const registerUser = async (userData) => {
 };
 
 // Function to log in a user
-export const loginUser = async ({ identifier, password }) => {
+export const loginUser = async ({ identifier, password, turnstileToken, otp, visitorId, rememberDevice, fingerprintConfidence }) => {
   try {
-    console.log('Login request payload:', { identifier, password });
-    const response = await apiClient.post('/login', {
-      identifier,  // This can be either email or username
-      password
-    });
-    console.log('Login response:', response.data); // Debug log to verify response structure
+    // In development mode, we don't need to send turnstileToken
+    const payload = {
+      identifier,
+      password,
+      ...(import.meta.env.MODE === 'production' ? { turnstileToken } : {}),
+      ...(otp ? { otp } : {}),
+      visitorId,
+      rememberDevice,
+      fingerprintConfidence
+    };
+
+    console.log('Login request payload:', payload);
+    const response = await apiClient.post('/login', payload);
+    console.log('Login response:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error during login:', error);
@@ -47,6 +55,71 @@ export const getUserProfile = async () => {
     return response.data;
   } catch (error) {
     console.error('Error fetching user profile:', error);
+    throw error;
+  }
+};
+
+// Function to request OTP for login (2FA)
+export const sendLoginOtp = async (identifier) => {
+  try {
+    const response = await apiClient.post('/send-login-otp', { identifier });
+    return response.data;
+  } catch (error) {
+    console.error('Error sending login OTP:', error);
+    throw error;
+  }
+};
+
+// Function to verify OTP for login (2FA)
+export const verifyLoginOtp = async ({ identifier, otp }) => {
+  try {
+    const response = await apiClient.post('/login/verify-otp', { identifier, otp });
+    return response.data;
+  } catch (error) {
+    console.error('Error verifying login OTP:', error);
+    throw error;
+  }
+};
+
+// Function to reset password (forgot password flow)
+export const resetPassword = async ({ email, otp, newPassword }) => {
+  try {
+    const response = await apiClient.post('/reset-password', { email, otp, newPassword });
+    return response.data;
+  } catch (error) {
+    console.error('Error during password reset:', error);
+    throw error;
+  }
+};
+
+// Function to log out a user
+export const logoutUser = async () => {
+  try {
+    const response = await apiClient.post('/logout');
+    return response.data;
+  } catch (error) {
+    console.error('Error during logout:', error);
+    throw error;
+  }
+};
+
+// Function to refresh tokens
+export const refreshToken = async () => {
+  try {
+    console.log('Attempting to refresh token');
+    const response = await apiClient.post('/refresh-token');
+    console.log('Token refresh response:', response.data);
+    
+    // Return the response in the expected format
+    return {
+      status: response.status,
+      data: {
+        accessToken: response.data.data?.accessToken,
+        refreshToken: response.data.data?.refreshToken
+      }
+    };
+  } catch (error) {
+    console.error('Error refreshing token:', error);
     throw error;
   }
 };

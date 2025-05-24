@@ -15,7 +15,6 @@
 
 import pool from './dbConnect.js';
 import log from '../utils/loggerUtil.js';
-import bcrypt from 'bcrypt';
 
 // // Create seed admin user function
 // const createSeedAdminUser = async () => {
@@ -57,8 +56,9 @@ import bcrypt from 'bcrypt';
 
 const createUserTable = async () => {
   const queryText = ` 
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
     CREATE TABLE IF NOT EXISTS "users" (
-      id SERIAL PRIMARY KEY,
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
       username VARCHAR(100) UNIQUE NOT NULL,
       email VARCHAR(100) UNIQUE NOT NULL,
       password VARCHAR(255),

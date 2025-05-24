@@ -1,9 +1,9 @@
 /**
  * AuthContext provides authentication state and methods throughout the app
+ * Authentication is handled via HTTP-only cookies (access token and refresh token)
  */
-import React, { createContext, useState, useEffect, useContext } from 'react';
-import { loginUser, registerUser, getUserProfile } from '../api/user';
-import apiClient from '../api/apiClient';
+import React, { createContext, useState, useContext } from 'react';
+import {registerUser, getUserProfile, logoutUser as logoutUserApi, refreshToken as refreshTokenApi } from '../api/user';
 
 // Create the Auth Context
 const AuthContext = createContext();
@@ -11,144 +11,218 @@ const AuthContext = createContext();
 // Auth Provider Component
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [authState, setAuthState] = useState({ initialized: false });
-  // Check for stored auth token on mount
-  useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem('authToken');
-      console.log('AuthContext: Checking authentication with token:', token ? 'Token exists' : 'No token');
-      
-      if (token) {
-        try {
-          // Verify token by fetching user profile
-          console.log('AuthContext: Verifying token by fetching user profile...');
-          const response = await getUserProfile();
-          
-          console.log('AuthContext: User profile response:', response);
-          
-          if (response && response.data && response.data.user) {
-            console.log('AuthContext: User authenticated successfully:', response.data.user);
-            setUser(response.data.user);
-          } else {
-            console.warn('AuthContext: Invalid user profile response:', response);
-            localStorage.removeItem('authToken');
-            setUser(null);
-          }
-        } catch (err) {
-          console.error('AuthContext: Token verification failed:', err);
-          localStorage.removeItem('authToken');
-          setUser(null);
-        }      } else {
-        console.log('AuthContext: No auth token found');
-      }
-      
-      setLoading(false);
-      setAuthState({ initialized: true });
-    };
-    
-    checkAuth();
-  }, []);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const logout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userId'); // Remove user ID
-    setUser(null);
+  // Check authentication status by calling backend
+  const checkAuth = async () => {
+    try {
+      console.log('[Auth Debug] Checking authentication status...');
+      const response = await getUserProfile();
+      if (response?.data?.user) {
+        console.log('[Auth Debug] User authenticated:', response.data.user.username || response.data.user.email);
+        setUser(response.data.user);
+        setIsAuthenticated(true);
+        return true;
+      } else {
+        console.log('[Auth Debug] Authentication check failed: Invalid response format');
+        // Clear any invalid tokens that might be stored
+        localStorage.removeItem('userId');
+        localStorage.removeItem('authToken');
+      }
+    } catch (err) {
+      console.error('[Auth Debug] Authentication check failed:', err.message);
+      // Clear tokens on auth failure
+      localStorage.removeItem('userId');
+      localStorage.removeItem('authToken');
+      setUser(null);
+      setIsAuthenticated(false);
+    }
+    return false;
   };
+
+  // Logout function - only calls API if user is authenticated
+  const logout = async () => {
+    if (!isAuthenticated) {
+      setUser(null);
+      setIsAuthenticated(false);
+      // Clear all auth-related storage
+      localStorage.removeItem('userId');
+      localStorage.removeItem('shouldCheckAuth');
+      localStorage.removeItem('authToken');
+      return;
+    }
+
+    try {
+      await logoutUserApi();
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      setUser(null);
+      setIsAuthenticated(false);
+      // Remove userId from localStorage
+      localStorage.removeItem('userId');
+    }
+  };
+
+  // Handle browser/tab close
+  const handleBeforeUnload = async (event) => {
+    if (isAuthenticated) {
+      event.preventDefault();
+      event.returnValue = ''; // Required for Chrome
+      console.log('[Auth Debug] Browser closing - logging out user');
+      await logout();
+    }
+  };
+
   // Login function
   const login = async (credentials) => {
     setLoading(true);
     setError(null);
+    
     try {
-      let userData;
-      let authToken;
+      if (!credentials?.user) {
+        setError('Invalid login credentials');
+        setLoading(false);
+        return;
+      }
+
+      setUser(credentials.user);
+      setIsAuthenticated(true);
       
-      // If credentials contains both user and token (from Google login)
-      if (credentials.user && credentials.token) {
-        console.log('AuthContext: Processing Google login with user data:', credentials.user);
-        userData = credentials.user;
-        authToken = credentials.token;
-      } else {
-        // Regular identifier/password login
-        const response = await loginUser({
-          identifier: credentials.identifier,
-          password: credentials.password
-        });
-        if (!response || !response.data || !response.data.user || !response.data.token) {
-          throw new Error('Invalid login response from server.');
-        }
-        userData = response.data.user;
-        authToken = response.data.token;
+      // Store userId and auth check flag in localStorage
+      if (credentials.user.id) {
+        localStorage.setItem('userId', credentials.user.id);
+        localStorage.setItem('shouldCheckAuth', 'true');
       }
       
-      // Store auth data and update state
-      localStorage.setItem('authToken', authToken);
-      console.log('Storing user ID in localStorage:', userData.id);
-      localStorage.setItem('userId', userData.id); // Store user ID
-      
-      // Update user state immediately 
-      console.log('AuthContext: Setting user data immediately after login:', userData);
-      setUser(userData);
-      
-      // Force an immediate state update by dispatching an event
+      // Notify any listeners of auth state change
       window.dispatchEvent(new CustomEvent('auth-state-changed', { 
-        detail: { user: userData, isAuthenticated: true }
+        detail: { user: credentials.user, isAuthenticated: true }
       }));
-      
-      return userData;
+
+      return credentials.user;
     } catch (err) {
-      setError(err.message || 'Login failed.');
+      setError(err.message || 'Login failed');
       throw err;
     } finally {
       setLoading(false);
     }
   };
+
   // Register function
   const register = async (userData) => {
     setLoading(true);
     setError(null);
+    
     try {
       const response = await registerUser(userData);
-      if (!response || !response.data) {
-        throw new Error('Invalid registration response from server.');
+      if (!response?.data) {
+        setError('Invalid registration response');
+        setLoading(false);
+        return;
       }
-      
-      // Check for specific error cases in the response
-      if (response.status === 500) {
-        if (response.error?.includes('users_username_key')) {
-          throw new Error('Username already exists. Please choose a different username.');
-        }
-        if (response.error?.includes('users_email_key')) {
-          throw new Error('Email already exists. Please use a different email address.');
-        }
-      }
-      
       return response.data;
     } catch (err) {
-      // Handle axios error response
-      if (err.response?.data?.error) {
-        setError(err.response.data.error);
-      } else {
-        setError(err.message || 'Registration failed.');
-      }
-      throw err;
+      const errorMessage = err.response?.data?.error || err.message || 'Registration failed';
+      setError(errorMessage);
+      throw new Error(errorMessage);
     } finally {
       setLoading(false);
     }
-  };  return (
-    <AuthContext.Provider 
-      value={{ 
-        user, 
-        loading, 
-        error,
-        isAuthenticated: !!user, // Add this to indicate if user is logged in
-        authInitialized: authState.initialized,
-        login,
-        logout,
-        register 
-      }}
-    >
+  };
+
+  // Refresh token function - simplified since we only need to handle access token refresh
+  const refresh = async () => {
+    try {
+      const response = await refreshTokenApi();
+      
+      if (response?.status === 200) {
+        // Update authenticated state and user profile
+        setIsAuthenticated(true);
+        const userResponse = await getUserProfile();
+        if (userResponse?.data?.user) {
+          setUser(userResponse.data.user);
+        }
+        return response;
+      }
+
+      // If refresh failed, clear state
+      setUser(null);
+      setIsAuthenticated(false);
+      return null;
+    } catch (err) {
+      console.log('[Auth Debug] Token refresh failed:', err.message);
+      await logout();
+      return null;
+    }
+  };
+
+  // Set up global auth handlers and cleanup
+  React.useEffect(() => {
+    // Initialize auth handlers but don't check auth automatically
+    window.AuthRefresh = refresh;
+    window.AuthLogout = logout;
+    window.AuthContext = { 
+      isAuthenticated, 
+      setIsAuthenticated,
+      checkAuth // Expose checkAuth so it can be called explicitly when needed
+    };
+    
+    // Add browser close event listener only if authenticated
+    if (isAuthenticated) {
+      window.addEventListener('beforeunload', handleBeforeUnload);
+    }
+    
+    // Skip automatic auth check on initial load
+    const shouldCheckAuth = localStorage.getItem('shouldCheckAuth') === 'true';
+    if (shouldCheckAuth) {
+      checkAuth().then(() => {
+        localStorage.removeItem('shouldCheckAuth');
+      });
+    }
+
+    return () => {
+      window.AuthRefresh = null;
+      window.AuthLogout = null;
+      window.AuthContext = null;
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+    
+    // Check for valid storage values and not just any values
+    if ((storedUserId && storedUserId !== "undefined" && storedUserId !== "null") || 
+        (storedToken && storedToken !== "undefined" && storedToken !== "null")) {
+      console.log('[Auth Debug] Found valid stored credentials, checking authentication...');
+      checkAuth();
+    } else {
+      // Clean up any invalid values that might be in storage
+      localStorage.removeItem('userId');
+      localStorage.removeItem('authToken');
+    }
+    
+    return () => {
+      window.AuthRefresh = null;
+      window.AuthLogout = null;
+      window.AuthContext = null;
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isAuthenticated]);
+
+  const value = {
+    user,
+    loading,
+    error,
+    isAuthenticated,
+    login,
+    logout,
+    refresh,
+    register,
+    checkAuth
+  };
+
+  return (
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

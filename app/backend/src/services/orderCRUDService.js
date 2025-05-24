@@ -79,7 +79,7 @@ export const createArtificialOrderService = async (orderData) => {
     if (order.type === 'Market Buy' || order.type === 'Market Sell') {
         orderBook.marketOrderMatching(order);
     } else if (order.type === 'Limit Buy' || order.type === 'Limit Sell') {
-        orderBook.addOrderToQuene(order);
+        //orderBook.addOrderToQuene(order);
         orderBook.limitOrderMatching(order);
     }
 

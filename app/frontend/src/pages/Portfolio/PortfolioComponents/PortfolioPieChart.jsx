@@ -49,8 +49,9 @@ const PortfolioPieChart = ({
 
         console.log('Industry groups before processing:', industryGroups);
 
-        const sortedData = Object.entries(industryGroups)
-            .filter(([_, value]) => value > 0) // Only include industries with positive values
+        const sortedData = Object.entries(industryGroups)   
+            // eslint-disable-next-line no-unused-vars
+            .filter(([_industry, value]) => value > 0) // Only include industries with positive values
             .sort((a, b) => b[1] - a[1]) // Sort by value in descending order
             .map(([industry, value], idx) => {
                 const percentage = ((value / totalValue) * 100).toFixed(1);
