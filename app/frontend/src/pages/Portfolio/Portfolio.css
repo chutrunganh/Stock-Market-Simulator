@@ -1,0 +1,150 @@
+.portfolio {
+    margin: 0;
+    display: grid;
+    place-items: center;
+    place-content: center;
+    padding: 20px;
+    width: 100%;
+}
+
+.portfolio-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.grid-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+
+    display: grid;
+    grid-template-columns: 2.2fr 3fr;    
+    gap: 10px;
+}
+.portfolio-section {
+    width: 100%;
+    margin-bottom: 20px;
+    padding: 20px;
+    min-height: 100px; /* Ensure minimum height even when collapsed */
+}
+
+.grid-section{
+    padding:20px;
+    margin-bottom: 20px;
+}
+
+.section-header {
+    cursor: pointer;
+    padding: 10px 0;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+}
+
+.section-header:hover {
+    background-color: #f5f5f5;
+}
+
+/* Make tables take full width */
+.portfolio-section .MuiTableContainer-root {
+    width: 100%;
+    overflow-x: auto;
+}
+
+/* Ensure consistent table width */
+.portfolio-section .MuiTable-root {
+    width: 100%;
+    min-width: 800px;
+}
+
+/* Ensure consistent width for collapsed sections */
+.portfolio-section:not(:has(.MuiTableContainer-root)) {
+    min-width: 800px;
+}
+
+/* Add any additional custom styles here */
+.title {
+    font-size: 2rem;
+    font-weight: bold;
+    text-align: center;
+    margin: 24px 0 16px 0;
+    display: block;
+    font: black;
+}
+
+/* Chart section styles */
+.MuiToggleButtonGroup-root {
+    background-color: #f5f5f5;
+    border-radius: 4px;
+}
+
+.MuiToggleButton-root {
+    padding: 4px 12px !important;
+    text-transform: none !important;
+    font-size: 14px !important;
+}
+
+.MuiToggleButton-root.Mui-selected {
+    background-color: #1976d2 !important;
+    color: white !important;
+}
+
+/* Pie chart container */
+.grid-section {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Chart legend styles */
+.MuiChartsLegend-root {
+    margin-top: 20px !important;
+}
+
+.MuiChartsLegend-label {
+    font-size: 12px !important;
+    color: rgba(0, 0, 0, 0.87) !important;
+}
+
+/* Table column width adjustments */
+.transaction-date-column {
+    min-width: 200px !important;
+    width: 200px !important;
+}
+
+.transaction-symbol-column {
+    min-width: 80px !important;
+    width: 80px !important;
+}
+
+.transaction-type-column {
+    min-width: 80px !important;
+    width: 80px !important;
+}
+
+.transaction-quantity-column {
+    min-width: 100px !important;
+    width: 100px !important;
+    text-align: right !important;
+}
+
+.transaction-price-column {
+    min-width: 120px !important;
+    width: 120px !important;
+    text-align: right !important;
+}
+
+.transaction-total-column {
+    min-width: 120px !important;
+    width: 120px !important;
+    text-align: right !important;
+}
+
+/* Ensure table header cells maintain their width */
+.MuiTableCell-head {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
