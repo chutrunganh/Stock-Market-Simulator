@@ -20,7 +20,7 @@ const createOrder = async (order) => {
         await axios.post(`${BASE_URL}/api/orders/createArtiOrder`, order);
     } catch (error) {
         console.error('Failed to create order:', error);
-        throw error;
+        return next(error);
     }
 };
 

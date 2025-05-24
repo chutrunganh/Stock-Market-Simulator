@@ -64,7 +64,7 @@ const getAvailableStocksAndPrices = async () => {
             }));
     } catch (error) {
         console.error('Error fetching stocks and prices:', error.message);
-        throw error;
+        return next(error);
     }
 };
 
@@ -189,7 +189,7 @@ const generateArtificialOrder = (stocks, baseTrend = 'neutral') => {
 const startCreatingArtificialOrders = async (config = {}, createOrderCallback) => {
     const stocks = await getAvailableStocksAndPrices();
     if (stocks.length === 0) {
-        throw new Error('No stocks available to create orders.');
+        return next(new Error('No stocks available to create orders.'));
     }
 
     return setInterval(async () => {

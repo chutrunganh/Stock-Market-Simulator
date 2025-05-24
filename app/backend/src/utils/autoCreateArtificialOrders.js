@@ -1,12 +1,18 @@
 import axios from 'axios';
 import { getAllStocksWithLatestPricesService } from '../services/stockPriceCRUDService.js';
+import {createNoise2D} from 'simplex-noise';
 
+
+const perlinInstance = createNoise2D();
 // Constants
-const SERVER_URL = 'http://localhost:3000/api/orders';
-const ADMIN_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwidXNlcm5hbWUiOiJjaHV0cnVuZzIxMCIsImVtYWlsIjoiY2h1dHJ1bmcyMTBAZ21haWwuY29tIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3NDczMjU0NjEsImV4cCI6MTc0NzQxMTg2MX0.UKq_L90pERYYJOiqzp7BX3bLubOa5PdyQmdP9djBHzY'; //replace with admin token when signed up
+const SERVER_URL = 'http://localhost:3000/api';
+const ADMIN_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImEwN2ExYjg3LTM5ODgtNDU5ZS1hYzkxLTMxNjVlM2FkYjRlMCIsInVzZXJuYW1lIjoiYWRtaW4iLCJlbWFpbCI6ImFkbWluQHN0b2NrbWFya2V0LmNvbSIsInJvbGUiOiJhZG1pbiIsInR5cGUiOiJhY2Nlc3MiLCJsb2dpbl9hdCI6MTc0ODEwMTg0NzEyMSwiaWF0IjoxNzQ4MTAxODQ3LCJleHAiOjE3NDgxMDM5NDd9.hSRaUC-iyQ74tgo1stlXyb4Pp82nW-zQKO2eXqBVBE0'; // Replace with your actual JWT token
 const INTERVAL_MS = 5000; //one order every 5 sec = one cycle
-const ORDERS_PER_CYCLE = 500; //num of orders per cycle 
+const ORDERS_PER_CYCLE = 100; //num of orders per cycle 
 const BASE_TREND = 'neutral'; // 'buy-dominant', 'sell-dominant', 'neutral'
+const DEFAULT_BUY_RATIO = 0.6; 
+let perlinTime = 0;
+const PERLIN_TIME_STEP = 0.01; // Controls how "fast" the noise changes
 
 // Market events configuration
 const MARKET_EVENTS = {
@@ -166,123 +172,130 @@ const trackStockMovements = (stocks) => {
     });
 };
 
-const generateArtificialOrder = (stocks) => {
-    // Initialize with empty array if there are no affected stocks
-    let affectedStocks = [];
+const generateArtificialOrder = (
+    stockForOrder,          // The specific stock to generate an order for (from the queue)
+    allStocks,              // Full list of stocks (for context, if needed for broader rules)
+    currentActiveEvents,    // Array of currently active market events
+    currentStockMovements,  // Object tracking consecutive down moves for stocks
+    perlinNoiseInstance,    // Pass your Perlin noise instance
+    currentTimeForNoise     // Pass the current time/step for Perlin noise
+) => {
     let orderParameters = {
-        buyRatio: 0.5, // Default is neutral
+        buyRatio: DEFAULT_BUY_RATIO, // Changed from 0.5 to 0.4 (40% buy, 60% sell)
         priceModifier: 1.0 // No modification by default
     };
+
+    // --- Conceptual Perlin Noise Integration for base buyRatio ---
+    if (perlinNoiseInstance && typeof currentTimeForNoise !== 'undefined') {
+        // Generate a noise value (typically 0 to 1, or -1 to 1 depending on library)
+        // Using stockForOrder.stock_id or an index as an offset to vary noise per stock.
+        let noiseValForBuyRatio = perlinNoiseInstance(currentTimeForNoise + (stockForOrder.stock_id % 10));
+        
+        // Map the noise value to modulate the buyRatio
+        // Example: if noise is 0-1, map it to a +/- 0.2 range around the base DEFAULT_BUY_RATIO
+        let buyRatioModulation = (noiseValForBuyRatio - 0.5) * 0.4; // Results in modulation from -0.2 to +0.2
+        let perlinInfluencedBuyRatio = DEFAULT_BUY_RATIO + buyRatioModulation;
+        orderParameters.buyRatio = Math.max(0.1, Math.min(0.9, perlinInfluencedBuyRatio)); // Clamp between 10% and 90%
+    }
+    // --- End Perlin Noise for buyRatio ---
+
+    // --- Conceptual Perlin Noise Integration for base priceModifier ---
+    if (perlinNoiseInstance && typeof currentTimeForNoise !== 'undefined') {
+        // Using a different offset for price modifier noise
+        let noiseValForPriceMod = perlinNoiseInstance(currentTimeForNoise + (stockForOrder.stock_id % 10) + 0.5); // Example offset
+        // Map noise (e.g., 0-1) to a small dynamic price pressure, e.g., 0.995 to 1.005
+        let perlinPriceInfluence = 0.995 + (noiseValForPriceMod * 0.01);
+        orderParameters.priceModifier *= perlinPriceInfluence; // Apply multiplicatively
+    }
+    // --- End Perlin Noise for priceModifier ---
     
-    // Check if we have active events
-    if (activeEvents.length > 0) {
-        // Combine effects from all active events
-        activeEvents.forEach(event => {
-            // Get stocks affected by this event
-            let eventAffectedStocks = stocks;
-            
-            // Filter by industry if the event doesn't affect all industries
-            if (event.affectedIndustries[0] !== 'all') {
-                eventAffectedStocks = stocks.filter(stock => 
-                    event.affectedIndustries.includes(stock.industry)
-                );
+    // Always reset to default buy ratio before applying event effects
+    orderParameters.buyRatio = DEFAULT_BUY_RATIO;
+    
+    // Check if stockForOrder is affected by active events
+    if (currentActiveEvents.length > 0) {
+        currentActiveEvents.forEach(event => {
+            let isEventApplicableToThisStock = false;
+            if (event.affectedIndustries[0] === 'all' || event.affectedIndustries.includes(stockForOrder.industry)) {
+                isEventApplicableToThisStock = true;
             }
             
-            // Add these stocks to our affected pool
-            affectedStocks = [...affectedStocks, ...eventAffectedStocks];
-            
-            // Update order parameters based on strongest effect
-            if (Math.abs(event.effect.buyRatio - 0.5) > Math.abs(orderParameters.buyRatio - 0.5)) {
+            if (isEventApplicableToThisStock) {
+                // Event effects override default values
                 orderParameters.buyRatio = event.effect.buyRatio;
+                // Event price modifier is multiplicative
+                orderParameters.priceModifier *= event.effect.priceModifier;
             }
-            
-            // Price modifier is multiplicative
-            orderParameters.priceModifier *= event.effect.priceModifier;
         });
     }
     
-    // If no stocks are affected by events, use all stocks
-    if (affectedStocks.length === 0) {
-        affectedStocks = stocks;
-    }
-    
-    // Remove duplicates from affected stocks
-    affectedStocks = [...new Map(affectedStocks.map(stock => [stock.stock_id, stock])).values()];
-    
-    // Select a random stock from affected ones
-    const randomStock = affectedStocks[Math.floor(Math.random() * affectedStocks.length)];
     const quantity = Math.floor(Math.random() * 100) + 1;
 
-    // Calculate ceiling and floor price - in ±7% range
-    const referencePrice = randomStock.latestPrice;
-    const floorPrice = referencePrice * 0.93; // 7% down
-    const ceilPrice = referencePrice * 1.07; // 7% up
+    const referencePrice = stockForOrder.latestPrice;
     
-    // Check if this stock is in recovery mode
-    const stockRecovery = consecutiveDownMoves[randomStock.stock_id];
+    const floorPrice = referencePrice * 0.93;
+    const ceilPrice = referencePrice * 1.07;
+    
+    const stockRecoveryData = currentStockMovements[stockForOrder.stock_id];
     let recoveryMode = false;
     
-    if (stockRecovery && stockRecovery.inRecovery) {
+    if (stockRecoveryData && stockRecoveryData.inRecovery) {
         recoveryMode = true;
-        orderParameters.buyRatio = stockRecovery.recoveryStrength; // Adjust buy ratio for recovery
-        orderParameters.priceModifier = 1.01 + (Math.random() * 0.02); // Slight upward bias
+        // Recovery mode can override other buyRatio settings
+        orderParameters.buyRatio = stockRecoveryData.recoveryStrength;
+        // Recovery mode also has its own price modifier logic
+        orderParameters.priceModifier *= (1.01 + (Math.random() * 0.02));
     }
 
-    // Generate initial random price within the legal range
-    let modifiedPrice = floorPrice + Math.random() * (ceilPrice - floorPrice);
+    let modifiedPrice = floorPrice + Math.random() * (ceilPrice - floorPrice); //
+    modifiedPrice = parseFloat((modifiedPrice * orderParameters.priceModifier).toFixed(2)); //
 
-    // Apply price modifier from events or recovery
-    modifiedPrice = parseFloat((modifiedPrice * orderParameters.priceModifier).toFixed(2));
-
-    //scale the modified price so that it pass the validLimitOrderPrice middleware
-
-    if (modifiedPrice < floorPrice){
-        modifiedPrice = floorPrice;
+    if (modifiedPrice < floorPrice){ //
+        modifiedPrice = (floorPrice + 1).toFixed(2); //
     }
-    if (modifiedPrice > ceilPrice){
-        modifiedPrice = ceilPrice;
+    if (modifiedPrice > ceilPrice){ //
+        modifiedPrice = (ceilPrice-1).toFixed(2); //
     }
-
-    // Ensure price stays strictly within floor/ceiling (±7% of reference price)
-    modifiedPrice = Math.max(floorPrice, Math.min(ceilPrice, modifiedPrice));
+    // Ensure price stays strictly within floor/ceiling (already done by above, but Math.min/max is safer)
+    modifiedPrice = Math.max(floorPrice, Math.min(ceilPrice, modifiedPrice)); //
     
     let orderType;
-    // Additional check for slump conditions
-    if (orderType === 'Limit Sell' && consecutiveDownMoves[randomStock.stock_id]?.count >= 3 && !recoveryMode) {
-        // Price pressure increases with consecutive down moves
-        const pressureFactor = 0.98 - (Math.min(consecutiveDownMoves[randomStock.stock_id].count, 10) * 0.005);
-        // Apply pressure factor but ensure we don't go below floor price
-        modifiedPrice = Math.max(floorPrice, modifiedPrice * pressureFactor);
+    // Slump condition check:
+    // The original code had 'orderType' in the condition before it was defined.
+    // We'll determine a preliminary order direction based on buyRatio for this check.
+    const isLikelySellForSlumpCheck = Math.random() >= orderParameters.buyRatio;
+
+    if (isLikelySellForSlumpCheck && stockRecoveryData?.count >= 3 && !recoveryMode) { //
+        const pressureFactor = 0.98 - (Math.min(stockRecoveryData.count, 10) * 0.005); //
+        modifiedPrice = Math.max(floorPrice, modifiedPrice * pressureFactor); //
     }
 
-    // Final rounding to 2 decimal places
-    modifiedPrice = parseFloat(modifiedPrice.toFixed(2));
-    
-    // Determine order type
+    modifiedPrice = parseFloat(modifiedPrice.toFixed(2)); //
     
     const marketChance = 0.2; // 20% market orders
-    const rand = Math.random();
+    const randOrderCategory = Math.random(); //
 
-    if (rand < marketChance) {
+    if (randOrderCategory < marketChance) { // It's a Market Order
+        // Market orders still influenced by the dynamic buyRatio
         orderType = Math.random() > orderParameters.buyRatio ? 'Market Sell' : 'Market Buy';
-    } else {
-        // Use event-influenced buy ratio
-        orderType = Math.random() < orderParameters.buyRatio ? 'Limit Buy' : 'Limit Sell';
+    } else { // It's a Limit Order
+        // For Limit orders, ensure a 50/50 balance between Buy and Sell
+        orderType = Math.random() < 0.5 ? 'Limit Buy' : 'Limit Sell';
     }
     
     const order = {
-        stockId: randomStock.stock_id,
-        quantity,
-        price: orderType.includes('Limit') ? modifiedPrice : undefined,
-        orderType
+        stockId: stockForOrder.stock_id,
+        quantity, //
+        price: orderType.includes('Limit') ? modifiedPrice : undefined, //
+        orderType //
     };
 
-    return order;
+    return order; //
 };
 
 const sendArtificialOrder = async (order) => {
     try {
-        const response = await axios.post(`${SERVER_URL}/createArtiOrder`, order, {
+        const response = await axios.post(`${SERVER_URL}/orders/createArtiOrder`, order, {
             headers: {
                 Authorization: `Bearer ${ADMIN_JWT}`,
             },
@@ -300,35 +313,60 @@ const sendArtificialOrder = async (order) => {
 };
 
 // Main function
+// Main function
 const startCreatingArtificialOrders = async () => {
-    const stocks = await getAvailableStocksAndPrices();
-    if (stocks.length === 0) {
+    const allFetchedStocks = await getAvailableStocksAndPrices(); // Renamed for clarity
+    if (allFetchedStocks.length === 0) {
         console.error('No stocks available to create orders.');
         return;
     }
+    //console.log("Fectched stock list: ",allFetchedStocks); //to check if returned stock list is valid
+    let stockQueue = [...allFetchedStocks]; // Initialize the queue with all stocks
+
     console.log('Starting auto-create orders...');
-    console.log(`Base trend: ${BASE_TREND}`);
+    console.log(`Base trend: ${BASE_TREND}`); //
     
     setInterval(async () => {
-        // Check for market events at the start of each cycle
-        checkForMarketEvents();
+        checkForMarketEvents(); //
+        trackStockMovements(allFetchedStocks); // Pass all stocks for tracking
         
-        // Update stock movement tracking
-        trackStockMovements(stocks);
-        
-        // Log active events
         if (activeEvents.length > 0) {
-            console.log('Active market events:');
-            activeEvents.forEach(event => {
-                console.log(`- ${event.name} (${event.remainingCycles} cycles remaining)`);
+            console.log('Active market events:'); //
+            activeEvents.forEach(event => { //
+                console.log(`- ${event.name} (${event.remainingCycles} cycles remaining)`); //
             });
         }
         
-        for (let i = 0; i < ORDERS_PER_CYCLE; i++) {
-            const order = generateArtificialOrder(stocks);
-            await sendArtificialOrder(order);
+        for (let i = 0; i < ORDERS_PER_CYCLE; i++) { //
+            if (stockQueue.length === 0) {
+                // Refill queue if empty to continue cycling.
+                // Alternatively, you could stop or handle this differently.
+                if (allFetchedStocks.length === 0) {
+                    console.error("No stocks to process in queue and no stocks to refill from.");
+                    break; 
+                }
+                console.warn("Stock queue was empty, refilling...");
+                stockQueue = [...allFetchedStocks];
+            }
+
+            const currentStockToProcess = stockQueue.shift(); // Get stock from front of queue
+
+            // Pass currentStockToProcess, allFetchedStocks (for context), activeEvents, and consecutiveDownMoves
+            const order = generateArtificialOrder(
+                currentStockToProcess,
+                allFetchedStocks,
+                activeEvents,         
+                consecutiveDownMoves, 
+                perlinInstance,       
+                perlinTime            
+            );
+            if (order){
+                await sendArtificialOrder(order); 
+            }
+            stockQueue.push(currentStockToProcess); // Add stock to the end of the queue
+            perlinTime += PERLIN_TIME_STEP;
         }
-    }, INTERVAL_MS);
+    }, INTERVAL_MS); //
 };
 
 startCreatingArtificialOrders();

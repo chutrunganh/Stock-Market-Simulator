@@ -1,9 +1,10 @@
 import express from 'express';
-import { createOrder, cancelOrder } from '../controllers/orderController.js';
+import { createOrder, createArtificialOrder, cancelOrder } from '../controllers/orderController.js';
 import { getOrderBook, orderBookSSE } from '../controllers/orderBookController.js';
 import authMiddleware from '../middlewares/authenticationMiddleware.js';
 import isTradingSessionMiddleware from '../middlewares/tradingSessionMiddleware.js';
 import { validateOrder } from '../middlewares/orderMiddleware.js';
+import { requireAdminRole } from '../middlewares/roleBasedAccessControlMiddleware.js';
 
 const router = express.Router();
 
@@ -13,6 +14,13 @@ router.post('/createOrder',
     isTradingSessionMiddleware,
     validateOrder,
     createOrder
+);
+
+// Create artificial order - admin only and no validations
+router.post('/createArtiOrder',
+    authMiddleware,
+    requireAdminRole,
+    createArtificialOrder
 );
 
 // Public routes - anyone can view order book

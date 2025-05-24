@@ -1,52 +1,3 @@
-> [!IMPORTANT]  
-> Check lại file .env trước khi chạy, phần các thông số liên quan đến database để tránh gặp lỗi kết nối. Chú ý DB_HOST phải là:
-> - localhost nếu chạy backend trên máy local (tức dùng postgres.exe hoặc docker-compose chỉ để chạy db). Lúc này cần chú ý thêm comment phần service backend và frontend trong docker-compose đi, chỉ để 2 service của db là postgres và pgadmin thôi. Mật khẩu db là admin nếu chạy bằng docker-compose. Ai chạy bằng postgres.exe thì tự thay đổi mật khẩu trong file .env cho phù hợp.
-> - postgres nếu chạy backend trong docker-compose. Khi này chỉ cần docker-compose up là mọi thứ tự chạy, không cần cd app/backend, cd app/frontend, yarn start nữa.
-
- 
-
-# For frontend Dev
-
-See the API specifications in the this [docs](app/backend/testAPI.http) folder to understand how to use the API. Install REST Client extension in your VSCode to run this file.
-
-# Run the project
-
-Make sure you have **Node.js**, **Yarn** and **Docker** installed on your machine.
-
-1. Create a `.env` file under the root directory, see the content inside the `.env.example` file. You can copy the content from `.env.example` to `.env` and change the values accordingly.
-
-2. Initialize the database by running docker-compose. This will create a PostgreSQL database and a pgAdmin instance:
-
-    ```bash
-    docker-compose up -d # -d is for detached mode, incase the database is not running, remove -d to see the logs
-    # docker-compose down # to stop the database
-    ```
-
-    All related configurations like databse name, user, password, running port, etc. are definied by you in the `.env` file created in step 1. In case you do not change anything, you can now access the PgAdmin instance at `http://localhost:5050`, then setup PgAdmin to manage the Postgres database with GUI, see [setupInstruction](docs\setupInstructions\setupDatabase.md) for more detail.
-
-3. Navigate to the backend directory and run the following command:
-
-    ```bash
-    cd app/backend
-    yarn install # to install the dependencies
-    yarn start # to start the server
-    ```
-4. Test the backend API by sending requests to the endpoints. You can use Postman or any other API testing tool. See [API specifications](docs\setupInstructions\setupPostmanRequests.md) for more detail.
-
-# Dependencies
-
-In this proejct, I use **Yarn** to manage dependencies. Some of the dependencies are:
-
-- **Express**: to build RestFul API
-- **dotenv**: to load environment variables
-- **pg**: to connect to PostgreSQL database and do query
-- **cors**: to enable CORS
-- **joi**: schema validation, any request come to our controller will be validated by joi first
-- **bcrypt**: to hash password
-- **jsonwebtoken**: to create and verify JWT tokens
-
-*CORS (Cross-Origin Resource Sharing) is a security feature implemented by web browsers to control how resources on a web page can be requested from another domain outside the domain from which the resource originated. The purpose of using CORS is to allow or restrict web applications running at one origin (domain) to access resources from a different origin. This is important for enabling secure cross-origin requests and data sharing between different domains.*
-
 
 # Folder structure
 
@@ -659,3 +610,8 @@ This project is maintained by: Chu Trung Anh - [Email](mailto:chutrunganh04@gmai
 Feel free to contact me if you have any question or suggestion.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+```javascript
+
+```
