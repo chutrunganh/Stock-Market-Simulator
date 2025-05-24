@@ -1,0 +1,176 @@
+/* app/frontend/src/components/RegisterForm.css */
+.register-form {
+    background-color: #121314; /* Màu nền đen */
+    color: #f0b90b; /* Màu chữ vàng */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: none; /* Consistent with LoginForm */
+    border: none; /* Xóa viền trắng */
+    opacity: 0; /* Bắt đầu với độ mờ 0 */
+    transform: translateY(-20px); /* Bắt đầu từ vị trí cao hơn */
+    animation: fadeIn 0.5s forwards; /* Thêm animation */
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1; /* Kết thúc với độ mờ 1 */
+        transform: translateY(0); /* Kết thúc ở vị trí ban đầu */
+    }
+}
+
+.register-form h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: none; /* Xóa viền trắng */
+    border-radius: 4px;
+    background-color: #202127; /* Màu nền input */
+    color: #f0b90b; /* Màu chữ input */
+}
+
+.password-input {
+    position: relative;
+}
+
+.password-input input {
+    width: 100%;
+    padding-right: 40px; /* Chừa khoảng trống cho biểu tượng mắt */
+}
+
+/* Style cho password wrapper */
+.password-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+/* Style cho toggle-password */
+.toggle-password {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #f0b90b;
+    font-size: 16px;
+    background: none;
+    border: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    z-index: 2;
+}
+
+/* Styles for form actions container */
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    gap: 10px;
+}
+
+/* Styles for submit button */
+.submit-btn {
+    background-color: #f0b90b; /* Nút màu vàng */
+    color: #121314; /* Chữ màu đen */
+    border: none;
+    padding: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    flex: 1;
+}
+
+.submit-btn:hover {
+    background-color: #ffd700; /* Màu vàng sáng hơn khi hover */
+}
+
+/* Styles for cancel button */
+.cancel-btn {
+    background-color: transparent; /* Nền trong suốt */
+    color: #f0b90b; /* Màu chữ vàng */
+    border: 1px solid #f0b90b;
+    border-radius: 4px;
+    padding: 10px;
+    cursor: pointer;
+    flex: 1;
+}
+
+.cancel-btn:hover {
+    background-color: rgba(240, 185, 11, 0.1);
+}
+
+/* Styles for error messages */
+.error-message {
+    color: #ff4d4f;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+/* Style for success message */
+.success-message {
+    color: #52c41a;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+/* Spinner and redirect styles */
+.redirect-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.spinner {
+    border: 2px solid rgba(240, 185, 11, 0.3);
+    border-radius: 50%;
+    border-top: 2px solid #f0b90b;
+    width: 16px;
+    height: 16px;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Cập nhật style cho input khi có lỗi */
+.form-group input.error {
+    border: 1px solid #ff4d4f;
+    background-color: rgba(255, 77, 79, 0.05);
+}
+
+.password-requirements {
+  margin-top: 8px;
+  font-size: 0.9em;
+}
+
+.requirement {
+  color: #666;
+  margin: 4px 0;
+  transition: color 0.3s ease;
+}
+
+.requirement-met {
+  color: #2ecc71;
+  margin: 4px 0;
+  transition: color 0.3s ease;
+}
