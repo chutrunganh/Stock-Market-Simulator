@@ -8,7 +8,7 @@ const perlinInstance = createNoise2D();
 const SERVER_URL = 'http://localhost:3000/api/orders';
 const ADMIN_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwidXNlcm5hbWUiOiJjaHV0cnVuZzIxMCIsImVtYWlsIjoiY2h1dHJ1bmcyMTBAZ21haWwuY29tIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3NDczMjU0NjEsImV4cCI6MTc0NzQxMTg2MX0.UKq_L90pERYYJOiqzp7BX3bLubOa5PdyQmdP9djBHzY'; //replace with admin token when signed up
 const INTERVAL_MS = 5000; //one order every 5 sec = one cycle
-const ORDERS_PER_CYCLE = 1; //num of orders per cycle 
+const ORDERS_PER_CYCLE = 10; //num of orders per cycle 
 const BASE_TREND = 'neutral'; // 'buy-dominant', 'sell-dominant', 'neutral'
 const DEFAULT_BUY_RATIO = 0.6; 
 let perlinTime = 0;
