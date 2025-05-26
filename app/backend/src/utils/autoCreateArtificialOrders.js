@@ -207,7 +207,6 @@ const generateArtificialOrder = (
         let perlinPriceInfluence = 0.995 + (noiseValForPriceMod * 0.01);
         orderParameters.priceModifier *= perlinPriceInfluence; // Apply multiplicatively
     }
-    // --- End Perlin Noise for priceModifier ---
     
     // Always reset to default buy ratio before applying event effects
     orderParameters.buyRatio = DEFAULT_BUY_RATIO;
@@ -260,9 +259,6 @@ const generateArtificialOrder = (
     modifiedPrice = Math.max(floorPrice, Math.min(ceilPrice, modifiedPrice)); //
     
     let orderType;
-    // Slump condition check:
-    // The original code had 'orderType' in the condition before it was defined.
-    // We'll determine a preliminary order direction based on buyRatio for this check.
     const isLikelySellForSlumpCheck = Math.random() >= orderParameters.buyRatio;
 
     if (isLikelySellForSlumpCheck && stockRecoveryData?.count >= 3 && !recoveryMode) { //
@@ -273,7 +269,7 @@ const generateArtificialOrder = (
     modifiedPrice = parseFloat(modifiedPrice.toFixed(2)); //
     
     const marketChance = 0.2; // 20% market orders
-    const randOrderCategory = Math.random(); //
+    const randOrderCategory = Math.random(); 
 
     if (randOrderCategory < marketChance) { // It's a Market Order
         // Market orders still influenced by the dynamic buyRatio
@@ -285,12 +281,12 @@ const generateArtificialOrder = (
     
     const order = {
         stockId: stockForOrder.stock_id,
-        quantity, //
+        quantity, 
         price: orderType.includes('Limit') ? modifiedPrice : undefined, //
-        orderType //
+        orderType 
     };
 
-    return order; //
+    return order; 
 };
 
 const sendArtificialOrder = async (order) => {
@@ -312,7 +308,6 @@ const sendArtificialOrder = async (order) => {
     }
 };
 
-// Main function
 // Main function
 const startCreatingArtificialOrders = async () => {
     const allFetchedStocks = await getAvailableStocksAndPrices(); // Renamed for clarity
