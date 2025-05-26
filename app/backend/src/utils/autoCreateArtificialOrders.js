@@ -6,7 +6,7 @@ import {createNoise2D} from 'simplex-noise';
 const perlinInstance = createNoise2D();
 // Constants
 const SERVER_URL = 'http://localhost:3000/api';
-const ADMIN_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImEwN2ExYjg3LTM5ODgtNDU5ZS1hYzkxLTMxNjVlM2FkYjRlMCIsInVzZXJuYW1lIjoiYWRtaW4iLCJlbWFpbCI6ImFkbWluQHN0b2NrbWFya2V0LmNvbSIsInJvbGUiOiJhZG1pbiIsInR5cGUiOiJhY2Nlc3MiLCJsb2dpbl9hdCI6MTc0ODEwMTg0NzEyMSwiaWF0IjoxNzQ4MTAxODQ3LCJleHAiOjE3NDgxMDM5NDd9.hSRaUC-iyQ74tgo1stlXyb4Pp82nW-zQKO2eXqBVBE0'; // Replace with your actual JWT token
+const ADMIN_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFjMjU5NWIxLTljNmMtNGQ4Yi1hMWQzLWVhZGUwMGIzZDgzNiIsInVzZXJuYW1lIjoiYWRtaW4iLCJlbWFpbCI6ImFkbWluQHN0b2NrbWFya2V0LmNvbSIsInJvbGUiOiJhZG1pbiIsInR5cGUiOiJhY2Nlc3MiLCJsb2dpbl9hdCI6MTc0ODI1NzE3MTUwOSwiaWF0IjoxNzQ4MjU3MTcxLCJleHAiOjE3NDgyNTkyNzF9.Nonoc_m4gco46r143afvo9F4NN5pJ9n5mDU0lF9-ii8'; // Replace with your actual JWT token
 const INTERVAL_MS = 5000; //one order every 5 sec = one cycle
 const ORDERS_PER_CYCLE = 100; //num of orders per cycle 
 const BASE_TREND = 'neutral'; // 'buy-dominant', 'sell-dominant', 'neutral'
