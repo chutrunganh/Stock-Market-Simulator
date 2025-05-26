@@ -1,101 +1,105 @@
 import React, { useState } from 'react';
-import Modal from '../../components/Modal';
 import './Tutorial.css';
+import Modal from '../../components/Modal'; // Import Modal
 
 function Tutorial() {
     const [modalOpen, setModalOpen] = useState(false);
     const [modalContent, setModalContent] = useState({
         title: '',
-        content: ''
+        content: null
     });
+
+    const handleStrategyClick = (strategy) => {
+        setModalContent(strategies[strategy]);
+        setModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setModalOpen(false);
+    };
 
     const strategies = {
         market: {
-            title: "Market Orders - Lệnh thị trường",
+            title: "Market Orders",
             content: (
-                <div className="order-content">
+                <div className="strategy-modal-content">
                     <section className="order-section">
-                        <h3>Định nghĩa</h3>
-                        <p>Market Order là lệnh giao dịch được thực hiện ngay lập tức với mức giá tốt nhất hiện có trên thị trường.</p>
+                        <h3>Definition</h3>
+                        <p>A Market Order is a trade order that is executed immediately at the best available price in the market.</p>
                     </section>
                     <section className="order-section">
-                        <h3>Đặc điểm</h3>
+                        <h3>Characteristics</h3>
                         <ul>
-                            <li>Thực hiện ngay lập tức</li>
-                            <li>Ưu tiên tốc độ thực hiện</li>
-                            <li>Không đảm bảo mức giá cụ thể</li>
+                            <li>Executed immediately</li>
+                            <li>Prioritizes speed of execution</li>
+                            <li>Does not guarantee a specific price</li>
                         </ul>
                     </section>
                     <section className="order-section">
-                        <h3>Khi nào sử dụng</h3>
+                        <h3>When to Use</h3>
                         <ul>
-                            <li>Muốn thực hiện giao dịch ngay lập tức</li>
-                            <li>Cổ phiếu có tính thanh khoản cao</li>
-                            <li>Thị trường ổn định</li>
+                            <li>When you want to execute a trade immediately</li>
+                            <li>For stocks with high liquidity</li>
+                            <li>In a stable market</li>
                         </ul>
                     </section>
                 </div>
             )
         },
         limit: {
-            title: "Limit Orders - Lệnh giới hạn",
+            title: "Limit Orders",
             content: (
-                <div className="order-content">
+                <div className="strategy-modal-content">
                     <section className="order-section">
-                        <h3>Định nghĩa</h3>
-                        <p>Limit Order là lệnh đặt mua hoặc bán với một mức giá cụ thể do nhà đầu tư xác định.</p>
+                        <h3>Definition</h3>
+                        <p>A Limit Order is an order to buy or sell at a specific price set by the investor.</p>
                     </section>
                     <section className="order-section">
-                        <h3>Đặc điểm</h3>
+                        <h3>Characteristics</h3>
                         <ul>
-                            <li>Kiểm soát được giá giao dịch</li>
-                            <li>Có thể không được thực hiện ngay</li>
-                            <li>Bảo vệ nhà đầu tư khỏi biến động giá</li>
+                            <li>Allows control over the trading price</li>
+                            <li>May not be executed immediately</li>
+                            <li>Protects investors from price fluctuations</li>
                         </ul>
                     </section>
                     <section className="order-section">
-                        <h3>Khi nào sử dụng</h3>
+                        <h3>When to Use</h3>
                         <ul>
-                            <li>Muốn kiểm soát giá mua/bán</li>
-                            <li>Thị trường biến động mạnh</li>
-                            <li>Có chiến lược giá cụ thể</li>
+                            <li>When you want to control the buy/sell price</li>
+                            <li>In a volatile market</li>
+                            <li>When you have a specific price strategy</li>
                         </ul>
                     </section>
                 </div>
             )
         },
         portfolio: {
-            title: "Portfolio Management - Quản lý danh mục",
+            title: "Portfolio Management",
             content: (
-                <div className="order-content">
+                <div className="strategy-modal-content">
                     <section className="order-section">
-                        <h3>Định nghĩa</h3>
-                        <p>Portfolio Management là chiến lược quản lý và phân bổ vốn đầu tư vào nhiều loại cổ phiếu khác nhau.</p>
+                        <h3>Definition</h3>
+                        <p>Portfolio Management is the strategy of managing and allocating investment capital across various stocks.</p>
                     </section>
                     <section className="order-section">
-                        <h3>Nguyên tắc cơ bản</h3>
+                        <h3>Basic Principles</h3>
                         <ul>
-                            <li>Đa dạng hóa danh mục đầu tư</li>
-                            <li>Phân bổ tài sản hợp lý</li>
-                            <li>Cân bằng rủi ro và lợi nhuận</li>
+                            <li>Diversify your investment portfolio</li>
+                            <li>Allocate assets reasonably</li>
+                            <li>Balance risk and return</li>
                         </ul>
                     </section>
                     <section className="order-section">
-                        <h3>Lợi ích</h3>
+                        <h3>Benefits</h3>
                         <ul>
-                            <li>Giảm thiểu rủi ro</li>
-                            <li>Tối ưu hóa lợi nhuận</li>
-                            <li>Quản lý hiệu quả dòng tiền</li>
+                            <li>Minimize risk</li>
+                            <li>Optimize profits</li>
+                            <li>Effectively manage cash flow</li>
                         </ul>
                     </section>
                 </div>
             )
         }
-    };
-
-    const handleStrategyClick = (strategyType) => {
-        setModalContent(strategies[strategyType]);
-        setModalOpen(true);
     };
 
     return (
@@ -160,7 +164,7 @@ function Tutorial() {
                 <section className="tutorial-section">
                     <h2>3. Trading Strategies</h2>
                     <div className="strategy-grid">
-                        <div 
+                        <div
                             className="strategy-card clickable"
                             onClick={() => handleStrategyClick('market')}
                         >
@@ -170,7 +174,7 @@ function Tutorial() {
                             <span className="learn-more">Learn more →</span>
                         </div>
 
-                        <div 
+                        <div
                             className="strategy-card clickable"
                             onClick={() => handleStrategyClick('limit')}
                         >
@@ -180,7 +184,7 @@ function Tutorial() {
                             <span className="learn-more">Learn more →</span>
                         </div>
 
-                        <div 
+                        <div
                             className="strategy-card clickable"
                             onClick={() => handleStrategyClick('portfolio')}
                         >
@@ -192,21 +196,9 @@ function Tutorial() {
                     </div>
                 </section>
 
-                <Modal 
-                    isOpen={modalOpen} 
-                    onClose={() => setModalOpen(false)}
-                    className="large"
-                >
-                    <div className="modal-header">
-                        <h2>{modalContent.title}</h2>
-                        <button 
-                            className="close-button"
-                            onClick={() => setModalOpen(false)}
-                        >×</button>
-                    </div>
-                    <div className="modal-body">
-                        {modalContent.content}
-                    </div>
+                <Modal isOpen={modalOpen} onClose={handleCloseModal}>
+                    <h2>{modalContent.title}</h2>
+                    {modalContent.content}
                 </Modal>
             </div>
         </div>

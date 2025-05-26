@@ -1,0 +1,91 @@
+/* Banner styles */
+.side-banner {
+  position: absolute;
+  width: 180px;
+  height: 800px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(18, 19, 20, 0.95);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  z-index: 999;
+  margin-top: 80px;
+  margin-bottom: 80px;
+  overflow: hidden;
+  border-radius: 24px;
+  transition: all 0.3s ease-in-out;
+  cursor: pointer;
+}
+
+.banner-scroll-container {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.banner-image-wrapper {
+  display: flex;
+  position: absolute;
+  width: 200%;
+  height: 100%;
+  animation: slideShow 20s linear infinite;
+}
+
+.banner-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+@keyframes slideShow {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Learn More button */
+.learn-more {
+  position: absolute;
+  bottom: 20px;
+  width: 120px;
+  padding: 8px 0;
+  background: #f0b90b;
+  color: #121314;
+  text-align: center;
+  border-radius: 20px;
+  font-weight: 600;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.3s ease;
+}
+
+.side-banner:hover .learn-more {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Hover effects */
+.side-banner:hover {
+  box-shadow: 0 0 20px rgba(240, 185, 11, 0.5);
+}
+
+.banner-scroll-container:hover .banner-image-wrapper {
+  animation-play-state: paused;
+}
+
+/* Positions */
+.side-banner.left {
+  left: 24px;
+}
+
+.side-banner.right {
+  right: 24px;
+}
+
+/* Responsive */
+@media (max-width: 1400px) {
+  .side-banner {
+    display: none;
+  }
+}

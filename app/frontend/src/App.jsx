@@ -11,6 +11,7 @@ import AnnouncementBanner from './components/header/AnnouncementBanner';
 import Modal from './components/Modal';
 import Footer from './components/footer/Footer';
 import RoleProtectedRoute from './components/RoleProtectedRoute';
+import SideBanner from './components/SideBanner';
 
 // Pages
 import Home from './pages/Home/Home';
@@ -39,6 +40,7 @@ function App() {
     const { user, isAuthenticated, logout, login } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
+    const showSideBanner = location.pathname === '/' || location.pathname === '/home';
       // Debug log for authentication state
     console.log('App render - Auth state:', { user, isAuthenticated });
       // Effect to respond to auth state changes
@@ -175,7 +177,8 @@ function App() {
 
     return (
         <TradingSessionProvider>
-            <div className="App">                <Header 
+            <div className="App">
+                <Header 
                     onLoginClick={handleOpenLoginModal} 
                     isLoggedIn={isAuthenticated}
                     userEmail={user?.username || user?.email}
@@ -185,6 +188,14 @@ function App() {
                     }}
                 />
                 <AnnouncementBanner />
+                
+                {/* Render cả 2 banner */}
+                {showSideBanner && (
+                    <>
+                        <SideBanner position="left" />
+                        <SideBanner position="right" />
+                    </>
+                )}
                 
                 {/* Authentication Modals */}
                 <Modal isOpen={showLoginModal} onClose={handleCloseAllModals}>

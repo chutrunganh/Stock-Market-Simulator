@@ -121,6 +121,11 @@
     padding: 1.5rem;
     text-align: center;
     transition: transform 0.3s ease;
+    height: auto; /* Loại bỏ chiều cao cố định */
+    overflow: hidden; /* Ẩn phần ảnh vượt quá */
+    display: flex; /* Sử dụng flexbox */
+    flex-direction: column; /* Sắp xếp theo chiều dọc */
+    justify-content: space-between; /* Đẩy nội dung và Learn more ra xa nhau */
 }
 
 .strategy-card:hover {
@@ -130,11 +135,14 @@
 .strategy-icon {
     font-size: 2.5rem;
     margin-bottom: 1rem;
+    height: auto; /* Loại bỏ chiều cao cố định */
+    object-fit: contain; /* Hiển thị toàn bộ ảnh */
 }
 
 .strategy-card h3 {
     color: #f0b90b;
     margin-bottom: 1rem;
+    font-size: 1.3rem;
 }
 
 /* Strategy Card Clickable Styles */
@@ -145,18 +153,26 @@
 }
 
 .strategy-card.clickable .learn-more {
-    color: #f0a400;
-    font-size: 0.9rem;
-    opacity: 0;
-    transform: translateX(-10px);
-    transition: all 0.3s ease;
-    display: inline-block;
-    margin-top: 1rem;
+    color: #121314; /* Chữ màu đen */
+    font-size: 1rem;
+    opacity: 0; /* Ẩn ban đầu */
+    position: absolute;
+    bottom: 0px; 
+    left: 50%; /* Căn giữa theo chiều ngang */
+    transform: translateX(-50%); /* Dịch chuyển để căn giữa chính xác */
+    transition: opacity 0.3s ease, transform 0.3s ease; /* Hiệu ứng mờ dần */
+    background-color: #f0b90b; /* Nền vàng */
+    padding: 8px 16px; /* Thêm padding */
+    border-radius: 20px; /* Bo tròn góc */
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Thêm bóng */
+    cursor: pointer;
 }
 
 .strategy-card.clickable:hover .learn-more {
-    opacity: 1;
-    transform: translateX(0);
+    opacity: 1; /* Hiển thị khi hover */
+    transform: translateX(-50%) translateY(-5px); /* Hiệu ứng di chuyển nhẹ */
 }
 
 .strategy-card.clickable::after {
@@ -357,7 +373,7 @@
 }
 
 .order-section {
-    margin-bottom: 2rem;
+    margin-bottom: 15px;
 }
 
 .order-section:last-child {
@@ -366,10 +382,9 @@
 
 .order-section h3 {
     color: #f0b90b;
-    font-size: 1.3rem;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid rgba(240, 169, 0, 0.2);
+    border-bottom: 1px solid rgba(240, 185, 11, 0.3);
+    padding-bottom: 5px;
+    margin-bottom: 10px;
 }
 
 .order-section p {
@@ -378,22 +393,56 @@
 }
 
 .order-section ul {
-    list-style: none;
-    padding: 0;
+    list-style: disc;
+    padding-left: 20px;
 }
 
 .order-section li {
-    margin-bottom: 0.8rem;
-    padding-left: 1.5rem;
-    position: relative;
-    line-height: 1.6;
+    color: #fff;
+    margin-bottom: 5px;
 }
 
-.order-section li::before {
-    content: "•";
+/* Modal Styles */
+.modal.large .modal-content {
+    max-width: 800px; /* Increased max-width for larger content */
+}
+
+.strategy-modal-content {
+    padding: 20px;
+    background: rgba(18, 19, 20, 0.95); /* Dark background */
+    border-radius: 10px;
+    color: #f0b90b; /* Gold text */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.3s ease-out forwards; /* Fade-in animation */
+}
+
+.strategy-modal-content h3 {
     color: #f0b90b;
-    position: absolute;
-    left: 0;
+    border-bottom: 1px solid rgba(240, 185, 11, 0.3);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.strategy-modal-content ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.strategy-modal-content li {
+    padding: 8px 0;
+    border-bottom: 1px dashed rgba(240, 185, 11, 0.2);
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Responsive Design */
