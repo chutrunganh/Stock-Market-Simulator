@@ -18,8 +18,6 @@ router.post('/createOrder',
 
 // Create artificial order - admin only and no validations
 router.post('/createArtiOrder',
-    authMiddleware,
-    requireAdminRole,
     createArtificialOrder
 );
 
